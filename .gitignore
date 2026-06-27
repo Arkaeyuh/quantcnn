@@ -1,0 +1,11 @@
+.venv/
+
+__pycache__/
+*.pyc
+runs/
+MNIST/
+CIFAR10/
+.ipynb_checkpoints/
+*.pt
+*.pth
+.DS_Store
