@@ -5,6 +5,7 @@ __pycache__/
 runs/
 MNIST/
 CIFAR10/
+data/
 .ipynb_checkpoints/
 *.pt
 *.pth

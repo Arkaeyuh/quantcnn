@@ -33,6 +33,18 @@ def best_val_acc(csv_path: Path) -> float | None:
         return None
 
 
+def detect_dataset(log_dir: Path) -> str:
+    """Return the dataset name from the first meta.json found, or 'mnist' as fallback."""
+    for mv in sorted(log_dir.rglob("meta.json")):
+        try:
+            cfg = json.loads(mv.read_text(encoding="utf-8"))
+            if "dataset" in cfg:
+                return cfg["dataset"]
+        except Exception:
+            continue
+    return "mnist"
+
+
 def collect(log_dir: Path) -> dict[tuple, list[float]]:
     """Key: (subset_size, series_label) -> val accs across seeds."""
     groups: dict[tuple, list[float]] = defaultdict(list)
@@ -60,7 +72,7 @@ def collect(log_dir: Path) -> dict[tuple, list[float]]:
     return dict(groups)
 
 
-def plot_curves(series_map: dict[tuple, list[float]], out_png: Path) -> None:
+def plot_curves(series_map: dict[tuple, list[float]], out_png: Path, title: str | None = None) -> None:
     subsets = sorted({k[0] for k in series_map.keys() if isinstance(k[0], int)})
     if not subsets:
         raise SystemExit("No integer subset sizes parsed; verify logs include meta.json & metrics.")
@@ -87,7 +99,7 @@ def plot_curves(series_map: dict[tuple, list[float]], out_png: Path) -> None:
 
     plt.xlabel("Stratified training subset size")
     plt.ylabel("Best validation accuracy (mean ± std over seeds)")
-    plt.title("Hybrid quantum–classical MNIST sweeps")
+    plt.title(title or "Hybrid quantum–classical sweeps")
     plt.grid(True, alpha=0.3)
     plt.legend(fontsize=8)
     out_png.parent.mkdir(parents=True, exist_ok=True)
@@ -105,12 +117,15 @@ def main():
         default=None,
         help="Output figure path. Default <log_dir>/accuracy_vs_subset.png",
     )
+    ap.add_argument("--title", default=None, help="Plot title override.")
     args = ap.parse_args()
     out = args.out_png or (args.log_dir / "accuracy_vs_subset.png")
     data = collect(args.log_dir)
     if not data:
         raise SystemExit(f"No metrics found under {args.log_dir}")
-    plot_curves(data, out)
+    dataset = detect_dataset(args.log_dir)
+    title = args.title or f"Hybrid quantum–classical {dataset.upper()} sweeps"
+    plot_curves(data, out, title=title)
     print(f"Wrote {out}")
 
 

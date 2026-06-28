@@ -18,6 +18,7 @@ from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 
+from quantcnn.data import get_cifar10, get_mnist
 from scripts.train import build_out_dir_slug, default_train_args, run_training
 
 
@@ -40,7 +41,15 @@ def parse_sweep_argv() -> argparse.Namespace:
     sp.add_argument("--lr", type=float, default=1e-3)
     sp.add_argument("--lr_backbone_multiplier", type=float, default=0.5)
     sp.add_argument("--gradient_clip_norm", type=float, default=1.0)
+    sp.add_argument(
+        "--subsets",
+        type=int,
+        nargs="+",
+        default=None,
+        help="Training subset sizes to sweep. Default: 250 500 1000.",
+    )
     sp.add_argument("--data_root", default="./data")
+    sp.add_argument("--dataset", choices=["mnist", "cifar10"], default="mnist")
     sp.add_argument("--lr_scheduler", choices=["cosine", "none"], default="cosine")
     sp.add_argument(
         "--n_workers",
@@ -68,7 +77,7 @@ def _build_run_args(swe: argparse.Namespace, root: Path, epochs: int, subsets: l
     all_args = []
     for item in grid:
         args = deepcopy(default_train_args())
-        args.dataset = "mnist"
+        args.dataset = swe.dataset
         args.epochs = epochs
         args.batch_size = swe.batch_size
         args.bottleneck_dim = swe.bottleneck_dim
@@ -100,6 +109,14 @@ def _build_run_args(swe: argparse.Namespace, root: Path, epochs: int, subsets: l
     return all_args
 
 
+def _prefetch_dataset(dataset: str, data_root: str) -> None:
+    """Download dataset in the main process so workers don't race the download."""
+    if dataset == "cifar10":
+        get_cifar10(None, seed=0, data_root=data_root)
+    else:
+        get_mnist(None, seed=0, data_root=data_root)
+
+
 def main():
     swe = parse_sweep_argv()
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -110,10 +127,11 @@ def main():
         seeds = [0]
         epochs = min(6, max(3, swe.epochs))
     else:
-        subsets = [250, 500, 1000]
+        subsets = sorted(swe.subsets) if swe.subsets else [250, 500, 1000]
         seeds = [0, 1, 2]
         epochs = swe.epochs
 
+    _prefetch_dataset(swe.dataset, swe.data_root)
     all_args = _build_run_args(swe, root, epochs, subsets, seeds)
 
     n_workers = swe.n_workers if swe.n_workers != 0 else (os.cpu_count() or 1)
