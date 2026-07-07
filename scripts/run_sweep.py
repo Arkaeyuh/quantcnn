@@ -40,6 +40,7 @@ def parse_sweep_argv() -> argparse.Namespace:
     sp.add_argument("--n_var_layers", type=int, default=4)
     sp.add_argument("--lr", type=float, default=1e-3)
     sp.add_argument("--lr_backbone_multiplier", type=float, default=0.5)
+    sp.add_argument("--weight_decay", type=float, default=1e-4)
     sp.add_argument("--gradient_clip_norm", type=float, default=1.0)
     sp.add_argument(
         "--subsets",
@@ -84,6 +85,7 @@ def _build_run_args(swe: argparse.Namespace, root: Path, epochs: int, subsets: l
         args.n_var_layers = swe.n_var_layers
         args.lr = swe.lr
         args.lr_backbone_multiplier = swe.lr_backbone_multiplier
+        args.weight_decay = swe.weight_decay
         args.gradient_clip_norm = swe.gradient_clip_norm
         args.data_root = swe.data_root
         args.full_train_set = False
