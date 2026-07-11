@@ -1,0 +1,404 @@
+\documentclass[10pt]{article}
+
+% Workshop-preprint formatting (self-contained, no venue style file required).
+% To submit, swap the preamble for the venue's official style (e.g. neurips_2026.sty
+% with the workshop option) — the body is written to drop in unchanged.
+\usepackage[margin=1in]{geometry}
+\usepackage{newtxtext,newtxmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{braket}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+
+\title{\bf When Does a Variational Quantum Classifier Head Help?\\
+\large An Empirical Comparison Against Capacity-Matched Classical Heads\\
+on MNIST and CIFAR-10}
+
+\author{%
+  Alexander Greene\\
+  \texttt{alexanderngreene@gmail.com}\\
+}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Hybrid quantum--classical models, in which a classical neural network feeds a
+variational quantum circuit (VQC), are a leading candidate architecture for
+near-term quantum machine learning. Yet controlled comparisons against
+classical baselines of comparable parameter count remain scarce, and results
+on datasets beyond MNIST are rarer still. We train a shared convolutional
+backbone with three interchangeable classifier heads, namely a linear layer, a
+near-parameter-matched multilayer perceptron (MLP), and an 8-qubit VQC, on
+stratified low-data subsets of MNIST and CIFAR-10, with three random seeds per
+configuration. On MNIST, the VQC head outperforms the near-matched MLP at
+every training-set size, by roughly 7--18 percentage points, and trails a
+smaller linear reference head by only 6--8 points. On CIFAR-10 the ordering
+inverts: the VQC falls behind both classical heads at every training-set size;
+the deficit narrows as data is added but remains large. Notably, the VQC never
+outperforms the simple linear head in any condition. Data re-uploading
+degrades accuracy in every configuration tested, with the strongest
+re-uploading schedule driving the circuit into underfitting
+(train--validation gap ${<}1$ point). Our results suggest that the dominant
+constraint as image complexity grows is not primarily optimization difficulty
+but the fixed rotation-angle encoding applied to a narrow bottleneck: the
+quantum head is competitive precisely when the bottleneck embedding is already
+nearly linearly separable.
+\end{abstract}
+
+\section{Introduction}
+
+Variational quantum circuits (VQCs) trained by gradient descent are the
+workhorse of near-term quantum machine learning
+\citep{benedetti2019parameterized, cerezo2021variational}. In image
+classification, the dominant hybrid pattern delegates feature extraction to a
+classical convolutional network and classification to a small quantum circuit
+\citep{mitarai2018quantum, havlicek2019supervised}. Reported successes,
+however, are difficult to interpret: quantum heads are frequently compared
+against classical baselines with different parameter budgets, different
+backbones, or no controlled seed replication, and evaluation is concentrated
+on MNIST, whose features are nearly linearly separable after even shallow
+convolutional processing.
+
+This paper asks a narrow question with a controlled experiment: \emph{holding
+the backbone, the bottleneck dimension, and the optimizer fixed, and matching
+the head parameter count as closely as the architectures allow, when does
+replacing a classical classifier head with a VQC help, and when does it
+hurt?} We contribute:
+
+\begin{enumerate}
+  \item A controlled comparison of linear, near-parameter-matched MLP, and VQC
+        heads on a shared CNN backbone, across three low-data regimes on both
+        MNIST and CIFAR-10. In total we report 90 training runs: 2 datasets
+        $\times$ 3 training-set sizes $\times$ 5 head configurations (linear,
+        MLP, and quantum with three re-uploading schedules) $\times$ 3 seeds.
+  \item Evidence that the VQC head's relative standing depends strongly on
+        dataset complexity: it beats the near-matched MLP on MNIST at every
+        training-set size, loses to it on CIFAR-10 at every training-set
+        size, and never outperforms a smaller linear head on either dataset.
+  \item An ablation of data re-uploading \citep{perez2020data} showing that,
+        in this bottlenecked hybrid setting, every re-uploading schedule
+        tested reduces accuracy, and the most aggressive schedule induces
+        underfitting rather than overfitting.
+\end{enumerate}
+
+\section{Architecture and Methods}
+\label{sec:methods}
+
+\paragraph{Shared backbone.}
+All heads consume the same embedding: a CNN backbone ends in global average
+pooling followed by a linear projection to a $d=8$ dimensional bottleneck. For
+MNIST the backbone has three convolutional blocks (32--64--128 channels,
+${\sim}94$K parameters); for CIFAR-10, four blocks (64--128--256--256
+channels, ${\sim}0.96$M parameters). The backbone is trained jointly with the
+head in every run; gradients flow through the quantum circuit into the
+convolutional layers.
+
+\paragraph{Quantum head.}
+The bottleneck vector $\mathbf{x} \in \mathbb{R}^8$ is encoded into an 8-qubit
+circuit by single-qubit rotations $R_y\!\left(\pi \tanh x_i\right)$ on qubit
+$i$. The variational block repeats $L=4$ layers, each applying learned
+$R_y(\theta)\,R_z(\phi)$ rotations per qubit followed by a ring of CNOT
+entanglers. The circuit outputs $\braket{Z_i}$ for each qubit, and a final
+classical linear layer maps the 8 expectation values to 10 class logits. The
+head totals 154 trainable parameters: $8 \times 2 \times 4 = 64$ rotation
+angles plus $8 \times 10 + 10 = 90$ readout weights. Rotation angles are
+initialized from $\mathcal{U}(-0.1, 0.1)$, keeping the initial state close to
+$\ket{0}^{\otimes 8}$ where gradients are well-conditioned; we found
+uncontrolled initialization to be a dominant source of seed variance.
+Circuits are simulated with PennyLane's \texttt{lightning.qubit} statevector
+backend using adjoint differentiation \citep{bergholm2018pennylane}.
+
+\paragraph{Data re-uploading.}
+We test three encoding schedules. \textsc{none} encodes $\mathbf{x}$ once,
+before the first variational layer. \textsc{light} additionally re-encodes a
+rescaled copy ($0.5\mathbf{x}$) midway through the variational block.
+\textsc{strong} places one full encoding of $\mathbf{x}$ immediately before
+\emph{each} of the $L=4$ variational layers (the first of these serves as the
+initial encoding; there is no separate extra encoding), following
+P\'{e}rez-Salinas et al.~\citep{perez2020data}.
+
+\paragraph{Classical baselines.}
+The \emph{linear} head is a single dense layer (90 parameters). The \emph{MLP}
+head is $8 \to 8 \to 10$: one hidden layer of width 8 with ReLU activation, no
+dropout or normalization, PyTorch-default (Kaiming-uniform) initialization,
+and the same optimizer and learning rate as every other head (not tuned
+separately). Its 162 total parameters (weights and biases of both layers) are
+the closest the architecture comes to the quantum head's 154; we therefore
+describe the MLP as \emph{near}-parameter-matched rather than equal. The
+linear head is smaller than both and is included as the strongest simple
+reference baseline (a linear probe of the embedding), not as a
+capacity-matched comparison.
+
+\paragraph{Training protocol.}
+All runs use AdamW (head learning rate $10^{-3}$, backbone $5\times10^{-4}$,
+weight decay $10^{-4}$), cosine-annealed to zero over the run, batch size 32,
+and gradient clipping. Training subsets are stratified samples of the full
+training set, preserving class balance. MNIST runs train for 25 epochs with
+clip norm 1.0; CIFAR-10 runs for 80 epochs with clip norm 2.0 and standard
+augmentation (random crop, horizontal flip, rotation, color jitter). Every
+configuration is repeated with seeds $\{0, 1, 2\}$; we report the mean and
+\emph{sample} standard deviation over the three seeds. Per-component gradient
+norms (backbone vs.\ head) are logged every epoch to monitor trainability.
+
+\paragraph{Evaluation caveat.}
+Accuracy is measured on the official 10{,}000-image test split after every
+epoch, and we report the best epoch per run. Because no separate validation
+split was held out of the training data, the test split participates in
+checkpoint selection; we therefore call the metric \emph{test-split accuracy}
+rather than test accuracy, and we quantify the effect directly: mean
+final-epoch accuracy is within 1.3 points of best-epoch accuracy in every one
+of the 30 configurations (within 0.5 points in 26 of them), and no ordering
+among heads changes if final-epoch accuracy is used instead. A
+train/validation/test protocol is planned for a future revision.
+
+\section{Results}
+\label{sec:results}
+
+\begin{table}[t]
+\centering
+\caption{Best test-split accuracy (\%, mean $\pm$ sample std over 3 seeds) on
+stratified MNIST subsets. Bold marks the better of the two
+near-parameter-matched heads (MLP vs.\ quantum).}
+\label{tab:mnist}
+\small
+\begin{tabular}{lccccc}
+\toprule
+& & & \multicolumn{3}{c}{Quantum (re-uploading schedule)} \\
+\cmidrule(lr){4-6}
+Train size & Linear & MLP & \textsc{none} & \textsc{light} & \textsc{strong} \\
+\midrule
+250   & 61.5 $\pm$ 1.7 & 36.7 $\pm$ 5.4 & \textbf{54.5 $\pm$ 3.7} & 48.3 $\pm$ 10.7 & 38.3 $\pm$ 7.4 \\
+500   & 79.3 $\pm$ 2.9 & 53.2 $\pm$ 6.9 & \textbf{71.2 $\pm$ 1.9} & 57.8 $\pm$ 2.5 & 45.6 $\pm$ 6.7 \\
+1{,}000 & 89.6 $\pm$ 0.7 & 76.4 $\pm$ 3.4 & \textbf{83.3 $\pm$ 0.3} & 68.4 $\pm$ 3.5 & 54.6 $\pm$ 14.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Best test-split accuracy (\%, mean $\pm$ sample std over 3 seeds) on
+stratified CIFAR-10 subsets. Bold marks the better near-parameter-matched
+head.}
+\label{tab:cifar}
+\small
+\begin{tabular}{lccccc}
+\toprule
+& & & \multicolumn{3}{c}{Quantum (re-uploading schedule)} \\
+\cmidrule(lr){4-6}
+Train size & Linear & MLP & \textsc{none} & \textsc{light} & \textsc{strong} \\
+\midrule
+1{,}000 & 57.5 $\pm$ 0.8 & \textbf{51.2 $\pm$ 0.8} & 37.1 $\pm$ 2.4 & 34.2 $\pm$ 0.7 & 26.6 $\pm$ 1.9 \\
+2{,}000 & 64.6 $\pm$ 0.7 & \textbf{60.6 $\pm$ 0.9} & 46.8 $\pm$ 5.2 & 42.7 $\pm$ 3.9 & 28.7 $\pm$ 1.9 \\
+4{,}000 & 71.2 $\pm$ 0.5 & \textbf{67.2 $\pm$ 0.4} & 58.9 $\pm$ 4.6 & 52.0 $\pm$ 7.8 & 35.2 $\pm$ 5.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\begin{minipage}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/mnist_accuracy.png}
+\end{minipage}\hfill
+\begin{minipage}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/cifar10_accuracy.png}
+\end{minipage}
+\caption{Best test-split accuracy vs.\ stratified training-set size. Solid
+lines show the mean over 3 seeds; faint dots show individual seeds. Left:
+MNIST. Right: CIFAR-10 (legend shared; note the different vertical scales).
+The quantum head (\textsc{none}) sits between the linear and MLP heads on
+MNIST but below both on CIFAR-10.}
+\label{fig:curves}
+\end{figure}
+
+\paragraph{MNIST: the quantum head beats its near-matched baseline but not a
+linear probe.}
+Table~\ref{tab:mnist} shows the VQC head (\textsc{none}) exceeding the
+162-parameter MLP by 17.8, 18.0, and 6.9 points at 250, 500, and 1{,}000
+training samples respectively, while trailing the 90-parameter linear head by
+a roughly constant 6--8 points. The quantum head is thus the better of the two
+similarly sized nonlinear heads, but it never beats the simplest baseline. At
+1{,}000 samples it is also the most reproducible model in the study (sample
+std 0.3 across seeds). In this regime the 8-dimensional embedding learned by
+the backbone is nearly linearly separable (the linear head reaches 89.6\%),
+and the VQC's fixed angular encoding $R_y(\pi\tanh x_i)$ preserves enough of
+that structure to classify well.
+
+\paragraph{CIFAR-10: the ordering inverts.}
+On CIFAR-10 (Table~\ref{tab:cifar}) the same quantum head loses to the same
+near-matched MLP at every training-set size, by 14.1, 13.8, and 8.3 points.
+Against the linear head the deficit is 20.4 points at 1{,}000 samples and 12.3
+points at 4{,}000: the quantum head narrows both gaps as data is added but
+remains far behind, whereas on MNIST it was within 8 points of the linear head
+everywhere. Training dynamics rule out simple non-convergence: test-split
+accuracy moved by less than one point over the final ten epochs in all
+CIFAR-10 configurations.
+
+\paragraph{Generalization-gap analysis separates the failure modes.}
+At 4{,}000 CIFAR-10 samples the final-epoch train--test gaps are 10.3
+(linear), 6.9 (MLP), 5.5 (quantum \textsc{none}), and 0.8 points (quantum
+\textsc{strong}). The classical heads overfit; the plain quantum head fits
+moderately; the strong re-uploading circuit \emph{underfits}: its training
+accuracy barely exceeds its test-split accuracy at 35\%. The VQC is not
+memorizing and failing to generalize; it lacks the capacity, under this
+encoding, to fit CIFAR-10's bottleneck features at all. This is consistent
+with viewing the fixed encoding as a severe architectural prior: a Fourier
+feature map of bounded frequency content \citep{schuld2021effect} that MNIST
+embeddings happen to satisfy and CIFAR-10 embeddings do not.
+
+\paragraph{The encoding saturates on CIFAR-10.}
+Direct inspection of trained checkpoints supports the encoding-constraint
+account. Passing the test split through the backbone of a trained
+4{,}000-sample CIFAR-10 quantum run, 16.7\% of bottleneck activations fall in
+the saturated region of the encoding ($|\tanh z| > 0.9$) and 5.0\% are
+essentially pinned ($|\tanh z| > 0.99$); the corresponding MNIST run yields
+4.3\% and 0.0\%. Saturated dimensions receive vanishing gradient through the
+encoding and collapse distinct feature values onto nearly identical rotation
+angles, so the effective resolution of the quantum head degrades exactly on
+the dataset where more resolution is needed.
+
+\paragraph{Data re-uploading hurts monotonically.}
+Across all six dataset/size conditions, accuracy orders strictly as
+\textsc{none} $>$ \textsc{light} $>$ \textsc{strong}. On CIFAR-10 at 2{,}000
+samples the strong schedule costs 18.1 points relative to no re-uploading.
+Re-encoding the input before every layer repeatedly rotates the state back
+toward a data-determined manifold, discarding the entangled representation
+built by earlier variational layers; with only 4 layers and 8 qubits the
+circuit apparently cannot compensate. We note this contrasts with the
+single-qubit and low-dimensional settings where re-uploading provably adds
+expressivity \citep{perez2020data}: expressivity gains at the function-class
+level do not automatically survive joint training through a CNN backbone.
+
+\paragraph{Seed variance as a trainability signal.}
+Classical heads are nearly deterministic across seeds on CIFAR-10 (sample std
+$\leq 0.9$ throughout), while quantum heads vary by up to 7.8 points. With
+initialization already controlled (Section~\ref{sec:methods}), the residual
+variance indicates a rugged optimization landscape with multiple basins,
+which is mild evidence of the trainability pathologies predicted for VQCs
+\citep{mcclean2018barren}, even at a depth and width far below where barren
+plateaus formally set in. Optimization difficulty is therefore present, but it
+is not the dominant effect: even the best seed of the best quantum
+configuration falls well short of the mean linear-head accuracy on CIFAR-10.
+
+\section{Discussion and Limitations}
+
+\paragraph{Interpretation.}
+The two datasets bracket the regime where a small VQC head is useful, and the
+honest summary is conditional: the VQC can outperform a similarly small MLP on
+MNIST, but it never outperforms a simpler linear probe, and on CIFAR-10 it
+underperforms both classical heads. When the backbone can compress the task
+into a nearly linearly separable 8-dimensional embedding (MNIST), the quantum
+head converts its 154 parameters into substantially more accuracy than a
+near-matched MLP; the entangling structure acts as a good inductive bias.
+When the task saturates the bottleneck (CIFAR-10), the fixed rotation encoding
+becomes the binding constraint, and the saturation measurements above show the
+mechanism directly: a classical head can reweight and recombine noisy
+embedding dimensions arbitrarily, while the VQC commits each dimension to a
+rigid geometric role. The practical implication for hybrid design is that the
+quantum head's viability is decided upstream, by whether the classical
+compression stage can deliver an embedding matched to the encoding, not by
+circuit depth or re-uploading schedule.
+
+\paragraph{Limitations and planned experiments.}
+All quantum results are noiseless statevector simulations; hardware noise
+would likely further reduce quantum-head accuracy. The evaluation protocol
+uses the test split for checkpoint selection (Section~\ref{sec:methods}); the
+measured effect is small ($\leq 1.3$ points) but a proper
+train/validation/test split is the correct fix. The backbone is trained
+jointly with each head, so head comparisons include any differences in the
+embedding each head induces; a frozen-backbone experiment, training all heads
+on identical fixed embeddings, is the highest-priority follow-up. Two further
+experiments would sharpen the encoding-constraint claim: a classical
+Fourier-feature baseline (embedding $\to$ $\sin/\cos$ features $\to$ linear
+readout) to test whether the VQC's behavior is explained by its encoding
+rather than anything quantum-specific, and encoding ablations (learned scale
+before $\tanh$, clipped angles, normalized embeddings) to test whether
+relieving saturation closes the CIFAR-10 gap. We fixed the bottleneck at
+$d=8$ qubits and depth at $L=4$; scaling either is natural but simulation cost
+grows quickly. Finally, three seeds per cell bound, but do not precisely
+estimate, the seed variance; per-seed results are shown in
+Figure~\ref{fig:curves}.
+
+\section{Conclusion}
+
+In a controlled comparison spanning 90 training runs, an 8-qubit VQC
+classifier head outperforms a near-parameter-matched MLP on MNIST but loses
+to it on CIFAR-10, and it never outperforms a smaller linear probe on either
+dataset. The CIFAR-10 deficit is driven by underfitting linked to saturation
+of the fixed rotation encoding, rather than by overfitting or simple
+non-convergence, and data re-uploading reduced accuracy in every
+configuration tested. These results argue that empirical claims of quantum
+advantage in hybrid classifiers should be qualified by dataset complexity and
+accompanied by parameter-matched \emph{and} simple linear baselines. They also
+locate the frontier for small quantum heads at the quality of the classical
+embedding they are asked to read.
+
+\paragraph{Reproducibility.}
+Code, sweep configurations, and per-epoch metrics (including per-component
+gradient norms) for all 90 runs are available at
+\url{https://github.com/Arkaeyuh/quantcnn}. Experiments used Python 3.14,
+PyTorch 2.11, and PennyLane 0.44 (\texttt{lightning.qubit}, adjoint
+differentiation) on an Apple M3 Max; quantum circuits were simulated on CPU
+with classical components on the MPS backend. Seeds $\{0, 1, 2\}$ control
+Python, NumPy, and PyTorch RNGs as well as subset selection.
+
+\begin{thebibliography}{9}
+\small
+
+\bibitem{benedetti2019parameterized}
+M.~Benedetti, E.~Lloyd, S.~Sack, and M.~Fiorentini.
+\newblock Parameterized quantum circuits as machine learning models.
+\newblock \emph{Quantum Science and Technology}, 4(4):043001, 2019.
+
+\bibitem{cerezo2021variational}
+M.~Cerezo, A.~Arrasmith, R.~Babbush, S.~C. Benjamin, S.~Endo, K.~Fujii,
+J.~R. McClean, K.~Mitarai, X.~Yuan, L.~Cincio, and P.~J. Coles.
+\newblock Variational quantum algorithms.
+\newblock \emph{Nature Reviews Physics}, 3:625--644, 2021.
+
+\bibitem{mitarai2018quantum}
+K.~Mitarai, M.~Negoro, M.~Kitagawa, and K.~Fujii.
+\newblock Quantum circuit learning.
+\newblock \emph{Physical Review A}, 98:032309, 2018.
+
+\bibitem{havlicek2019supervised}
+V.~Havl\'{i}\v{c}ek, A.~D. C\'{o}rcoles, K.~Temme, A.~W. Harrow, A.~Kandala,
+J.~M. Chow, and J.~M. Gambetta.
+\newblock Supervised learning with quantum-enhanced feature spaces.
+\newblock \emph{Nature}, 567:209--212, 2019.
+
+\bibitem{perez2020data}
+A.~P\'{e}rez-Salinas, A.~Cervera-Lierta, E.~Gil-Fuster, and J.~I. Latorre.
+\newblock Data re-uploading for a universal quantum classifier.
+\newblock \emph{Quantum}, 4:226, 2020.
+
+\bibitem{schuld2021effect}
+M.~Schuld, R.~Sweke, and J.~J. Meyer.
+\newblock Effect of data encoding on the expressive power of variational
+quantum-machine-learning models.
+\newblock \emph{Physical Review A}, 103:032430, 2021.
+
+\bibitem{mcclean2018barren}
+J.~R. McClean, S.~Boixo, V.~N. Smelyanskiy, R.~Babbush, and H.~Neven.
+\newblock Barren plateaus in quantum neural network training landscapes.
+\newblock \emph{Nature Communications}, 9:4812, 2018.
+
+\bibitem{bergholm2018pennylane}
+V.~Bergholm et al.
+\newblock PennyLane: Automatic differentiation of hybrid quantum-classical
+computations.
+\newblock \emph{arXiv:1811.04968}, 2018.
+
+\end{thebibliography}
+
+\end{document}
