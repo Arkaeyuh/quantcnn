@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """
-Aggregate ``metrics.csv`` files under a sweep directory and plot best validation accuracy.
+Aggregate ``metrics.csv`` files under a sweep directory and plot best per-run accuracy.
+
+Each (subset size, head) group must be seeds of one configuration; a directory
+that mixes learning rates or MLP widths (e.g. ``results/protocol_v2/*``) is
+rejected; summarize those with ``scripts.summarize_v2``. The logged ``val_acc``
+column is the test split for legacy runs (``val_size`` 0) and the held-out
+validation split otherwise, and the axis label says which.
 
 Usage::
 
@@ -19,18 +25,21 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
-def best_val_acc(csv_path: Path) -> float | None:
+def best_val_acc(csv_path: Path) -> tuple[float | None, int]:
+    """Best logged ``val_acc`` and the number of epochs logged."""
     best = None
+    n_rows = 0
     try:
         with csv_path.open(encoding="utf-8") as fh:
             r = csv.DictReader(fh)
             for row in r:
+                n_rows += 1
                 val = float(row["val_acc"])
                 if best is None or val > best:
                     best = val
-        return best
+        return best, n_rows
     except FileNotFoundError:
-        return None
+        return None, 0
 
 
 def detect_dataset(log_dir: Path) -> str:
@@ -45,18 +54,28 @@ def detect_dataset(log_dir: Path) -> str:
     return "mnist"
 
 
-def collect(log_dir: Path) -> dict[tuple, list[float]]:
-    """Key: (subset_size, series_label) -> val accs across seeds."""
+# Settings that may differ within one plotted group (one point = seeds of one configuration).
+SEED_LEVEL = {"seed", "out_dir", "git_commit", "git_dirty"}
+
+
+def collect(log_dir: Path) -> tuple[dict[tuple, list[float]], str]:
+    """Key: (subset_size, series_label) -> best logged accuracies across seeds; plus the y-label."""
     groups: dict[tuple, list[float]] = defaultdict(list)
+    group_cfg: dict[tuple, dict] = {}
+    splits = set()
     for p in sorted(log_dir.rglob("metrics.csv")):
         meta_parent = p.parent
         mv = meta_parent / "meta.json"
         if not mv.exists():
             continue
-        ba = best_val_acc(p)
+        ba, n_rows = best_val_acc(p)
         if ba is None:
             continue
         cfg = json.loads(mv.read_text(encoding="utf-8"))
+        if n_rows < int(cfg["epochs"]):
+            # An interrupted run is not a replicate of a completed one.
+            print(f"skipping incomplete run {meta_parent.name}: {n_rows}/{cfg['epochs']} epochs")
+            continue
         subset = cfg.get("train_subset_size")
         if subset in (None, "full"):
             subset_key = subset
@@ -67,12 +86,24 @@ def collect(log_dir: Path) -> dict[tuple, list[float]]:
         ru = cfg.get("reupload_mode", "none")
         series = hd if hd != "quantum" else f"quantum::{ru}"
 
-        groups[(subset_key, series)].append(ba)
+        key = (subset_key, series)
+        fixed = {k: v for k, v in cfg.items() if k not in SEED_LEVEL}
+        if key in group_cfg and group_cfg[key] != fixed:
+            diff = sorted(k for k in fixed.keys() | group_cfg[key].keys() if fixed.get(k) != group_cfg[key].get(k))
+            raise SystemExit(f"{meta_parent.name}: runs in group {key} differ in {diff}; this plotter averages "
+                             "seeds of one configuration only (use scripts.summarize_v2 for protocol_v2 grids)")
+        group_cfg[key] = fixed
+        splits.add("validation" if int(cfg.get("val_size") or 0) > 0 else "test-split")
+        groups[key].append(ba)
 
-    return dict(groups)
+    if len(splits) > 1:
+        raise SystemExit("mixed legacy (test-split) and validation-protocol runs under one directory")
+    label = f"Best {splits.pop() if splits else 'test-split'} accuracy (mean ± sample std over seeds)"
+    return dict(groups), label
 
 
-def plot_curves(series_map: dict[tuple, list[float]], out_png: Path, title: str | None = None) -> None:
+def plot_curves(series_map: dict[tuple, list[float]], out_png: Path, title: str | None = None,
+                ylabel: str = "Best test-split accuracy (mean ± sample std over seeds)") -> None:
     subsets = sorted({k[0] for k in series_map.keys() if isinstance(k[0], int)})
     if not subsets:
         raise SystemExit("No integer subset sizes parsed; verify logs include meta.json & metrics.")
@@ -91,14 +122,14 @@ def plot_curves(series_map: dict[tuple, list[float]], out_png: Path, title: str 
                 continue
             xs.append(n)
             means.append(statistics.mean(lst))
-            stds.append(statistics.pstdev(lst) if len(lst) > 1 else 0.0)
+            stds.append(statistics.stdev(lst) if len(lst) > 1 else 0.0)  # sample SD, as in the paper
         if not xs:
             continue
         color = palette(i % 10)
         plt.errorbar(xs, means, yerr=stds, marker="o", capsize=4, label=series, color=color)
 
     plt.xlabel("Stratified training subset size")
-    plt.ylabel("Best validation accuracy (mean ± std over seeds)")
+    plt.ylabel(ylabel)
     plt.title(title or "Hybrid quantum–classical sweeps")
     plt.grid(True, alpha=0.3)
     plt.legend(fontsize=8)
@@ -120,12 +151,12 @@ def main():
     ap.add_argument("--title", default=None, help="Plot title override.")
     args = ap.parse_args()
     out = args.out_png or (args.log_dir / "accuracy_vs_subset.png")
-    data = collect(args.log_dir)
+    data, ylabel = collect(args.log_dir)
     if not data:
         raise SystemExit(f"No metrics found under {args.log_dir}")
     dataset = detect_dataset(args.log_dir)
     title = args.title or f"Hybrid quantum–classical {dataset.upper()} sweeps"
-    plot_curves(data, out, title=title)
+    plot_curves(data, out, title=title, ylabel=ylabel)
     print(f"Wrote {out}")
 
 

@@ -9,6 +9,8 @@ import pennylane as qml
 import torch
 import torch.nn as nn
 
+from quantcnn.models.torch_vqc import TorchStatevectorVQC
+
 ReuploadMode = Literal["none", "light", "strong"]
 
 
@@ -77,24 +79,39 @@ def build_qnode(
 
 
 class QuantumVQCLayer(nn.Module):
-    """Batched Torch wrapper around TorchLayer-compatible QNode execution."""
+    """Batched Torch wrapper around TorchLayer-compatible QNode execution.
+
+    ``sim="pennylane"`` runs the QNode per sample (used for all original sweeps);
+    ``sim="torch"`` runs the numerically equivalent batched simulator in
+    ``torch_vqc.py``. Both store the rotation angles at ``qlayer.weights``, so
+    checkpoints load under either backend.
+    """
 
     def __init__(
         self,
         n_qubits: int,
         n_var_layers: int,
         mode: ReuploadMode,
+        sim: str = "pennylane",
     ) -> None:
         super().__init__()
+        self.sim = sim
+        if sim == "torch":
+            self.qlayer = TorchStatevectorVQC(n_qubits, n_var_layers, mode)
+            return
+        if sim != "pennylane":
+            raise ValueError(sim)
         qnode = build_qnode(n_qubits, n_var_layers, mode)
         weight_shapes = {"weights": (n_var_layers, n_qubits, 2)}
         self.qlayer = qml.qnn.TorchLayer(qnode, weight_shapes)
-        # TorchLayer uses torch.Tensor() (uninitialized memory) by default, which can
-        # place rotation angles near ±π where gradients are flat. Small uniform init
-        # starts all qubits near the |0⟩ state where gradients are well-defined.
+        # TorchLayer's default init is uniform on [0, 2π], i.e. arbitrary rotations.
+        # Small uniform init instead starts every rotation gate near the identity (the
+        # CNOT ring is unaffected), which in our runs reduced seed-to-seed variance.
         torch.nn.init.uniform_(self.qlayer.weights, -0.1, 0.1)
 
     def forward(self, features: torch.Tensor) -> torch.Tensor:
+        if self.sim == "torch":
+            return self.qlayer(features)
         device = features.device
         features = features.cpu()  # PennyLane statevector simulators require CPU tensors
         preds = [self.qlayer(features[b]) for b in range(features.shape[0])]
@@ -110,9 +127,10 @@ class QuantumClassifierHead(nn.Module):
         num_classes: int,
         n_var_layers: int,
         mode: ReuploadMode,
+        sim: str = "pennylane",
     ) -> None:
         super().__init__()
-        self.vqc = QuantumVQCLayer(n_qubits, n_var_layers, mode)
+        self.vqc = QuantumVQCLayer(n_qubits, n_var_layers, mode, sim=sim)
         self.proj = nn.Linear(n_qubits, num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -121,7 +139,12 @@ class QuantumClassifierHead(nn.Module):
 
 
 def count_quantum_head_params(n_qubits: int, n_var_layers: int, num_classes: int) -> int:
-    """Total trainable params in QuantumClassifierHead: VQC rotations + output linear."""
+    """Total trainable params in QuantumClassifierHead: VQC rotations + output linear.
+
+    This is the stored count. The last layer's RZ rotations act before only CNOTs
+    and Z measurements, so they cannot change the outputs: ``n_qubits`` fewer
+    parameters actually affect the logits.
+    """
     rotation_params = n_qubits * 2 * n_var_layers
     linear_params = n_qubits * num_classes + num_classes  # weights + biases
     return rotation_params + linear_params

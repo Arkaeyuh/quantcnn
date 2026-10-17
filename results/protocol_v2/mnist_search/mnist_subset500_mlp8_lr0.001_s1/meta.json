@@ -1,0 +1,23 @@
+{
+  "dataset": "mnist",
+  "backbone": "mnist",
+  "head": "mlp",
+  "bottleneck_dim": 8,
+  "train_subset_size": "500",
+  "seed": 1,
+  "epochs": 50,
+  "batch_size": 32,
+  "lr": 0.001,
+  "lr_backbone_multiplier": 0.5,
+  "gradient_clip_norm": 1.0,
+  "weight_decay": 0.0001,
+  "reupload_mode": "none",
+  "n_var_layers": 4,
+  "mlp_hidden": 8,
+  "lr_scheduler": "cosine",
+  "val_size": 2000,
+  "quantum_sim": "torch",
+  "train_transform": "Compose(\n    ToTensor()\n    Normalize(mean=(0.1307,), std=(0.3081,))\n)",
+  "git_commit": "5afc5a04a4792a8420069227fda6c24625a64a90",
+  "git_dirty": true
+}

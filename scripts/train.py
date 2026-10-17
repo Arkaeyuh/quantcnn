@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import argparse
+import json
 import random
+import subprocess
 from pathlib import Path
 
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from quantcnn.data import dataset_num_classes, get_cifar10, get_mnist
+from quantcnn.data import dataset_num_classes, get_cifar10, get_mnist, get_splits
 from quantcnn.models.hybrid_classifier import HybridClassifier
 from quantcnn.training_utils import (
     RunConfig,
@@ -65,6 +67,20 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
     p.add_argument("--gradient_clip_norm", type=float, default=1.0)
     p.add_argument("--weight_decay", type=float, default=1e-4)
     p.add_argument("--lr_scheduler", choices=["cosine", "none"], default="cosine")
+    p.add_argument(
+        "--val_size",
+        type=int,
+        default=0,
+        help="If >0, hold out this many training images (disjoint from the subset) for "
+        "checkpoint selection; the test split is then evaluated once, on the selected "
+        "checkpoint, and written to final.json. 0 keeps the original protocol.",
+    )
+    p.add_argument(
+        "--quantum_sim",
+        choices=["pennylane", "torch"],
+        default="pennylane",
+        help="Quantum head simulator; 'torch' is a batched, numerically equivalent backend.",
+    )
     p.add_argument("--data_root", default="./data")
     p.add_argument("--out_dir", default=None, help="Directory for meta.json & metrics.csv.")
     p.add_argument(
@@ -137,11 +153,20 @@ def run_training(args: argparse.Namespace) -> Path:
         n_var_layers=args.n_var_layers,
         mlp_hidden=args.mlp_hidden,
         lr_scheduler=args.lr_scheduler,
+        val_size=int(args.val_size),
+        quantum_sim=args.quantum_sim,
     )
 
     set_seed(int(args.seed))
 
-    if args.dataset == "mnist":
+    splits = None
+    if cfg.val_size > 0:
+        if subset_sz is None:
+            raise ValueError("--val_size requires a training subset.")
+        splits = get_splits(args.dataset, subset_sz, args.seed, cfg.val_size, data_root=args.data_root)
+        train_ds, val_ds = splits["train"], splits["val"]
+        in_ch = 1 if args.dataset == "mnist" else 3
+    elif args.dataset == "mnist":
         train_ds, val_ds = get_mnist(subset_sz, args.seed, data_root=args.data_root)
         in_ch = 1
     else:
@@ -159,6 +184,7 @@ def run_training(args: argparse.Namespace) -> Path:
         mlp_hidden=args.mlp_hidden,
         n_var_layers=args.n_var_layers,
         reupload_mode=args.reupload_mode,
+        quantum_sim=args.quantum_sim,
     )
 
     if torch.cuda.is_available():
@@ -212,7 +238,7 @@ def run_training(args: argparse.Namespace) -> Path:
         csv_path = out_dir / "metrics.csv"
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    save_run_meta(out_dir, cfg)
+    save_run_meta(out_dir, cfg, extra=_provenance(train_ds))
 
     if cfg.lr_scheduler == "cosine":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg.epochs)
@@ -257,7 +283,45 @@ def run_training(args: argparse.Namespace) -> Path:
             "bottleneck_dim": cfg.bottleneck_dim,
         }
         append_metric_row(csv_path, row, FIELDNAMES)
+
+    if splits is not None:
+        model.load_state_dict(torch.load(checkpoint_path, map_location=device))
+        best_epoch = _best_epoch(csv_path)
+        final = {"best_epoch": best_epoch}
+        for name in ("train_clean", "val", "test"):
+            loader = DataLoader(splits[name], batch_size=256, shuffle=False, num_workers=0)
+            loss, acc = evaluate(model, loader, device)
+            final[f"{name}_loss"], final[f"{name}_acc"] = loss, acc
+        (out_dir / "final.json").write_text(json.dumps(final, indent=2), encoding="utf-8")
     return out_dir
+
+
+def _best_epoch(csv_path: Path) -> int:
+    """Last epoch flagged is_best (the checkpoint on disk)."""
+    import csv
+
+    with csv_path.open() as fh:
+        rows = [r for r in csv.DictReader(fh) if r["is_best"] == "1"]
+    return int(rows[-1]["epoch"])
+
+
+def _provenance(train_ds) -> dict:
+    base = getattr(train_ds, "dataset", train_ds)
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
+        ).stdout.strip()
+        dirty = bool(
+            subprocess.run(["git", "status", "--porcelain", "--", "quantcnn", "scripts"],
+                           capture_output=True, text=True).stdout.strip()
+        )
+    except (OSError, subprocess.CalledProcessError):
+        commit, dirty = None, None
+    return {
+        "train_transform": repr(getattr(base, "transform", None)),
+        "git_commit": commit,
+        "git_dirty": dirty,
+    }
 
 
 def main():

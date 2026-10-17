@@ -121,3 +121,39 @@ def dataset_num_classes(ds: torch.utils.data.Dataset) -> int:
             return int(targets.unique().numel())
         return len(set(targets))
     raise ValueError(f"Cannot infer num_classes from {type(base).__name__}.")
+
+
+def get_splits(
+    dataset: str,
+    subset_size: int,
+    seed: int,
+    val_size: int,
+    data_root: str = "./data",
+) -> dict[str, torch.utils.data.Dataset]:
+    """Train subset plus a held-out validation split drawn from the *training* pool.
+
+    Returns ``train`` (augmented for CIFAR-10), ``train_clean`` (same images, test
+    preprocessing), ``val`` (``val_size`` stratified training images disjoint from
+    the subset, test preprocessing) and ``test`` (official test split). The train
+    subset uses the same ``stratified_indices(labels, subset_size, seed)`` call as
+    ``get_mnist``/``get_cifar10``, so it is identical to the subset of the original
+    sweeps for a given seed.
+    """
+    loader = get_mnist if dataset == "mnist" else get_cifar10
+    train_full, test_ds = loader(None, seed, data_root=data_root)
+    clean_tfm = test_ds.transform
+    cls = type(train_full)
+    clean_full = cls(root=data_root, train=True, download=False, transform=clean_tfm)
+
+    labels = np.asarray(train_full.targets)
+    train_ids = stratified_indices(labels, subset_size, seed)
+    rest = np.setdiff1d(np.arange(len(labels)), np.asarray(train_ids))
+    # Seed offset keeps the validation draw independent of the subset draw.
+    val_local = stratified_indices(labels[rest], val_size, seed + 10_000)
+    val_ids = rest[np.asarray(val_local)].tolist()
+    return {
+        "train": Subset(train_full, train_ids),
+        "train_clean": Subset(clean_full, train_ids),
+        "val": Subset(clean_full, val_ids),
+        "test": test_ds,
+    }

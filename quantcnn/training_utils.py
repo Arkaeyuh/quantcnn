@@ -29,6 +29,8 @@ class RunConfig:
     n_var_layers: int
     mlp_hidden: int | None
     lr_scheduler: str
+    val_size: int = 0
+    quantum_sim: str = "pennylane"
 
 
 def accuracy(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
@@ -81,7 +83,8 @@ def train_one_epoch(
         loss = ce(logits, yb)
         loss.backward()
 
-        # Capture pre-clip norms so we can detect barren plateau effects in the quantum head.
+        # Pre-clip gradient norms per component. The head norm includes its classical
+        # readout, so it monitors trainability but cannot diagnose barren plateaus.
         bb_norm = _param_grad_norm(model.backbone.parameters()) if hasattr(model, "backbone") else 0.0
         hd_norm = _param_grad_norm(model.head.parameters()) if hasattr(model, "head") else 0.0
 
@@ -108,6 +111,9 @@ def append_metric_row(path: Path, row: dict, fieldnames: list[str]) -> None:
         w.writerow(row)
 
 
-def save_run_meta(out_dir: Path, cfg: RunConfig) -> None:
+def save_run_meta(out_dir: Path, cfg: RunConfig, extra: dict | None = None) -> None:
     meta = Path(out_dir) / "meta.json"
-    meta.write_text(json.dumps(asdict(cfg), indent=2), encoding="utf-8")
+    payload = asdict(cfg)
+    if extra:
+        payload.update(extra)
+    meta.write_text(json.dumps(payload, indent=2), encoding="utf-8")

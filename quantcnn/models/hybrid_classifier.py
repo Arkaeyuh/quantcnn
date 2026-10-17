@@ -30,6 +30,7 @@ class HybridClassifier(nn.Module):
         mlp_hidden: int | None = None,
         n_var_layers: int = 4,
         reupload_mode: ReuploadMode = "none",
+        quantum_sim: str = "pennylane",
     ) -> None:
         super().__init__()
         if bottleneck_dim is None:
@@ -54,7 +55,7 @@ class HybridClassifier(nn.Module):
                 hid = mlp_hidden
             self.head = MLPHead(b, hid, num_classes)
         elif head == "quantum":
-            self.head = QuantumClassifierHead(b, num_classes, n_var_layers, reupload_mode)
+            self.head = QuantumClassifierHead(b, num_classes, n_var_layers, reupload_mode, sim=quantum_sim)
         else:
             raise ValueError(head)
 

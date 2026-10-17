@@ -10,3 +10,12 @@ data/
 *.pt
 *.pth
 .DS_Store
+# Released source checkpoints for the frozen-embedding experiment
+!results/frozen_sources/**/*.pt
+research-wiki/
+review-stage/
+.aris/
+.claude/
+.github/
+CLAUDE.md
+findings.md
