@@ -1,0 +1,33 @@
+\begin{table}[t]
+\centering
+\caption{Controls on CIFAR-10 with 4,000 training images. Entries are differences in the test
+accuracy of the common linear probe on the frozen 8-dimensional bottleneck, in percentage
+points, paired over 3 seeds (mean $\pm$ SD). The five controls leave a substantial probe gap;
+removing the CNOT rings recovers most of it.}
+\label{tab:controls}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.8cm}>{\raggedright\arraybackslash}p{4.2cm}c>{\raggedright\arraybackslash}p{4.4cm}}
+\toprule
+Control & Comparison & Probe $\Delta$ & Observation \\
+\midrule
+Reference: default VQC & VQC $-$ linear & $-4.7 \pm 1.2$ & the gap under study \\
+\midrule
+Backbone lr$^a$ & VQC $-$ linear, backbone lr 0.0025 & $-6.3 \pm 1.2$ & gap persists at every tested backbone lr where the VQC trains \\
+ & VQC $-$ linear, backbone lr 0.005 & $-4.9 \pm 1.2$ &  \\
+ & VQC $-$ linear, backbone lr 0.015 & $-8.6 \pm 0.5$ &  \\
+Freeze circuit at init & frozen $-$ trained circuit & $-1.6 \pm 0.7$ & gap persists with rotations frozen at initialization \\
+BatchNorm before encoding & VQC+BN $-$ VQC & $-1.2 \pm 2.2$ & pre-encoding BN does not recover the probe \\
+ & VQC+BN $-$ linear & $-5.9 \pm 3.4$ &  \\
+Monotone encoding$^b$ & monotone $-$ default & $+0.3 \pm 0.7$ & neither encoding recovers more than 0.7 points \\
+ & symmetric control $-$ default & $+0.7 \pm 0.5$ &  \\
+ & monotone $-$ symmetric control & $-0.4 \pm 0.9$ &  \\
+\midrule
+Contrast: remove CNOT rings & ring-free $-$ default & $+3.8 \pm 1.6$ & recovers most of the gap (\S\ref{sec:ring}) \\
+ & ring-free $-$ linear & $-0.8 \pm 0.7$ &  \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+\begin{minipage}{0.97\textwidth}\footnotesize $^a$Head lr fixed at 0.01 (VQC) and 0.03 (linear) while the backbone lr varies; the VQC collapses at the tested backbone lrs 0.03 and 0.06. Other rows: each head at its validation-selected head lr, backbone lr $0.5\times$ head lr. $^b$Monotone: $R_y(\frac{\pi}{2}\tanh z + \frac{\pi}{2})$; symmetric control: $R_y(\frac{\pi}{2}\tanh z)$, same range width; default: $R_y(\pi\tanh z)$. Not a probe difference: the final-epoch pre-clip backbone gradient norm is larger with the VQC head than with the linear head ($1.92 \pm 0.13$ vs $0.75 \pm 0.02$).\end{minipage}
+\end{table}

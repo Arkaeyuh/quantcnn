@@ -1,0 +1,31 @@
+% Fig 1a schematic [MANUAL]: a TikZ skeleton of the model and the probe path.
+% Requires \usepackage{tikz} and \usetikzlibrary{positioning,arrows.meta,fit}.
+% Layout is a starting point; refine by hand.
+\begin{tikzpicture}[
+    node distance=3.5mm,
+    box/.style={draw, rounded corners=1.5pt, minimum height=6.5mm, inner sep=2pt, font=\footnotesize, align=center},
+    arr/.style={-{Stealth[length=1.6mm]}, semithick},
+  ]
+  \node[box] (img) {image};
+  \node[box, right=of img] (cnn) {CNN};
+  \node[box, right=of cnn] (z) {$z\in\mathbb{R}^8$};
+  \node[box, right=6mm of z, fill=blue!6] (enc) {$R_y(\pi\tanh z_j)$};
+  \node[box, right=of enc, fill=blue!6] (var) {$[R_y R_z \to \text{CNOT}]^{\times L}$};
+  \node[box, right=of var, fill=blue!6] (meas) {$\langle Z_k\rangle$};
+  \node[box, right=of meas] (lin) {Linear};
+  \node[draw, dashed, rounded corners=2pt, fit=(enc)(var)(meas), inner sep=2.5pt,
+        label={[font=\scriptsize]above:VQC head (8 qubits; default shown, CNOT placement varied)}] (vqc) {};
+  \draw[arr] (img) -- (cnn);
+  \draw[arr] (cnn) -- (z);
+  \draw[arr] (z) -- (enc);
+  \draw[arr] (enc) -- (var);
+  \draw[arr] (var) -- (meas);
+  \draw[arr] (meas) -- (lin);
+  % probe path from the frozen bottleneck
+  \node[box, below=7mm of z, draw=gray, text=gray!80!black] (probe) {common linear probe\\(backbone frozen)};
+  \draw[arr, dashed, gray] (z) -- (probe);
+  % zero-rotation identity
+  \node[font=\footnotesize, below=5mm of var, align=center] (eq)
+    {$\langle Z_k\rangle = \prod_{j\in S_k}\cos(\pi\tanh z_j)$\\[-1pt]
+     {\scriptsize exact at zero variational rotations; $S_k$ set by the CNOTs}};
+\end{tikzpicture}

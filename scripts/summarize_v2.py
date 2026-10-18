@@ -22,6 +22,10 @@ from collections import defaultdict
 from pathlib import Path
 
 
+BASE_PROBES = [Path("results/backbone_probe.csv"), Path("results/circuit_probe.csv")]
+FIVE_SEED_PROBES = BASE_PROBES + [Path(f"results/{n}_probe.csv") for n in ("entangle", "classical", "cosprod", "pairs", "seeds")]
+
+
 def _paired(a: dict, b: dict) -> str:
     d = [a[k] - b[k] for k in sorted(a)]
     return f"{st.mean(d):+5.1f} +- {st.stdev(d):3.1f}  per seed {['%+.2f' % x for x in d]}"
@@ -31,7 +35,8 @@ def _ms(xs):
     return f"{st.mean(xs):5.1f} +- {st.stdev(xs):4.1f}" if len(xs) > 1 else f"{xs[0]:5.1f}"
 
 
-def protocol(*roots: Path):
+def protocol_cells(*roots: Path) -> dict:
+    """{(n, head): {lr: [(seed, val %, test %, clean-train %, best epoch)]}} for the protocol grids."""
     cells = defaultdict(lambda: defaultdict(list))
     for f in sorted(x for root in roots for x in root.glob("*/final.json")):
         meta = json.loads((f.parent / "meta.json").read_text())
@@ -40,15 +45,29 @@ def protocol(*roots: Path):
         head += "+bn" if meta.get("pre_norm", "none") == "bn" else ""
         cells[(int(meta["train_subset_size"]), head)][meta["lr"]].append(
             (meta["seed"], fin["val_acc"] * 100, fin["test_acc"] * 100, fin["train_clean_acc"] * 100, fin["best_epoch"]))
-    print(f"\n== {' + '.join(map(str, roots))}  (lr chosen by mean val acc; test reported)")
+    return cells
+
+
+def protocol_data(*roots: Path) -> tuple[dict, dict]:
+    """Per-seed test accuracy at the validation-selected lr and at the shared lr 1e-3:
+    (selected, shared), each {(n, head): {seed: test %}}."""
     sel, shared = {}, {}
+    for (n, head), by_lr in protocol_cells(*roots).items():
+        lr = max(by_lr, key=lambda k: st.mean(x[1] for x in by_lr[k]))
+        sel[(n, head)] = {x[0]: x[2] for x in by_lr[lr]}
+        shared[(n, head)] = {x[0]: x[2] for x in by_lr.get(1e-3, [])}
+    return sel, shared
+
+
+def protocol(*roots: Path):
+    cells = protocol_cells(*roots)
+    sel, shared = protocol_data(*roots)
+    print(f"\n== {' + '.join(map(str, roots))}  (lr chosen by mean val acc; test reported)")
     for (n, head), by_lr in sorted(cells.items()):
         for lr, v in by_lr.items():
             assert sorted(x[0] for x in v) == [0, 1, 2], (n, head, lr)
         lr = max(by_lr, key=lambda k: st.mean(x[1] for x in by_lr[k]))
         v = by_lr[lr]
-        sel[(n, head)] = {x[0]: x[2] for x in v}
-        shared[(n, head)] = {x[0]: x[2] for x in by_lr.get(1e-3, [])}
         alt = "  ".join(f"{k:g}:{st.mean(x[2] for x in by_lr[k]):.1f}" for k in sorted(by_lr))
         print(f"{n:5d} {head:10s} lr={lr:<7g} test {_ms([x[2] for x in v])}  val {st.mean(x[1] for x in v):5.1f}"
               f"  clean-train {st.mean(x[3] for x in v):5.1f}  epoch {st.mean(x[4] for x in v):4.1f}   [test by lr: {alt}]")
@@ -109,8 +128,9 @@ def probe(path: Path):
                 print(f"{ds:8s} {n:5d} {a:10s} - {b:10s} {_paired(probe_acc[(ds, n, a)], probe_acc[(ds, n, b)])}")
 
 
-def mech(runs: Path, base_runs: Path, probe_path: Path, base_probe_path: Path):
-    """CIFAR-10/4000 mechanism audit: backbone lr at fixed head lr, and the frozen circuit."""
+def mech_data(runs: Path, base_runs: Path, probe_path: Path, base_probe_path: Path) -> tuple[dict, dict]:
+    """CIFAR-10/4000 mechanism audit runs and probes, keyed (head, backbone lr, head lr):
+    runs -> {seed: (val %, test %)}, probes -> {seed: (probe test %, saturation %)}."""
     def key(m):
         bb = m["lr"] * m.get("lr_backbone_multiplier", 0.5)
         return ("quantum+frozen" if m.get("freeze_circuit") else m["head"]), round(bb, 6), m["lr"]
@@ -134,6 +154,12 @@ def mech(runs: Path, base_runs: Path, probe_path: Path, base_probe_path: Path):
             bb = float(r["source_head"].split("@bblr")[1]) if "@bblr" in r["source_head"] else lr * 0.5
             probes.setdefault((h, round(bb, 6), lr), {})[int(r["seed"])] = (float(r["probe_test_acc"]),
                                                                          float(r["sat_090_z"]))
+    return runs_by, probes
+
+
+def mech(runs: Path, base_runs: Path, probe_path: Path, base_probe_path: Path):
+    """CIFAR-10/4000 mechanism audit: backbone lr at fixed head lr, and the frozen circuit."""
+    runs_by, probes = mech_data(runs, base_runs, probe_path, base_probe_path)
     print(f"\n== {runs}  (CIFAR-10, 4000; head lr fixed per head; probe = same linear probe as above)")
     for (head, bb, lr), by in sorted(runs_by.items()):
         if sorted(by) != [0, 1, 2]:
@@ -162,12 +188,10 @@ def mech(runs: Path, base_runs: Path, probe_path: Path, base_probe_path: Path):
           f"{_paired({i: qf[i][0] for i in qf}, {i: qt[i][0] for i in qt})}")
 
 
-def circuit(runs: Path, probe_paths: list[Path], sign_path: Path | None = None, refs=("quantum", "linear")):
-    """Head/circuit ablation grid (any dataset and size), lr selected on validation per cell.
-
-    Probe accuracies for each variant and for the reference heads are read from
-    ``probe_paths`` (later files override earlier ones for the same key).
-    """
+def circuit_data(runs: Path, probe_paths: list[Path]) -> tuple[dict, dict]:
+    """Head/circuit ablation grid: ({(dataset, n, head key): {lr: {seed: (val %, test %)}}},
+    {(dataset, n, head key): {seed: probe test %}}). Probe accuracies for each variant and for
+    the reference heads are read from ``probe_paths`` (later files override earlier ones)."""
     from scripts.probe_backbones import _head_key
 
     cells = defaultdict(lambda: defaultdict(dict))
@@ -182,9 +206,20 @@ def circuit(runs: Path, probe_paths: list[Path], sign_path: Path | None = None, 
             for r in csv.DictReader(path.open()):
                 probes[(r["dataset"], int(r["train_subset_size"]), r["source_head"])][int(r["seed"])] = float(
                     r["probe_test_acc"])
+    return cells, probes
+
+
+def select_lr(by_lr: dict) -> float:
+    """The lr with the best mean validation accuracy (seeds 0-2)."""
+    return max(by_lr, key=lambda k: st.mean(x[0] for x in by_lr[k].values()))
+
+
+def circuit(runs: Path, probe_paths: list[Path], sign_path: Path | None = None, refs=("quantum", "linear")):
+    """Head/circuit ablation grid (any dataset and size), lr selected on validation per cell."""
+    cells, probes = circuit_data(runs, probe_paths)
     print(f"\n== {runs}  (lr chosen by mean val acc; probe = same linear probe)")
     for (ds, n, v), by_lr in sorted(cells.items()):
-        lr = max(by_lr, key=lambda k: st.mean(x[0] for x in by_lr[k].values()))
+        lr = select_lr(by_lr)
         by = by_lr[lr]
         grid = "  ".join(f"{k:g}:{st.mean(x[1] for x in by_lr[k].values()):.1f}" for k in sorted(by_lr))
         pr = probes.get((ds, n, v), {})
@@ -204,9 +239,11 @@ def circuit(runs: Path, probe_paths: list[Path], sign_path: Path | None = None, 
                   f"  acc z {float(r['acc_z']):5.1f}  acc -z {float(r['acc_neg_z']):5.1f}")
 
 
-def five_seed(root: Path, probe_paths: list[Path]):
-    """Headline CIFAR-10/4000 cells over seeds 0-4: seeds 0-2 at the source grid's
-    validation-selected lr plus seeds 3-4 (grid ``cifar_seeds``) at that same lr."""
+def five_seed_data(root: Path, probe_paths: list[Path]) -> tuple[dict, dict]:
+    """Per-seed CIFAR-10/4000 test and probe accuracy for every head key in the
+    headline grids: seeds 0-2 at the source grid's validation-selected lr plus
+    seeds 3-4 (grid ``cifar_seeds``) at that same lr. Returns (test, probes),
+    each {head key: {seed: accuracy %}}."""
     from scripts.probe_backbones import _head_key
     from scripts.run_protocol_v2 import SEED_CELLS
 
@@ -228,6 +265,14 @@ def five_seed(root: Path, probe_paths: list[Path]):
             for r in csv.DictReader(path.open()):
                 if r["dataset"] == "cifar10" and r["train_subset_size"] == "4000":
                     probes[r["source_head"]][int(r["seed"])] = float(r["probe_test_acc"])
+    return test, probes
+
+
+def five_seed(root: Path, probe_paths: list[Path]):
+    """Headline CIFAR-10/4000 cells over seeds 0-4 (see ``five_seed_data``)."""
+    from scripts.run_protocol_v2 import SEED_CELLS
+
+    test, probes = five_seed_data(root, probe_paths)
     keys = [k for _, k, _ in SEED_CELLS]
     print("\n== CIFAR-10/4000 headline cells, seeds 0-4 (lr selected on seeds 0-2; test, probe)")
     for k in keys:
@@ -261,7 +306,7 @@ def main():
     frozen(Path("results/frozen_heads.csv"))
     probe(Path("results/backbone_probe.csv"))
     mech(root / "cifar_mech", root / "cifar_val", Path("results/mech_probe.csv"), Path("results/backbone_probe.csv"))
-    base = [Path("results/backbone_probe.csv"), Path("results/circuit_probe.csv")]
+    base = BASE_PROBES
     if (root / "cifar_circuit").exists():
         circuit(root / "cifar_circuit", base, Path("results/sign_symmetry.csv"))
     if (root / "cifar_entangle").exists():
@@ -277,7 +322,7 @@ def main():
         circuit(root / "cifar_pairs", base + [Path("results/pairs_probe.csv")],
                 refs=("quantum", "quantum+noent", "cos", "linear"))
     if (root / "cifar_seeds").exists():
-        five_seed(root, base + [Path(f"results/{n}_probe.csv") for n in ("entangle", "classical", "cosprod", "pairs", "seeds")])
+        five_seed(root, FIVE_SEED_PROBES)
     if (root / "mnist_circuit").exists():
         circuit(root / "mnist_circuit", base + [Path("results/mnist_circuit_probe.csv")])
     for name in ["checkpoints_mnist", "checkpoints_cifar10"]:

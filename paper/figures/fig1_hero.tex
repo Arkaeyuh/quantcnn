@@ -1,0 +1,34 @@
+% Fig 1 (hero); generated panels from scripts/gen_fig1*.py, schematic is a manual TikZ skeleton
+\begin{figure*}[t]
+  \centering
+  \input{figures/fig1a_schematic.tex}\\[3mm]
+  \begin{minipage}[c]{0.40\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/fig1a_supports.pdf}\\[1mm]
+    {\small (a)}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{0.58\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/fig1b_probe_vs_order.pdf}\\
+    {\small (b)}
+  \end{minipage}
+  \caption{\textbf{(a)} A CNN feeds an 8-dimensional bottleneck $z$ into an 8-qubit VQC head
+  (default: four $R_yR_z$ layers, each followed by a CNOT ring $(q, q{+}1 \bmod 8)$; variants
+  place CNOTs after the last layer only (``last''), use $L\in\{1,2\}$ layers, or replace the ring
+  by disjoint pairs $(0,1),(2,3),(4,5),(6,7)$). With every variational rotation at zero, each
+  readout is exactly $\langle Z_k\rangle=\prod_{j\in S_k}\cos(\pi\tanh z_j)$; the grids mark
+  $j\in S_k$ in blue (rows: readouts $k$, columns: inputs $j$). Pairs after every layer cancel
+  at zero rotations, so their supports equal the no-CNOT ones. Product order is
+  $\frac18\sum_k|S_k|$. The backbone is evaluated by one common linear probe on the frozen
+  bottleneck. \textbf{(b)} CIFAR-10 with 4,000 training images: probe test accuracy against
+  product order (log axis) for VQC heads (filled) and classical heads trained end to end on the
+  zero-rotation products of a circuit (open; at order 5.25 these are the supports of ``ring,
+  last'' and ``ring, 1 layer''; ``ring, 2 layers'' has different supports of the same mean
+  order). Mean $\pm$ SD over 5 seeds ($\dagger$: 3); head learning rate selected on mean
+  validation accuracy over seeds 0--2, seeds 3--4 run at that choice. Dashed line and band:
+  linear head. Points at one order are offset horizontally. Order is a zero-rotation descriptor
+  that co-varies with support overlap; the plot shows an association, and the classical heads
+  reproduce the declining trend, closely for the default ring but 5 points lower for ``ring,
+  last''.}
+  \label{fig:hero}
+\end{figure*}

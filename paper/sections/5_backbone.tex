@@ -1,0 +1,91 @@
+\section{What the VQC Head Does to the Backbone}
+\label{sec:backbone}
+
+\subsection{The default VQC head lowers bottleneck probe accuracy}
+\label{sec:gap}
+
+On CIFAR-10 with 4,000 images, the common probe reaches $69.8\pm1.0$ on backbones trained
+with the default VQC head and $74.5\pm0.5$ on backbones trained with a linear head, a paired
+difference of $-4.7\pm0.9$ points that is negative for all five seeds. The probe reads the
+VQC-trained bottleneck better than the VQC head itself does ($67.8\pm1.3$ test): replacing
+the VQC head by the probe raises accuracy by about 2.0 points, and a 4.7-point gap remains
+between the two backbones under the common probe. The gap is larger with less data (CIFAR-10:
+$-11.2\pm4.0$ and $-11.1\pm1.5$ at 1,000 and 2,000 images) and smaller on MNIST ($-7.9\pm4.2$,
+$-2.2\pm0.8$ and $-1.0\pm0.5$ at 250, 500 and 1,000; 3 seeds each). A narrow classical head
+lowers probe accuracy as well: MLP-8 backbones probe $3.6\pm0.6$ points below linear-head
+backbones on CIFAR-10/4,000, $1.0\pm0.9$ above the VQC. The rest of this section shows that
+the VQC's share of the gap depends on its CNOT structure, which no classical head has.
+
+\subsection{Removing the CNOT rings recovers most of the gap}
+\label{sec:ring}
+
+Deleting every CNOT and keeping the rest of the head unchanged raises probe accuracy to
+$73.6\pm0.5$ and test accuracy to $73.1\pm0.5$ (5 seeds). Against the default VQC this is
+$+3.8\pm1.2$ probe and $+5.2\pm1.4$ test points, positive for every seed, and the ring-free
+head now probes $2.8\pm0.6$ points above MLP-8. It leaves $0.8\pm0.5$ probe and $1.4\pm0.5$
+test points to the linear head. MNIST shows the same direction: ring removal gains
+$2.8\pm0.4$ and $1.4\pm0.4$ probe points at 500 and 1,000 images, and the ring-free head's
+test accuracy (94.5, 96.4) equals the linear head's (94.3, 96.4) to within 0.2 points.
+
+\subsection{Product order tracks the gap}
+\label{sec:order}
+
+Which property of the rings matters? \Cref{fig:hero}b places every head at the product order
+of \cref{eq:identity}. Across eleven heads at four orders, every head probes below every
+head of lower order. A ring after the last layer only keeps the default's parameter count and
+number of rotation layers but raises the order to 5.25; it lowers probe accuracy by
+$9.7\pm2.2$ points relative to the default (test $-12.5\pm2.3$; 5 seeds), and the 1- and
+2-layer circuits at the same order probe at 56.8 and 61.2 (3 seeds). Across these
+circuits, depth and parameter count do not order the cost; product order does.
+
+Two interventions test the products directly. First, classical heads trained end to end on a
+circuit's zero-rotation products, with no circuit, land at the circuit's order on the trend:
+the products of the default circuit give $68.8\pm1.6$ probe and $67.1\pm1.3$ test, paired
+differences to the default VQC of $-1.0\pm2.2$ and $-0.7\pm1.7$ with mixed signs across
+seeds. Second, the
+\emph{pairs} circuit keeps a CNOT after every layer but has order 1, because its pair CNOTs
+cancel at zero rotations. It recovers $3.1\pm1.2$ probe and $4.3\pm1.2$ test points over the
+default, positive for every seed, and sits $0.7\pm1.0$ probe points below the ring-free
+circuit. Pairs after the
+last layer only (order 1.5) probe at $71.2\pm0.7$, between orders 1 and 2.5, as does the
+classical head on their products ($71.2\pm1.3$).
+
+The identity is exact only at zero rotations, so we check how far the trained circuits move
+from it (\cref{app:zeroangle}). A circuit frozen at its initialization reproduces its
+zero-rotation model with $R^2=0.997$. Trained default and last-ring circuits stay close: a
+linear map of the zero-rotation readouts recovers 87\% and 90\% of the trained readout
+variance, and the input Jacobians of the logits align with cosine 0.77 and 0.80. Low-order
+circuits move further ($R^2$ 0.74--0.83); for the ring-free circuit this is the
+$\sin\enc{j}$ term of \cref{eq:ringfree}, which its trained rotations use. At order 5.25 the trained rotations recover part
+of the cost: the last-ring circuit beats the classical head on its products by
+$6.4\pm5.8$ test points. The products thus reproduce the accuracy trend and explain most of
+the trained ring circuits' readout variance.
+
+\subsection{Without CNOTs the head is a classical sinusoidal model}
+\label{sec:sinusoid}
+
+\input{figures/table3_ringfree_classical}
+
+By \cref{eq:ringfree}, the ring-free head computes
+$W[\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}]_j+b$ for every setting of its rotations.
+\Cref{tab:ringfree} compares it with classical heads of this form trained under the same
+protocol. The cos-only restriction trails it by $0.3\pm0.6$ probe and $0.6\pm0.7$ test points
+with mixed signs, and the unrestricted cos+sin extension by 0.9 and 1.3 (3 seeds). The match
+holds at the level of the function class, not the parameters: the trained ring-free circuit
+has mean absolute $R_y$ angle 0.41 rad and uses the sine component (Jacobian
+cosine 0.41 against the cos-only model; \cref{tab:zeroangle}).
+
+\subsection{Controls that do not recover the gap}
+\label{sec:controls}
+
+\input{figures/table2_controls}
+
+\Cref{tab:controls} tests alternative explanations on CIFAR-10/4,000. Lowering or raising the
+backbone learning rate with the head learning rate fixed leaves a gap of 4.9--8.6 points at
+every rate where the VQC trains, and the VQC collapses at the two highest rates. The
+backbone's gradient norm is larger, not smaller, with the VQC head. Freezing the circuit's
+rotations at initialization, which keeps the head close to its zero-rotation model, does
+not recover the probe ($-1.6\pm0.7$ against the trained circuit). BatchNorm before the encoding
+and two alternative encodings, one of which breaks the sign symmetry of
+$\cos(\pi\tanh z)$, recover at most 0.7 probe points. Lowering product order gives by far the
+largest recoveries.

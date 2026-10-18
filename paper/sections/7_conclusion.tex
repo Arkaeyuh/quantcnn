@@ -1,0 +1,13 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+A quantum classifier head trained jointly with a CNN changes the representation the CNN
+learns. With every head tuned on validation data and every backbone read by the same linear
+probe, the default ring-entangled VQC head lowers CIFAR-10 probe accuracy by 4.7 points, and
+the drop follows a quantity fixed by the CNOT pattern: the order of the cosine products each
+readout computes at zero rotations. Lowering that order, by removing the rings or by
+entangling only in pairs that cancel at zero rotations, recovers most of the gap, and classical heads built from the same products reproduce the
+declining probe-accuracy trend. Without CNOTs the quantum head is a
+classical sinusoidal model. For practitioners, three steps follow: tune each head
+separately, probe the backbone, and count the product order of a circuit before training
+through it.

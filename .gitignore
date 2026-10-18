@@ -20,3 +20,13 @@ review-stage/
 CLAUDE.md
 findings.md
 idea-stage/
+# LaTeX build artifacts and local paper backups
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper-backup-*/

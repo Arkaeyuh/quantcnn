@@ -1,0 +1,30 @@
+\begin{table}[t]
+\centering
+\caption{Without CNOT rings the VQC head is exactly a classical per-coordinate sinusoidal model,
+$\mathrm{logits} = W[\alpha_j\cos a_j + \beta_j\sin a_j]_{j=1}^{8} + b$ with $a_j = \pi\tanh z_j$
+and $\alpha_j, \beta_j$ set by the trained rotations, for all rotation angles. Classical heads
+$W[\cos a_j]_j + b$ (a restriction) and $W[\cos a_j, \sin a_j]_j + b$ (an unrestricted
+extension), trained end to end with the same recipe and per-head validation lr selection,
+trail it by 0.3--0.9 probe points and 0.6--1.3 test points.
+CIFAR-10 with 4,000 training images; test accuracy of the full model and of the common linear
+probe on the bottleneck (\%, mean $\pm$ SD over $n$ seeds); differences in percentage points,
+paired over seeds.}
+\label{tab:ringfree}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccc}
+\toprule
+& & & & \multicolumn{2}{c}{$-$ ring-free VQC} \\
+\cmidrule(lr){5-6}
+Head & $n$ & Test & Probe & Test & Probe \\
+\midrule
+VQC, no CNOT rings & 5 & $73.1 \pm 0.5$ & $73.6 \pm 0.5$ & --- & --- \\
+cos-only (restriction) & 5 & $72.5 \pm 0.5$ & $73.3 \pm 0.4$ & $-0.6 \pm 0.7$ & $-0.3 \pm 0.6$ \\
+cos+sin (unrestricted extension)$^a$ & 3 & $72.0 \pm 0.2$ & $72.8 \pm 0.4$ & $-1.3 \pm 0.4$ & $-0.9 \pm 0.5$ \\
+linear (reference) & 5 & $74.5 \pm 0.7$ & $74.5 \pm 0.5$ & $+1.4 \pm 0.5$ & $+0.8 \pm 0.5$ \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+{\footnotesize $^a$3 seeds; differences are against the ring-free VQC on the same seeds (test 73.3, probe 73.7).}
+\end{table}

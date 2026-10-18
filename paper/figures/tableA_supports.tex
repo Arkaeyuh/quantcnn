@@ -1,0 +1,22 @@
+\begin{table}[h]
+\centering
+\caption{Zero-rotation supports $S_k$ of each readout $\langle Z_k\rangle$, written as digit strings (e.g.\ 015 is $\{0,1,5\}$), and
+the mean product order $\bar{s}$, computed by propagating $Z_k$ backwards through each
+circuit's CNOTs.}
+\label{tab:supports}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcllllllll}
+\toprule
+Circuit & $\bar{s}$ & $S_0$ & $S_1$ & $S_2$ & $S_3$ & $S_4$ & $S_5$ & $S_6$ & $S_7$ \\
+\midrule
+no CNOT & 1 & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 \\
+pairs (every layer) & 1 & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 \\
+pairs, last & 1.5 & 0 & 01 & 2 & 23 & 4 & 45 & 6 & 67 \\
+ring (default) & 2.5 & 015 & 256 & 367 & 047 & 15 & 26 & 37 & 04 \\
+ring, last & 5.25 & 1234567 & 01 & 012 & 0123 & 01234 & 012345 & 0123456 & 01234567 \\
+ring, $L=1$ & 5.25 & 1234567 & 01 & 012 & 0123 & 01234 & 012345 & 0123456 & 01234567 \\
+ring, $L=2$ & 5.25 & 01357 & 0234567 & 134567 & 024567 & 13567 & 02467 & 1357 & 0246 \\
+\bottomrule
+\end{tabular}
+\end{table}

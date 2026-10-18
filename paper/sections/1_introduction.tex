@@ -1,0 +1,58 @@
+\section{Introduction}
+\label{sec:intro}
+
+A common near-term design for quantum image classification feeds a convolutional network
+into a small variational quantum circuit (VQC) that acts as the classifier head
+\citep{mitarai2018,havlicek2019,benedetti2019,cerezo2021}. The network is trained
+\emph{through} the circuit, so the head does more than classify: its gradients shape the
+features the backbone learns. A comparison between a quantum head and a classical one
+therefore compares two things at once, the heads and the representations they induce.
+Benchmarks of quantum classifiers read fixed inputs \citep{bowles2024,fulton2026,slattery2022},
+and the controls that isolate a circuit inside a hybrid model score output accuracy
+\citep{kolle2024,elhag2026}. Neither tells us what the quantum head does to the
+representation trained through it, or which part of the circuit is responsible.
+
+We answer both questions for a CNN with an 8-dimensional bottleneck and an 8-qubit head
+built from angle encoding $R_y(\pi\tanh z_j)$, four layers of trainable rotations each
+followed by a ring of CNOTs, and a linear readout of $\ZZ{k}$. After joint training we
+freeze each backbone and fit the same linear probe to its bottleneck, so that probe
+accuracy compares the representations directly. The default VQC head lowers this probe
+accuracy, and the size of the drop follows the circuit's CNOT structure. An exact identity
+explains why structure matters: when every trainable rotation is zero, which is near where
+training starts, each readout is
+$\ZZ{k}=\prod_{j\in S_k}\cos(\pi\tanh z_j)$, a product of cosines over a set $S_k$ of
+inputs fixed by the CNOT layers alone (\cref{fig:hero}a). The mean size of these sets, the
+\emph{product order}, is 1 without CNOTs, 2.5 for the default circuit and 5.25 when a
+single ring follows the last layer.
+
+\input{figures/fig1_hero}
+
+Our contributions are:
+\begin{enumerate}
+  \item \textbf{A tuning audit} (\cref{sec:tuning}). Under a revised protocol (longer
+        training, validation-based selection, each head's learning rate tuned), the VQC's
+        apparent advantage over a near-parameter-matched MLP on MNIST shrinks from up to 18
+        points to at most 3.3. On CIFAR-10 the VQC still trails the MLP by 3.1--9.2 points,
+        and among the linear, MLP and default VQC heads the linear head has the highest mean
+        test accuracy in all six dataset--size settings.
+  \item \textbf{A representation cost tied to the CNOT layers} (\cref{sec:gap,sec:ring}). On
+        CIFAR-10 with 4,000 training images the default VQC head lowers bottleneck probe
+        accuracy by $4.7\pm0.9$ points relative to a linear head (5 seeds). Removing the CNOT
+        rings recovers $3.8\pm1.2$ points. Five controls---backbone learning rate, frozen
+        rotations, pre-encoding BatchNorm and two alternative encodings---leave a substantial
+        gap (\cref{sec:controls}).
+  \item \textbf{A structural account} (\cref{sec:order,sec:sinusoid}). Probe accuracy falls
+        with product order across eleven heads (\cref{fig:hero}b). Classical heads trained
+        on a circuit's zero-rotation products, with no circuit, follow the same trend; on the
+        default circuit's products the paired probe difference to the VQC is $-1.0\pm2.2$. A
+        circuit that keeps its CNOTs
+        but has product order 1 recovers $3.1\pm1.2$ points over the default. Without CNOTs
+        the head is exactly a classical per-coordinate sinusoidal model, and classical heads
+        of that form come within 0.3--0.9 probe points of it.
+\end{enumerate}
+
+The practical upshot is concrete: in this design, the entangling layout of a quantum head
+is a choice about the backbone's representation, and product order, computable from the CNOT
+pattern before training, orders the mean probe accuracy of every head we test. \Cref{sec:related} positions the work, \cref{sec:setup} gives
+the model, protocol and identity, \cref{sec:tuning,sec:backbone} report the results, and
+\cref{sec:discussion} discusses a mechanism hypothesis and the limits of the evidence.

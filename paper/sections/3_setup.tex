@@ -1,0 +1,67 @@
+\section{Setup}
+\label{sec:setup}
+
+\paragraph{Model.}
+A CNN backbone maps an image to a bottleneck $\vz\in\R^8$ (MNIST: three convolutional
+blocks, about 94K parameters; CIFAR-10: four blocks, about 0.96M). Each head is trained
+jointly with its own copy of the backbone. The \emph{linear} head is a single dense layer
+(90 parameters); \emph{MLP-8} has one hidden layer of width 8 with ReLU (162). The default
+\emph{VQC} head encodes $\enc{j}=\pi\tanh z_j$ by $R_y(\enc{j})$ on qubit $j$, applies $L=4$
+layers of trainable $R_y R_z$ rotations on every qubit, each followed by a ring of CNOTs
+$(q,q{+}1 \bmod 8)$ applied in order $q=0,\dots,7$, measures $\ZZ{k}$ on every qubit, and
+maps the eight expectations to ten logits with a linear layer (154 stored parameters, 146
+of which can affect the output). Rotations are initialized in $\mathcal{U}(-0.1,0.1)$. We
+simulate the circuit exactly with a batched PyTorch statevector simulator that matches
+PennyLane \citep{bergholm2018} to $10^{-6}$ in outputs and input gradients and $10^{-5}$ in
+rotation gradients (our test suite). Circuit variants change CNOT placement or rotation
+depth: \emph{no CNOT}; a ring after the \emph{last} layer only; $L\in\{1,2\}$
+layers; and disjoint \emph{pairs} $(0,1),(2,3),(4,5),(6,7)$ after every layer or after the
+last layer only.
+
+\paragraph{Protocol.}
+Training subsets are class-stratified samples of 250, 500 or 1,000 MNIST images and 1,000,
+2,000 or 4,000 CIFAR-10 images; a disjoint stratified 2,000-image validation set selects
+the checkpoint epoch. Every run uses AdamW (weight decay $10^{-4}$), a cosine schedule,
+batch size 32 and gradient clipping, for 50 epochs on MNIST and 80 on CIFAR-10 with
+standard augmentation. The backbone learning rate is half the head learning rate. For each
+dataset, size and head we select the head learning rate with the best mean validation
+accuracy over seeds 0--2 from a grid of half-decade steps, and report test accuracy once.
+Headline CIFAR-10/4,000 cells add seeds 3 and 4 at that selected rate. Heads in a cell share
+seeds, hence training subsets and validation splits, so we report paired differences
+(mean $\pm$ SD over seeds, in percentage points). Every table states its number of seeds.
+
+\paragraph{Common linear probe.}
+To compare representations, we freeze each selected run's backbone, extract $\vz$ on clean
+images, and fit a fresh linear layer $\R^8\to\R^{10}$ (AdamW, cosine schedule, probe
+learning rate and epoch selected on validation). Because the probe is the same for every
+backbone, differences in its test accuracy compare the bottlenecks that different heads
+induced in joint training. We call this \emph{probe accuracy}.
+
+\paragraph{Zero-rotation identity.}
+With every trainable rotation set to zero, the variational block reduces to its CNOTs. The
+encoded state is a product state with $\langle Z_j\rangle=\cos\enc{j}$, and conjugating by
+$\mathrm{CNOT}(c,t)$ maps $Z_t\mapsto Z_cZ_t$ and leaves $Z_c$ unchanged. Propagating $Z_k$
+back through the gates in reverse order, and cancelling repeated factors with $Z^2=I$, gives
+a Pauli-$Z$ string on a set $\Sk$ of qubits:
+\begin{equation}
+  \ZZ{k}\big|_{\theta=0}=\prod_{j\in\Sk}\cos(\pi\tanh z_j),
+  \qquad
+  \order=\tfrac{1}{8}\textstyle\sum_{k}|\Sk| .
+  \label{eq:identity}
+\end{equation}
+We call $\order$ the \emph{product order}. It is 1 without CNOTs, 2.5 for the default
+circuit, 5.25 for a ring after the last layer or a single-layer circuit, 1.5 for pairs after
+the last layer, and 1 for pairs after every layer: the pair layer $P$ satisfies $P^2=I$, so its four
+copies cancel at zero rotations, while interleaved nonzero rotations generally prevent the
+cancellation (\cref{fig:hero}a; \cref{app:identity} lists the supports). Without
+CNOTs the identity extends to all rotation angles: each qubit evolves alone, so
+\begin{equation}
+  \ZZ{j}=\alpha_j\cos\enc{j}+\beta_j\sin\enc{j},
+  \label{eq:ringfree}
+\end{equation}
+with $\alpha_j,\beta_j$ set by qubit $j$'s trained rotations. With its readout layer, the
+ring-free head is thus a classical per-coordinate sinusoidal model (we checked the formula
+against the simulator to $10^{-7}$). To test whether the products themselves carry the effect, we train classical
+heads on them with no circuit: \emph{cos} uses $\cos\enc{j}$ (order 1), \emph{cos+sin} adds
+$\sin\enc{j}$, and \emph{cos-prod.} uses the products of \cref{eq:identity} for a given
+circuit's supports, each followed by a linear layer and tuned like every other head.

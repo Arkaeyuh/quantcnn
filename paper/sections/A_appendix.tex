@@ -1,0 +1,185 @@
+\section{The Zero-Rotation Identity}
+\label{app:identity}
+
+Let $U(\theta)$ be the variational block and $\ket{\psi(\vz)}=\bigotimes_j R_y(\enc{j})\ket{0}$
+the encoded product state, so that $\ZZ{k}=\bra{\psi}U^\dagger Z_k U\ket{\psi}$. At
+$\theta=0$ every $R_y$ and $R_z$ is the identity and $U$ is the product of the circuit's
+CNOTs. Conjugation by $\mathrm{CNOT}(c,t)$ maps $Z_t\mapsto Z_cZ_t$ and fixes $Z_c$, so
+$U^\dagger Z_k U$ is obtained by applying these rules to $Z_k$ for the gates in reverse
+order; the result is a string $\prod_{j\in\Sk}Z_j$, with $\Sk$ the set of qubits on which an
+odd number of propagation paths land. Since $\ket{\psi}$ is a product state with
+$\bra{\psi}Z_j\ket{\psi}=\cos\enc{j}$, the expectation factorizes into
+\cref{eq:identity}. \Cref{tab:supports} lists the supports. Pairs after every layer apply
+each pair CNOT four times, which is the identity, so their supports equal the no-CNOT ones;
+with trained rotations between the layers the gates no longer cancel, and the circuit
+produces entangled states (we checked numerically that its outputs differ from the
+ring-free circuit's at random rotation angles).
+
+For the ring-free circuit and any rotation angles, qubit $j$ starts from Bloch vector
+$(\sin\enc{j},0,\cos\enc{j})$ after encoding and then undergoes a fixed rotation $M_j\in
+\mathrm{SO}(3)$ determined by its trained $R_yR_z$ layers. Hence
+$\ZZ{j}=(M_j)_{zx}\sin\enc{j}+(M_j)_{zz}\cos\enc{j}$, which is \cref{eq:ringfree} with
+$\beta_j=(M_j)_{zx}$ and $\alpha_j=(M_j)_{zz}$. We verified the formula against the simulator
+to $10^{-7}$. Since the readout layer is linear, the ring-free head is
+$W[\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}]_j+b$.
+
+\input{figures/tableA_supports}
+
+\section{Trained Circuits against the Product Model}
+\label{app:zeroangle}
+
+\input{figures/tableA_zero_angle}
+
+\Cref{tab:zeroangle} compares each trained circuit with the same circuit after setting every
+rotation to zero, on the validation embeddings of the run's own backbone. The frozen circuit
+anchors the measurement: rotations held at their $\mathcal{U}(-0.1,0.1)$ initialization
+reproduce the product model almost exactly ($R^2=0.997$). Trained ring circuits stay close to
+their product model in both output and input Jacobian, which is what the backbone's gradient
+sees. Zeroing the rotations under the \emph{trained} readout costs 14--23 accuracy points,
+but this overstates the gap, because the readout is not refit; the $R^2$ column shows that
+most of the difference is a linear re-mixing of the same products. Low-order circuits drift
+further, as \cref{sec:sinusoid} explains for the ring-free case.
+
+\section{Exploratory Sweep with One Shared Recipe}
+\label{app:sweep}
+
+Before the protocol of \cref{sec:setup}, we ran every head with one shared recipe: head
+learning rate $10^{-3}$ (backbone $5\times10^{-4}$), 25 epochs on MNIST and 80 on CIFAR-10,
+three data re-uploading schedules for the VQC, and checkpoints chosen by best test-split
+accuracy. Because the test split took part in checkpoint selection, these numbers are
+exploratory; mean final-epoch accuracy is within 1.35 points of best-epoch accuracy in all 30
+configurations and no ordering of heads changes. \Cref{tab:mnist,tab:cifar} give the results.
+Re-uploading lowered accuracy in every setting under this recipe (\textsc{none} $>$
+\textsc{light} $>$ \textsc{strong}); it was not part of the tuned protocol.
+
+\begin{table}[h]
+\centering
+\caption{Exploratory sweep, MNIST: best test-split accuracy (\%, mean $\pm$ SD over 3 seeds)
+with one shared recipe. Bold marks the better of MLP-8 and the VQC (\textsc{none}).}
+\label{tab:mnist}
+\small
+\begin{tabular}{lccccc}
+\toprule
+& & & \multicolumn{3}{c}{VQC (re-uploading schedule)} \\
+\cmidrule(lr){4-6}
+$N_\mathrm{train}$ & Linear & MLP-8 & \textsc{none} & \textsc{light} & \textsc{strong} \\
+\midrule
+250   & $61.5 \pm 1.7$ & $36.7 \pm 5.4$ & $\mathbf{54.5 \pm 3.7}$ & $48.3 \pm 10.7$ & $38.3 \pm 7.4$ \\
+500   & $79.3 \pm 2.9$ & $53.2 \pm 6.9$ & $\mathbf{71.2 \pm 1.9}$ & $57.8 \pm 2.5$ & $45.6 \pm 6.7$ \\
+1,000 & $89.6 \pm 0.7$ & $76.4 \pm 3.4$ & $\mathbf{83.3 \pm 0.3}$ & $68.4 \pm 3.5$ & $54.6 \pm 14.0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Exploratory sweep, CIFAR-10: best test-split accuracy (\%, mean $\pm$ SD over 3
+seeds) with one shared recipe. Bold marks the better of MLP-8 and the VQC (\textsc{none}).}
+\label{tab:cifar}
+\small
+\begin{tabular}{lccccc}
+\toprule
+& & & \multicolumn{3}{c}{VQC (re-uploading schedule)} \\
+\cmidrule(lr){4-6}
+$N_\mathrm{train}$ & Linear & MLP-8 & \textsc{none} & \textsc{light} & \textsc{strong} \\
+\midrule
+1,000 & $57.5 \pm 0.8$ & $\mathbf{51.2 \pm 0.8}$ & $37.1 \pm 2.4$ & $34.2 \pm 0.7$ & $26.6 \pm 1.9$ \\
+2,000 & $64.6 \pm 0.7$ & $\mathbf{60.6 \pm 0.9}$ & $46.8 \pm 5.2$ & $42.7 \pm 3.9$ & $28.7 \pm 1.9$ \\
+4,000 & $71.2 \pm 0.5$ & $\mathbf{67.2 \pm 0.4}$ & $58.9 \pm 4.6$ & $52.0 \pm 7.8$ & $35.2 \pm 5.5$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Frozen-Embedding Transfer}
+\label{app:frozen}
+
+To separate a head from the backbone it induces, we also trained fresh heads on fixed
+embeddings extracted from exploratory-sweep backbones (linear- or VQC-trained; MNIST at
+1,000 images, CIFAR-10 at 4,000; 3 seeds; 498 head fits with learning rate and epoch selected
+on validation). \Cref{tab:frozen} gives the results. On VQC-trained embeddings, a refitted
+linear head beats a refitted VQC by $1.7\pm0.8$ (MNIST) and $1.6\pm0.5$ points (CIFAR-10),
+positive for every seed. On linear-trained embeddings, most of whose values lie in the flat
+region $|\tanh z|>0.9$ of the encoding (56\% and 66\%), the VQC collapses, trailing the
+linear head by $20.9\pm4.4$ and $41.8\pm2.9$ points, and a classical Fourier head
+$[\cos\enc{j},\sin\enc{j}]\to$ Linear with the same encoding collapses almost as far on
+CIFAR-10. Fixed standardization of the embedding recovers $12.6\pm6.2$ and $30.4\pm2.9$ of
+those points for the VQC, and a learned per-dimension affine $15.0\pm7.6$ and
+$35.9\pm0.9$; tripling the training budget recovers $0.5\pm0.2$ on CIFAR-10. The Fourier
+head's recovery under standardization was not tested. The source checkpoints were selected
+on the test split, so this experiment is exploratory; it motivated the probe measurements of
+\cref{sec:backbone}, which use validation-selected backbones only.
+
+\begin{table}[h]
+\centering
+\caption{Frozen-embedding transfer: test accuracy (\%, mean $\pm$ SD over 3 seeds) of heads
+trained on identical frozen embeddings. Columns give the head the backbone was trained with
+and the fraction of test embedding values with $|\tanh z|>0.9$. $^\dagger$Selected learning
+rate is the largest tried for that head.}
+\label{tab:frozen}
+\small
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{MNIST (1,000 images)} & \multicolumn{2}{c}{CIFAR-10 (4,000 images)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Head & linear src.\ (56\%) & VQC src.\ (5\%) & linear src.\ (66\%) & VQC src.\ (30\%) \\
+\midrule
+Linear          & $89.8 \pm 0.2$ & $88.9 \pm 1.6$ & $70.9 \pm 0.6$ & $62.5 \pm 4.4^\dagger$ \\
+MLP-8           & $88.3 \pm 0.9$ & $88.5 \pm 1.1$ & $70.2 \pm 0.8$ & $62.3 \pm 4.0$ \\
+Fourier         & $78.2 \pm 1.1$ & $87.1 \pm 2.0$ & $33.4 \pm 1.0$ & $61.8 \pm 4.5$ \\
+VQC             & $69.0 \pm 4.4$ & $87.2 \pm 1.0$ & $29.1 \pm 3.0$ & $61.0 \pm 4.1$ \\
+VQC+std         & $81.6 \pm 5.6$ & $77.6 \pm 6.6$ & $59.5 \pm 0.4$ & $53.7 \pm 5.6$ \\
+VQC+std+affine  & $84.0 \pm 3.3$ & $82.7 \pm 1.6$ & $65.0 \pm 3.1$ & $61.6 \pm 4.4$ \\
+VQC, 3$\times$ epochs & -- & -- & $29.6 \pm 3.0^\dagger$ & $61.0 \pm 4.5^\dagger$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Learning-Rate Sensitivity}
+\label{app:lr}
+
+Trigonometric heads, quantum or classical, tolerate a narrow range of head learning rates under
+the coupled recipe (backbone at half the head rate). On CIFAR-10/4,000 all of them select
+$10^{-2}$, and at $3\times10^{-2}$ test accuracy falls to 63.4 for the default VQC, 50.0 for
+the ring-free VQC, and 29.3 and 28.9 for the classical cos and cos+sin heads, while the linear
+head selects $3\times10^{-2}$. With the head learning rate fixed, the default VQC also
+collapses at backbone learning rates of $3\times10^{-2}$ and $6\times10^{-2}$, where its
+bottleneck saturates the encoding completely, whereas the linear head still trains
+(\cref{tab:controls}). Test accuracy for every grid point is in the released results.
+
+\section{Sign Symmetry}
+\label{app:sign}
+
+At zero rotations every readout is an even function of each $z_j$, because cosine is even.
+We measured how far trained heads are from this symmetry on CIFAR-10/4,000 test embeddings:
+the median, over samples, of $\|q(-\vz)-q(\vz)\|/\|q(\vz)-q(\vz')\|$, with $q$ the readouts
+and $\vz'$ a random other sample (0: blind to the sign; about 1: flipping the sign moves the
+readout as far as changing the image). The frozen circuit stays nearly sign-blind
+(0.09--0.12), and its accuracy on $-\vz$ is within 1.4 points of that on $\vz$. Trained heads
+are not: 0.58--0.73 for the default VQC (accuracy on $-\vz$: 25--34\%), 0.91--1.02 for the
+ring-free VQC (6--17\%), and 0.85--0.97 for the monotone and symmetric encodings of
+\cref{tab:controls}. Sign-blindness at initialization therefore does not predict the
+backbone cost, consistent with the null result of the monotone encoding.
+
+\section{Training and Reproducibility Details}
+\label{app:repro}
+
+\paragraph{Training.}
+AdamW with weight decay $10^{-4}$, cosine annealing to zero, batch size 32, gradient clipping
+at norm 1.0 (MNIST) or 2.0 (CIFAR-10); CIFAR-10 augmentation is random crop, horizontal flip,
+small rotation and color jitter. Head learning-rate grids: MNIST
+$\{3\times10^{-4},\dots,3\times10^{-2}\}$ and CIFAR-10 $\{10^{-3},3\times10^{-3},10^{-2}\}$ in
+half-decade steps, each extended by one step whenever the selected rate was at the top; circuit
+variants $\{3\times10^{-3},10^{-2},3\times10^{-2}\}$; classical product heads
+$\{10^{-3},\dots,3\times10^{-2}\}$. All selected rates of circuit and classical product heads
+are interior to their grids. The probe uses AdamW (weight decay $10^{-4}$), batch size 128,
+60 epochs with a cosine schedule, and probe learning rates
+$\{3\times10^{-3},10^{-2},3\times10^{-2},10^{-1},3\times10^{-1},1\}$, all selected on
+validation.
+
+\paragraph{Reproducibility.}
+The repository contains per-epoch metrics and metadata for every run, the probe and
+trained-circuit measurements, and the scripts that regenerate every number, table and figure
+from them (\texttt{scripts/summarize\_v2.py}, \texttt{scripts/zero\_angle\_check.py},
+\texttt{paper/figures/scripts/}). The PyTorch statevector simulator is tested against
+PennyLane to $10^{-6}$ in outputs and gradients. Seeds control data subsets, initialization
+and data order. Experiments ran on one Apple M3 Max.

@@ -1,0 +1,50 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Benchmarking quantum classifiers and the role of entanglement.}
+Large benchmarks find that simple classical models generally match or beat variational
+quantum classifiers, and that removing entanglement often does not hurt
+\citep{bowles2024}; quantum fidelity kernels show a similar lack of advantage on classical
+data \citep{slattery2022}. Closest to our setting, \citet{fulton2026} show that classical
+$\mathrm{SU}(2)$ models match or exceed shallow VQCs on vision benchmarks and that ring
+entanglement can degrade accuracy on fixed features. Recent hybrid-network studies reach
+related conclusions under more careful matching of width and budget
+\citep{freinberger2026,innan2026,park2026}. Other work trains hybrid models end to end and
+studies the learned representation: \citet{kashif2026} analyze expressibility and
+trainability under joint training, and quantum self-supervised learning evaluates frozen
+hybrid encoders with linear probes \citep{jaderberg2021,edwards2026}. We probe the
+supervised bottleneck \emph{before} the circuit, the representation the circuit's
+gradients shape, and relate its accuracy to a quantity, product order, read off the CNOT
+pattern.
+
+\paragraph{Isolating the circuit inside hybrid models.}
+A growing line of work asks what the quantum part of a hybrid model contributes.
+\citet{kolle2024} separate classical and quantum contributions in hybrid architectures,
+building on sequential training that first fits a classical surrogate and then swaps in the
+circuit \citep{altmann2023}. \citet{elhag2026} delete, freeze or corrupt the circuit in
+quantum message passing and compare it with exact classical surrogates under the same
+$\pi\tanh$-style angle encoding. Data-encoding choices in hybrid convolutional models have
+also been compared directly \citep{monnet2024}. These controls score predictive accuracy. We
+add a representation-level measurement, a common probe on the jointly trained bottleneck,
+and controls that change one structural property of the circuit at a time.
+
+\paragraph{Fourier structure, classical surrogates and head-induced feature distortion.}
+Angle-encoded circuits compute truncated Fourier series of their inputs
+\citep{schuld2021,perez2020}, which classical models can represent and emulate
+\citep{schreiber2023}; sinusoidal features also appear in classical networks as periodic
+activations and Fourier feature maps \citep{sitzmann2020,tancik2020}. Our zero-rotation
+identity is an elementary instance of this structure, used as an explanatory variable: it
+shows which products the CNOT layers create, and their order tracks a measured cost. In classical deep learning, \citet{kumar2022} show that the
+head used during fine-tuning distorts pretrained features, and linear probes are a standard
+tool for reading what an intermediate layer encodes \citep{alain2017}. We apply the probe
+to the quantum-head setting, where the head is a fixed-form circuit rather than a learned
+classical layer.
+
+\paragraph{Position of this work.}
+That entanglement often does not help, and that trigonometric surrogates can stand in for
+simple circuits, are known. What is new here is (i) a measurement of the bottleneck a
+quantum classifier head induces under supervised joint training, with a probe shared across
+quantum and classical heads, and (ii) a
+structural variable, the order of the zero-rotation cosine products, that orders the
+representation cost across circuit and classical heads and survives an intervention that
+keeps entanglement while lowering order.

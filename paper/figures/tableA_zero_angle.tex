@@ -1,0 +1,28 @@
+\begin{table}[h]
+\centering
+\caption{Trained circuits against their own zero-rotation product model (CIFAR-10, 4,000
+training images; each run's validation embeddings; means over $n$ seeds). $R^2$: fraction of
+the trained readout variance a linear map recovers from the readouts of the same circuit with
+all rotations set to zero. Jacobian cosine: median over samples of the cosine between the
+input Jacobians of the trained and zeroed circuits, for the readouts and for the logits
+under the trained readout layer. Accuracy: validation accuracy of the head, and of the same
+head with rotations zeroed but the readout layer kept (not refit). Last column: mean
+$|\theta|$ of the $R_y$ / $R_z$ rotations (rad).}
+\label{tab:zeroangle}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccccccc}
+\toprule
+& & & & \multicolumn{2}{c}{Jacobian cosine} & \multicolumn{2}{c}{Accuracy} & \\
+\cmidrule(lr){5-6}\cmidrule(lr){7-8}
+Circuit & Order & $n$ & $R^2$ & readouts & logits & trained & zeroed & $|R_y|$ / $|R_z|$ \\
+\midrule
+ring (default), frozen at init & 2.5 & 3 & 0.997 & 0.996 & 0.997 & 66.8 & 66.6 & 0.05 / 0.05 \\
+ring (default) & 2.5 & 5 & 0.867 & 0.753 & 0.770 & 68.7 & 46.0 & 0.14 / 0.48 \\
+ring, last & 5.25 & 5 & 0.905 & 0.809 & 0.800 & 56.0 & 42.1 & 0.10 / 0.41 \\
+pairs, last & 1.5 & 5 & 0.830 & 0.525 & 0.560 & 70.3 & 39.8 & 0.20 / 0.37 \\
+pairs & 1 & 5 & 0.794 & 0.513 & 0.551 & 73.2 & 38.5 & 0.32 / 0.43 \\
+no CNOT & 1 & 5 & 0.741 & 0.342 & 0.406 & 73.7 & 31.0 & 0.41 / 0.28 \\
+\bottomrule
+\end{tabular}
+\end{table}
