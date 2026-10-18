@@ -81,6 +81,18 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
         default="pennylane",
         help="Quantum head simulator; 'torch' is a batched, numerically equivalent backend.",
     )
+    p.add_argument(
+        "--pre_norm",
+        choices=["none", "bn"],
+        default="none",
+        help="Normalization between bottleneck and head; 'bn' is BatchNorm1d with a learned affine.",
+    )
+    p.add_argument(
+        "--freeze_circuit",
+        action="store_true",
+        help="Quantum head only: keep the VQC rotation angles at their initialization "
+        "(the backbone and the readout Linear still train).",
+    )
     p.add_argument("--data_root", default="./data")
     p.add_argument("--out_dir", default=None, help="Directory for meta.json & metrics.csv.")
     p.add_argument(
@@ -155,6 +167,8 @@ def run_training(args: argparse.Namespace) -> Path:
         lr_scheduler=args.lr_scheduler,
         val_size=int(args.val_size),
         quantum_sim=args.quantum_sim,
+        pre_norm=args.pre_norm,
+        freeze_circuit=bool(args.freeze_circuit),
     )
 
     set_seed(int(args.seed))
@@ -185,6 +199,7 @@ def run_training(args: argparse.Namespace) -> Path:
         n_var_layers=args.n_var_layers,
         reupload_mode=args.reupload_mode,
         quantum_sim=args.quantum_sim,
+        pre_norm=args.pre_norm,
     )
 
     if torch.cuda.is_available():
@@ -194,6 +209,10 @@ def run_training(args: argparse.Namespace) -> Path:
     else:
         device = torch.device("cpu")
     model.to(device)
+    if cfg.freeze_circuit:
+        if args.head != "quantum":
+            raise ValueError("--freeze_circuit requires --head quantum.")
+        model.head.vqc.qlayer.weights.requires_grad_(False)
 
     train_loader = DataLoader(
         train_ds,
@@ -205,7 +224,9 @@ def run_training(args: argparse.Namespace) -> Path:
 
     backbone_params = list(model.backbone.parameters())
     head_params = [
-        p for n, p in model.named_parameters() if not str(n).startswith("backbone.")
+        p
+        for n, p in model.named_parameters()
+        if not str(n).startswith("backbone.") and p.requires_grad
     ]
     if not head_params:
         raise RuntimeError("No head parameters found.")

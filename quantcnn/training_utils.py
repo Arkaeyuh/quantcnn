@@ -31,6 +31,8 @@ class RunConfig:
     lr_scheduler: str
     val_size: int = 0
     quantum_sim: str = "pennylane"
+    pre_norm: str = "none"
+    freeze_circuit: bool = False
 
 
 def accuracy(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:

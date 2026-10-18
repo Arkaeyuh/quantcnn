@@ -10,6 +10,15 @@ with the official test split evaluated once on the selected checkpoint:
   head learning rate {3e-4, 1e-3, 3e-3, 1e-2, 3e-2}, 50 epochs.
 * ``cifar_val``: linear, MLP and quantum (no re-upload) heads on the recipe of the
   reported CIFAR-10 sweep (80 epochs, clip 2.0), head learning rate {1e-3, 3e-3, 1e-2}.
+* ``mnist_bn`` / ``cifar_bn``: the quantum head and, as a control, the linear head
+  with BatchNorm1d between bottleneck and head (``--pre_norm bn``), on the same
+  recipes; the learning-rate grids go one step higher than the plain grids.
+* ``cifar_mech``: mechanism audit at CIFAR-10, 4000 images. (a) Backbone learning
+  rate swept at a fixed head learning rate (each head's ``cifar_val`` selection:
+  linear 3e-2, quantum 1e-2) over absolute backbone rates {2.5e-3, 5e-3, 1.5e-2,
+  3e-2, 6e-2}, omitting the rate the ``cifar_val`` run already used; (b) quantum
+  head with the circuit frozen at initialization (``--freeze_circuit``), head
+  learning rate {3e-3, 1e-2, 3e-2, 1e-1} at the default backbone multiplier.
 
 From repository root::
 
@@ -34,11 +43,17 @@ import torch
 from scripts.train import default_train_args, run_training
 
 SEEDS = [0, 1, 2]
+DEFAULT_BB_MULT = 0.5
+MECH_HEAD_LR = {"linear": 3e-2, "quantum": 1e-2}
+MECH_BACKBONE_LRS = [2.5e-3, 5e-3, 1.5e-2, 3e-2, 6e-2]
 EDGE_EXTENSION = {
     "mnist_search": [("mnist", n, h, hid, 1e-1) for n in [250, 500, 1000] for h, hid in [("linear", None), ("mlp", 8)]]
                     + [("mnist", 1000, "mlp", 7, 1e-1)],
     "cifar_val": [("cifar10", 2000, "linear", None, 3e-2), ("cifar10", 2000, "quantum", None, 3e-2)]
                  + [("cifar10", 4000, h, hid, 3e-2) for h, hid in [("linear", None), ("mlp", 8), ("quantum", None)]],
+    "mnist_bn": [("mnist", n, "quantum", None, 3e-1, "bn") for n in [250, 500, 1000]],
+    "cifar_bn": [("cifar10", 1000, "quantum", None, 1e-1, "bn"), ("cifar10", 4000, "quantum", None, 1e-1, "bn"),
+                 ("cifar10", 2000, "linear", None, 1e-1, "bn"), ("cifar10", 4000, "linear", None, 1e-1, "bn")],
 }
 
 
@@ -59,19 +74,45 @@ def _grid(name: str) -> list[dict]:
                     for sd in SEEDS:
                         items.append(dict(dataset="cifar10", train_subset_size=n, head=head, mlp_hidden=hid,
                                           lr=lr, seed=sd, epochs=80, gradient_clip_norm=2.0))
+    elif name in ("mnist_bn", "cifar_bn"):
+        mnist = name == "mnist_bn"
+        lrs = [1e-3, 3e-3, 1e-2, 3e-2, 1e-1] if mnist else [1e-3, 3e-3, 1e-2, 3e-2]
+        for n in ([250, 500, 1000] if mnist else [1000, 2000, 4000]):
+            for head in ["linear", "quantum"]:
+                for lr in lrs:
+                    for sd in SEEDS:
+                        items.append(dict(dataset="mnist" if mnist else "cifar10", train_subset_size=n,
+                                          head=head, mlp_hidden=None, lr=lr, seed=sd, pre_norm="bn",
+                                          epochs=50 if mnist else 80, gradient_clip_norm=1.0 if mnist else 2.0))
+    elif name == "cifar_mech":
+        common = dict(dataset="cifar10", train_subset_size=4000, mlp_hidden=None, epochs=80, gradient_clip_norm=2.0)
+        for head, lr in MECH_HEAD_LR.items():
+            for bb_lr in MECH_BACKBONE_LRS:
+                mult = round(bb_lr / lr, 6)
+                if mult == DEFAULT_BB_MULT:
+                    continue  # already in cifar_val
+                for sd in SEEDS:
+                    items.append(dict(common, head=head, lr=lr, lr_backbone_multiplier=mult, seed=sd))
+        for lr in [3e-3, 1e-2, 3e-2, 1e-1]:
+            for sd in SEEDS:
+                items.append(dict(common, head="quantum", lr=lr, freeze_circuit=True, seed=sd))
     else:
         raise ValueError(name)
     # One more step for the cells whose validation-selected lr was the grid maximum.
-    for ds, n, head, hid, lr in EDGE_EXTENSION.get(name, []):
+    for ds, n, head, hid, lr, *norm in EDGE_EXTENSION.get(name, []):
         for sd in SEEDS:
             items.append(dict(dataset=ds, train_subset_size=n, head=head, mlp_hidden=hid, lr=lr, seed=sd,
-                              epochs=items[0]["epochs"],
+                              pre_norm=norm[0] if norm else "none", epochs=items[0]["epochs"],
                               gradient_clip_norm=items[0]["gradient_clip_norm"]))
     return items
 
 
 def _slug(it: dict) -> str:
     head = it["head"] + (f"{it['mlp_hidden']}" if it["head"] == "mlp" else "")
+    head += "_bn" if it.get("pre_norm", "none") == "bn" else ""
+    head += "_frozen" if it.get("freeze_circuit") else ""
+    mult = it.get("lr_backbone_multiplier", DEFAULT_BB_MULT)
+    head += f"_bbm{mult:g}" if mult != DEFAULT_BB_MULT else ""
     return f"{it['dataset']}_subset{it['train_subset_size']}_{head}_lr{it['lr']:g}_s{it['seed']}"
 
 
@@ -107,7 +148,7 @@ def _export(root: Path, dest: Path) -> int:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--grid", choices=["mnist_search", "cifar_val"], required=True)
+    ap.add_argument("--grid", choices=["mnist_search", "cifar_val", "mnist_bn", "cifar_bn", "cifar_mech"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

@@ -1,17 +1,23 @@
 
-== results/protocol_v2/mnist_search  (lr chosen by mean val acc; test reported)
-  250 linear   lr=0.1     test  90.3 +-  1.9  val  90.4  clean-train 100.0  epoch 41.7   [test by lr: 0.0003:52.3  0.001:73.5  0.003:79.5  0.01:84.1  0.03:87.9  0.1:90.3]
-  250 mlp7     lr=0.01    test  75.2 +-  1.1  val  75.3  clean-train 100.0  epoch 46.0   [test by lr: 0.0003:23.5  0.001:41.6  0.003:63.1  0.01:75.2  0.03:73.1]
-  250 mlp8     lr=0.03    test  78.7 +-  6.5  val  79.1  clean-train 100.0  epoch 48.0   [test by lr: 0.0003:32.9  0.001:50.7  0.003:69.0  0.01:75.4  0.03:78.7  0.1:11.3]
-  250 quantum  lr=0.01    test  76.6 +-  5.3  val  76.5  clean-train  97.6  epoch 36.0   [test by lr: 0.0003:50.1  0.001:61.5  0.003:69.7  0.01:76.6  0.03:74.5]
-  500 linear   lr=0.1     test  94.3 +-  0.2  val  94.3  clean-train 100.0  epoch 42.3   [test by lr: 0.0003:71.6  0.001:85.6  0.003:89.1  0.01:92.1  0.03:93.5  0.1:94.3]
-  500 mlp7     lr=0.01    test  87.0 +-  5.2  val  86.9  clean-train 100.0  epoch 42.3   [test by lr: 0.0003:38.6  0.001:66.1  0.003:75.4  0.01:87.0  0.03:85.4]
-  500 mlp8     lr=0.03    test  86.7 +-  3.0  val  86.8  clean-train  99.7  epoch 40.3   [test by lr: 0.0003:43.4  0.001:69.5  0.003:80.4  0.01:85.7  0.03:86.7  0.1:15.5]
-  500 quantum  lr=0.01    test  90.0 +-  0.6  val  89.7  clean-train 100.0  epoch 42.0   [test by lr: 0.0003:59.5  0.001:75.6  0.003:86.8  0.01:90.0  0.03:89.1]
- 1000 linear   lr=0.1     test  96.4 +-  0.5  val  96.7  clean-train 100.0  epoch 39.3   [test by lr: 0.0003:85.0  0.001:90.5  0.003:92.8  0.01:94.7  0.03:95.9  0.1:96.4]
- 1000 mlp7     lr=0.03    test  93.7 +-  0.4  val  94.1  clean-train 100.0  epoch 46.0   [test by lr: 0.0003:57.0  0.001:80.8  0.003:86.1  0.01:92.5  0.03:93.7  0.1:38.8]
- 1000 mlp8     lr=0.03    test  93.9 +-  0.8  val  94.2  clean-train 100.0  epoch 41.7   [test by lr: 0.0003:61.5  0.001:82.1  0.003:89.1  0.01:92.6  0.03:93.9  0.1:66.0]
- 1000 quantum  lr=0.01    test  94.6 +-  0.4  val  94.5  clean-train 100.0  epoch 41.3   [test by lr: 0.0003:74.7  0.001:81.7  0.003:92.3  0.01:94.6  0.03:94.0]
+== results/protocol_v2/mnist_search + results/protocol_v2/mnist_bn  (lr chosen by mean val acc; test reported)
+  250 linear     lr=0.1     test  90.3 +-  1.9  val  90.4  clean-train 100.0  epoch 41.7   [test by lr: 0.0003:52.3  0.001:73.5  0.003:79.5  0.01:84.1  0.03:87.9  0.1:90.3]
+  250 linear+bn  lr=0.03    test  91.8 +-  0.5  val  92.3  clean-train 100.0  epoch 40.0   [test by lr: 0.001:85.9  0.003:90.5  0.01:91.6  0.03:91.8  0.1:90.2]
+  250 mlp7       lr=0.01    test  75.2 +-  1.1  val  75.3  clean-train 100.0  epoch 46.0   [test by lr: 0.0003:23.5  0.001:41.6  0.003:63.1  0.01:75.2  0.03:73.1]
+  250 mlp8       lr=0.03    test  78.7 +-  6.5  val  79.1  clean-train 100.0  epoch 48.0   [test by lr: 0.0003:32.9  0.001:50.7  0.003:69.0  0.01:75.4  0.03:78.7  0.1:11.3]
+  250 quantum    lr=0.01    test  76.6 +-  5.3  val  76.5  clean-train  97.6  epoch 36.0   [test by lr: 0.0003:50.1  0.001:61.5  0.003:69.7  0.01:76.6  0.03:74.5]
+  250 quantum+bn lr=0.1     test  80.9 +-  4.3  val  81.2  clean-train  99.7  epoch 46.3   [test by lr: 0.001:29.3  0.003:45.7  0.01:63.5  0.03:76.7  0.1:80.9  0.3:59.7]
+  500 linear     lr=0.1     test  94.3 +-  0.2  val  94.3  clean-train 100.0  epoch 42.3   [test by lr: 0.0003:71.6  0.001:85.6  0.003:89.1  0.01:92.1  0.03:93.5  0.1:94.3]
+  500 linear+bn  lr=0.01    test  95.0 +-  0.0  val  95.0  clean-train 100.0  epoch 38.0   [test by lr: 0.001:91.9  0.003:94.5  0.01:95.0  0.03:94.9  0.1:94.4]
+  500 mlp7       lr=0.01    test  87.0 +-  5.2  val  86.9  clean-train 100.0  epoch 42.3   [test by lr: 0.0003:38.6  0.001:66.1  0.003:75.4  0.01:87.0  0.03:85.4]
+  500 mlp8       lr=0.03    test  86.7 +-  3.0  val  86.8  clean-train  99.7  epoch 40.3   [test by lr: 0.0003:43.4  0.001:69.5  0.003:80.4  0.01:85.7  0.03:86.7  0.1:15.5]
+  500 quantum    lr=0.01    test  90.0 +-  0.6  val  89.7  clean-train 100.0  epoch 42.0   [test by lr: 0.0003:59.5  0.001:75.6  0.003:86.8  0.01:90.0  0.03:89.1]
+  500 quantum+bn lr=0.1     test  90.8 +-  1.2  val  91.1  clean-train  99.9  epoch 42.3   [test by lr: 0.001:42.7  0.003:60.1  0.01:88.2  0.03:90.8  0.1:90.8  0.3:74.4]
+ 1000 linear     lr=0.1     test  96.4 +-  0.5  val  96.7  clean-train 100.0  epoch 39.3   [test by lr: 0.0003:85.0  0.001:90.5  0.003:92.8  0.01:94.7  0.03:95.9  0.1:96.4]
+ 1000 linear+bn  lr=0.01    test  96.7 +-  0.1  val  96.8  clean-train 100.0  epoch 36.3   [test by lr: 0.001:95.5  0.003:96.5  0.01:96.7  0.03:96.5  0.1:96.2]
+ 1000 mlp7       lr=0.03    test  93.7 +-  0.4  val  94.1  clean-train 100.0  epoch 46.0   [test by lr: 0.0003:57.0  0.001:80.8  0.003:86.1  0.01:92.5  0.03:93.7  0.1:38.8]
+ 1000 mlp8       lr=0.03    test  93.9 +-  0.8  val  94.2  clean-train 100.0  epoch 41.7   [test by lr: 0.0003:61.5  0.001:82.1  0.003:89.1  0.01:92.6  0.03:93.9  0.1:66.0]
+ 1000 quantum    lr=0.01    test  94.6 +-  0.4  val  94.5  clean-train 100.0  epoch 41.3   [test by lr: 0.0003:74.7  0.001:81.7  0.003:92.3  0.01:94.6  0.03:94.0]
+ 1000 quantum+bn lr=0.1     test  94.8 +-  0.8  val  94.9  clean-train 100.0  epoch 48.7   [test by lr: 0.001:70.0  0.003:89.4  0.01:92.3  0.03:94.9  0.1:94.8  0.3:75.2]
 -- paired test differences, quantum minus other head (mean +- SD over seeds)
   250 quantum-linear selected lr -13.7 +- 5.9  per seed ['-14.21', '-19.31', '-7.62']   shared lr 1e-3 -12.1 +- 4.1  per seed ['-10.06', '-9.37', '-16.72']
   250 quantum-mlp8   selected lr  -2.1 +- 9.7  per seed ['+6.88', '-12.47', '-0.83']   shared lr 1e-3 +10.8 +- 13.9  per seed ['+24.15', '+11.65', '-3.54']
@@ -22,17 +28,39 @@
  1000 quantum-linear selected lr  -1.7 +- 0.9  per seed ['-1.85', '-0.84', '-2.53']   shared lr 1e-3  -8.8 +- 5.6  per seed ['-2.48', '-12.78', '-11.29']
  1000 quantum-mlp8   selected lr  +0.8 +- 1.0  per seed ['+1.78', '+0.75', '-0.26']   shared lr 1e-3  -0.5 +- 3.8  per seed ['+3.90', '-3.31', '-1.95']
  1000 quantum-mlp7   selected lr  +0.9 +- 0.7  per seed ['+0.61', '+1.67', '+0.40']   shared lr 1e-3  +0.8 +- 5.4  per seed ['+3.52', '+4.44', '-5.42']
+-- paired test differences with pre-encoding BatchNorm (selected lr; mean +- SD over seeds)
+  250 quantum+bn - quantum     +4.3 +- 4.7  per seed ['-0.58', '+8.71', '+4.83']
+  250 linear+bn  - linear      +1.5 +- 1.5  per seed ['+0.09', '+1.45', '+3.06']
+  250 quantum+bn - linear+bn  -10.9 +- 4.6  per seed ['-14.88', '-12.05', '-5.85']
+  250 quantum+bn - linear      -9.4 +- 6.1  per seed ['-14.79', '-10.60', '-2.79']
+  250 quantum+bn - mlp8        +2.2 +- 5.3  per seed ['+6.30', '-3.76', '+4.00']
+  500 quantum+bn - quantum     +0.9 +- 1.1  per seed ['-0.26', '+1.91', '+0.91']
+  500 linear+bn  - linear      +0.7 +- 0.2  per seed ['+0.54', '+0.86', '+0.61']
+  500 quantum+bn - linear+bn   -4.2 +- 1.1  per seed ['-5.47', '-3.54', '-3.46']
+  500 quantum+bn - linear      -3.5 +- 1.3  per seed ['-4.93', '-2.68', '-2.85']
+  500 quantum+bn - mlp8        +4.1 +- 2.0  per seed ['+5.89', '+4.54', '+1.92']
+ 1000 quantum+bn - quantum     +0.2 +- 1.1  per seed ['-0.42', '-0.46', '+1.54']
+ 1000 linear+bn  - linear      +0.3 +- 0.4  per seed ['+0.19', '+0.79', '+0.03']
+ 1000 quantum+bn - linear+bn   -1.9 +- 0.7  per seed ['-2.46', '-2.09', '-1.02']
+ 1000 quantum+bn - linear      -1.5 +- 0.7  per seed ['-2.27', '-1.30', '-0.99']
+ 1000 quantum+bn - mlp8        +1.0 +- 0.6  per seed ['+1.36', '+0.29', '+1.28']
 
-== results/protocol_v2/cifar_val  (lr chosen by mean val acc; test reported)
- 1000 linear   lr=0.003   test  59.0 +-  0.9  val  59.0  clean-train  83.5  epoch 73.3   [test by lr: 0.001:57.1  0.003:59.0  0.01:58.7]
- 1000 mlp8     lr=0.003   test  52.3 +-  1.8  val  53.2  clean-train  69.5  epoch 72.7   [test by lr: 0.001:50.7  0.003:52.3  0.01:49.0]
- 1000 quantum  lr=0.003   test  43.1 +-  3.8  val  43.9  clean-train  52.8  epoch 73.0   [test by lr: 0.001:37.1  0.003:43.1  0.01:38.6]
- 2000 linear   lr=0.03    test  67.6 +-  0.7  val  68.5  clean-train  97.7  epoch 70.7   [test by lr: 0.001:64.2  0.003:65.4  0.01:66.3  0.03:67.6]
- 2000 mlp8     lr=0.003   test  62.0 +-  1.0  val  62.7  clean-train  78.3  epoch 70.3   [test by lr: 0.001:60.4  0.003:62.0  0.01:60.6]
- 2000 quantum  lr=0.01    test  53.1 +-  0.9  val  53.8  clean-train  66.6  epoch 75.0   [test by lr: 0.001:46.9  0.003:49.1  0.01:53.1  0.03:40.6]
- 4000 linear   lr=0.03    test  74.6 +-  0.5  val  75.8  clean-train  98.7  epoch 72.0   [test by lr: 0.001:71.0  0.003:73.0  0.01:73.6  0.03:74.6]
- 4000 mlp8     lr=0.01    test  70.8 +-  0.5  val  71.3  clean-train  90.9  epoch 73.0   [test by lr: 0.001:67.0  0.003:69.0  0.01:70.8  0.03:65.5]
- 4000 quantum  lr=0.01    test  67.7 +-  1.1  val  69.0  clean-train  87.9  epoch 78.0   [test by lr: 0.001:57.0  0.003:63.0  0.01:67.7  0.03:63.4]
+== results/protocol_v2/cifar_val + results/protocol_v2/cifar_bn  (lr chosen by mean val acc; test reported)
+ 1000 linear     lr=0.003   test  59.0 +-  0.9  val  59.0  clean-train  83.5  epoch 73.3   [test by lr: 0.001:57.1  0.003:59.0  0.01:58.7]
+ 1000 linear+bn  lr=0.003   test  60.3 +-  0.4  val  60.8  clean-train  89.7  epoch 70.0   [test by lr: 0.001:59.1  0.003:60.3  0.01:59.0  0.03:58.3]
+ 1000 mlp8       lr=0.003   test  52.3 +-  1.8  val  53.2  clean-train  69.5  epoch 72.7   [test by lr: 0.001:50.7  0.003:52.3  0.01:49.0]
+ 1000 quantum    lr=0.003   test  43.1 +-  3.8  val  43.9  clean-train  52.8  epoch 73.0   [test by lr: 0.001:37.1  0.003:43.1  0.01:38.6]
+ 1000 quantum+bn lr=0.03    test  39.8 +-  1.2  val  41.5  clean-train  50.9  epoch 68.3   [test by lr: 0.001:31.9  0.003:37.5  0.01:39.4  0.03:39.8  0.1:35.5]
+ 2000 linear     lr=0.03    test  67.6 +-  0.7  val  68.5  clean-train  97.7  epoch 70.7   [test by lr: 0.001:64.2  0.003:65.4  0.01:66.3  0.03:67.6]
+ 2000 linear+bn  lr=0.03    test  66.6 +-  1.0  val  67.3  clean-train  96.6  epoch 69.3   [test by lr: 0.001:66.1  0.003:66.1  0.01:65.8  0.03:66.6  0.1:64.9]
+ 2000 mlp8       lr=0.003   test  62.0 +-  1.0  val  62.7  clean-train  78.3  epoch 70.3   [test by lr: 0.001:60.4  0.003:62.0  0.01:60.6]
+ 2000 quantum    lr=0.01    test  53.1 +-  0.9  val  53.8  clean-train  66.6  epoch 75.0   [test by lr: 0.001:46.9  0.003:49.1  0.01:53.1  0.03:40.6]
+ 2000 quantum+bn lr=0.01    test  55.1 +-  3.3  val  55.9  clean-train  70.5  epoch 74.7   [test by lr: 0.001:42.7  0.003:48.9  0.01:55.1  0.03:55.0]
+ 4000 linear     lr=0.03    test  74.6 +-  0.5  val  75.8  clean-train  98.7  epoch 72.0   [test by lr: 0.001:71.0  0.003:73.0  0.01:73.6  0.03:74.6]
+ 4000 linear+bn  lr=0.03    test  74.3 +-  0.3  val  74.9  clean-train  98.9  epoch 71.0   [test by lr: 0.001:73.1  0.003:73.8  0.01:74.0  0.03:74.3  0.1:73.1]
+ 4000 mlp8       lr=0.01    test  70.8 +-  0.5  val  71.3  clean-train  90.9  epoch 73.0   [test by lr: 0.001:67.0  0.003:69.0  0.01:70.8  0.03:65.5]
+ 4000 quantum    lr=0.01    test  67.7 +-  1.1  val  69.0  clean-train  87.9  epoch 78.0   [test by lr: 0.001:57.0  0.003:63.0  0.01:67.7  0.03:63.4]
+ 4000 quantum+bn lr=0.03    test  67.1 +-  3.3  val  67.0  clean-train  82.7  epoch 76.7   [test by lr: 0.001:49.6  0.003:56.7  0.01:65.0  0.03:67.1  0.1:48.0]
 -- paired test differences, quantum minus other head (mean +- SD over seeds)
  1000 quantum-linear selected lr -15.8 +- 3.8  per seed ['-17.06', '-11.59', '-18.85']   shared lr 1e-3 -19.9 +- 1.4  per seed ['-20.49', '-18.28', '-21.01']
  1000 quantum-mlp8   selected lr  -9.2 +- 4.5  per seed ['-9.66', '-4.44', '-13.39']   shared lr 1e-3 -13.6 +- 1.8  per seed ['-14.52', '-11.52', '-14.75']
@@ -40,6 +68,22 @@
  2000 quantum-mlp8   selected lr  -8.9 +- 1.7  per seed ['-9.03', '-10.62', '-7.16']   shared lr 1e-3 -13.5 +- 2.0  per seed ['-12.02', '-12.65', '-15.84']
  4000 quantum-linear selected lr  -7.0 +- 1.2  per seed ['-6.17', '-8.30', '-6.39']   shared lr 1e-3 -14.1 +- 1.7  per seed ['-14.54', '-15.48', '-12.22']
  4000 quantum-mlp8   selected lr  -3.1 +- 0.9  per seed ['-3.41', '-3.83', '-2.19']   shared lr 1e-3 -10.1 +- 1.6  per seed ['-10.59', '-11.28', '-8.31']
+-- paired test differences with pre-encoding BatchNorm (selected lr; mean +- SD over seeds)
+ 1000 quantum+bn - quantum     -3.3 +- 4.2  per seed ['+0.16', '-8.02', '-2.05']
+ 1000 linear+bn  - linear      +1.3 +- 0.5  per seed ['+1.82', '+1.33', '+0.76']
+ 1000 quantum+bn - linear+bn  -20.4 +- 1.5  per seed ['-18.72', '-20.94', '-21.66']
+ 1000 quantum+bn - linear     -19.1 +- 2.0  per seed ['-16.90', '-19.61', '-20.90']
+ 1000 quantum+bn - mlp8       -12.5 +- 3.0  per seed ['-9.50', '-12.46', '-15.44']
+ 2000 quantum+bn - quantum     +2.0 +- 3.6  per seed ['+4.38', '+3.89', '-2.16']
+ 2000 linear+bn  - linear      -1.0 +- 0.4  per seed ['-0.56', '-1.26', '-1.27']
+ 2000 quantum+bn - linear+bn  -11.5 +- 2.3  per seed ['-9.63', '-10.68', '-14.06']
+ 2000 quantum+bn - linear     -12.5 +- 2.6  per seed ['-10.19', '-11.94', '-15.33']
+ 2000 quantum+bn - mlp8        -6.9 +- 2.3  per seed ['-4.65', '-6.73', '-9.32']
+ 4000 quantum+bn - quantum     -0.6 +- 2.5  per seed ['+1.77', '-3.15', '-0.44']
+ 4000 linear+bn  - linear      -0.3 +- 0.6  per seed ['+0.10', '-0.05', '-0.95']
+ 4000 quantum+bn - linear+bn   -7.3 +- 3.7  per seed ['-4.50', '-11.40', '-5.88']
+ 4000 quantum+bn - linear      -7.6 +- 3.6  per seed ['-4.40', '-11.45', '-6.83']
+ 4000 quantum+bn - mlp8        -3.8 +- 2.8  per seed ['-1.64', '-6.98', '-2.63']
 
 == results/frozen_heads.csv  (lr chosen by mean val acc; test reported)
 cifar10  backbone<-linear   fourier       lr=0.1   test  33.4 +-  1.0  train  40.0  src-sat  65.6
@@ -91,6 +135,95 @@ mnist    backbone<-quantum  mlp            +1.3 +- 0.1  per seed ['+1.23', '+1.4
 mnist    backbone<-quantum  fourier        -0.1 +- 1.1  per seed ['-1.31', '+0.27', '+0.78']
 mnist    backbone<-quantum  quantum_std    -9.6 +- 7.3  per seed ['-4.96', '-17.96', '-5.74']
 mnist    backbone<-quantum  quantum_aff    -4.5 +- 1.4  per seed ['-4.64', '-5.87', '-3.00']
+
+== results/backbone_probe.csv  (same linear probe on each validation-selected backbone; test reported)
+cifar10   1000 linear     probe  58.7 +-  0.9  own head  59.0 +-  0.9  sat>0.9 z  63.8%  head input  63.8%
+cifar10   1000 linear+bn  probe  59.8 +-  0.4  own head  60.3 +-  0.4  sat>0.9 z   1.4%  head input  53.7%
+cifar10   1000 mlp8       probe  53.1 +-  1.4  own head  52.3 +-  1.8  sat>0.9 z  78.0%  head input  78.0%
+cifar10   1000 quantum    probe  47.4 +-  3.9  own head  43.1 +-  3.8  sat>0.9 z  51.9%  head input  51.9%
+cifar10   1000 quantum+bn probe  44.0 +-  0.9  own head  39.8 +-  1.2  sat>0.9 z  87.5%  head input  19.9%
+cifar10   2000 linear     probe  67.3 +-  0.8  own head  67.6 +-  0.7  sat>0.9 z  36.6%  head input  36.6%
+cifar10   2000 linear+bn  probe  66.2 +-  0.8  own head  66.6 +-  1.0  sat>0.9 z  51.7%  head input  45.1%
+cifar10   2000 mlp8       probe  62.2 +-  1.2  own head  62.0 +-  1.0  sat>0.9 z  78.1%  head input  78.1%
+cifar10   2000 quantum    probe  56.2 +-  0.7  own head  53.1 +-  0.9  sat>0.9 z  38.1%  head input  38.1%
+cifar10   2000 quantum+bn probe  57.9 +-  2.7  own head  55.1 +-  3.3  sat>0.9 z  51.0%  head input   9.7%
+cifar10   4000 linear     probe  74.6 +-  0.6  own head  74.6 +-  0.5  sat>0.9 z  31.8%  head input  31.8%
+cifar10   4000 linear+bn  probe  74.2 +-  0.2  own head  74.3 +-  0.3  sat>0.9 z  45.4%  head input  47.7%
+cifar10   4000 mlp8       probe  71.1 +-  0.2  own head  70.8 +-  0.5  sat>0.9 z  35.0%  head input  35.0%
+cifar10   4000 quantum    probe  69.9 +-  1.1  own head  67.7 +-  1.1  sat>0.9 z  30.4%  head input  30.4%
+cifar10   4000 quantum+bn probe  68.7 +-  3.2  own head  67.1 +-  3.3  sat>0.9 z  71.0%  head input  12.1%
+mnist      250 linear     probe  90.1 +-  1.3  own head  90.3 +-  1.9  sat>0.9 z  58.8%  head input  58.8%
+mnist      250 linear+bn  probe  89.8 +-  1.4  own head  91.8 +-  0.5  sat>0.9 z  20.7%  head input  57.3%
+mnist      250 mlp8       probe  78.9 +-  6.1  own head  78.7 +-  6.5  sat>0.9 z  79.3%  head input  79.3%
+mnist      250 quantum    probe  82.2 +-  4.0  own head  76.6 +-  5.3  sat>0.9 z  15.3%  head input  15.3%
+mnist      250 quantum+bn probe  79.7 +-  5.6  own head  80.9 +-  4.3  sat>0.9 z  86.4%  head input  18.9%
+mnist      500 linear     probe  93.9 +-  0.2  own head  94.3 +-  0.2  sat>0.9 z  53.3%  head input  53.3%
+mnist      500 linear+bn  probe  94.3 +-  0.4  own head  95.0 +-  0.0  sat>0.9 z   1.4%  head input  55.8%
+mnist      500 mlp8       probe  87.3 +-  2.3  own head  86.7 +-  3.0  sat>0.9 z  68.2%  head input  68.2%
+mnist      500 quantum    probe  91.6 +-  1.0  own head  90.0 +-  0.6  sat>0.9 z  14.9%  head input  14.9%
+mnist      500 quantum+bn probe  89.9 +-  1.8  own head  90.8 +-  1.2  sat>0.9 z  88.3%  head input  20.8%
+mnist     1000 linear     probe  96.1 +-  0.4  own head  96.4 +-  0.5  sat>0.9 z  51.0%  head input  51.0%
+mnist     1000 linear+bn  probe  96.3 +-  0.0  own head  96.7 +-  0.1  sat>0.9 z   0.6%  head input  62.9%
+mnist     1000 mlp8       probe  93.7 +-  1.0  own head  93.9 +-  0.8  sat>0.9 z  67.0%  head input  67.0%
+mnist     1000 quantum    probe  95.1 +-  0.0  own head  94.6 +-  0.4  sat>0.9 z  21.4%  head input  21.4%
+mnist     1000 quantum+bn probe  94.5 +-  0.9  own head  94.8 +-  0.8  sat>0.9 z  79.2%  head input  23.1%
+-- paired probe differences between backbones (mean +- SD over seeds)
+cifar10   1000 quantum    - linear     -11.2 +- 4.0  per seed ['-11.96', '-6.92', '-14.76']
+cifar10   1000 quantum    - mlp8        -5.6 +- 4.7  per seed ['-6.20', '-0.63', '-10.03']
+cifar10   1000 quantum+bn - quantum     -3.5 +- 3.1  per seed ['-2.53', '-6.87', '-0.97']
+cifar10   1000 quantum+bn - linear     -14.7 +- 1.0  per seed ['-14.49', '-13.79', '-15.73']
+cifar10   1000 linear+bn  - linear      +1.1 +- 1.2  per seed ['+2.47', '+0.92', '+0.04']
+cifar10   2000 quantum    - linear     -11.1 +- 1.5  per seed ['-11.68', '-12.27', '-9.40']
+cifar10   2000 quantum    - mlp8        -6.0 +- 1.9  per seed ['-6.68', '-7.50', '-3.80']
+cifar10   2000 quantum+bn - quantum     +1.7 +- 3.4  per seed ['+4.54', '+2.67', '-2.10']
+cifar10   2000 quantum+bn - linear      -9.4 +- 2.2  per seed ['-7.14', '-9.60', '-11.50']
+cifar10   2000 linear+bn  - linear      -1.2 +- 0.4  per seed ['-0.76', '-1.58', '-1.24']
+cifar10   4000 quantum    - linear      -4.7 +- 1.2  per seed ['-3.74', '-5.97', '-4.32']
+cifar10   4000 quantum    - mlp8        -1.2 +- 1.1  per seed ['-1.18', '-2.27', '-0.09']
+cifar10   4000 quantum+bn - quantum     -1.2 +- 2.2  per seed ['+0.60', '-3.68', '-0.44']
+cifar10   4000 quantum+bn - linear      -5.9 +- 3.4  per seed ['-3.14', '-9.65', '-4.76']
+cifar10   4000 linear+bn  - linear      -0.3 +- 0.5  per seed ['+0.08', '-0.23', '-0.89']
+mnist      250 quantum    - linear      -7.9 +- 4.2  per seed ['-7.90', '-12.12', '-3.65']
+mnist      250 quantum    - mlp8        +3.3 +- 8.8  per seed ['+11.59', '-6.01', '+4.28']
+mnist      250 quantum+bn - quantum     -2.5 +- 8.1  per seed ['-10.28', '+5.90', '-2.98']
+mnist      250 quantum+bn - linear     -10.3 +- 6.8  per seed ['-18.18', '-6.22', '-6.63']
+mnist      250 linear+bn  - linear      -0.3 +- 1.0  per seed ['-0.26', '-1.37', '+0.70']
+mnist      500 quantum    - linear      -2.2 +- 0.8  per seed ['-2.63', '-2.72', '-1.31']
+mnist      500 quantum    - mlp8        +4.3 +- 1.4  per seed ['+5.68', '+4.43', '+2.88']
+mnist      500 quantum+bn - quantum     -1.7 +- 2.0  per seed ['-3.12', '+0.60', '-2.67']
+mnist      500 quantum+bn - linear      -3.9 +- 1.8  per seed ['-5.75', '-2.12', '-3.98']
+mnist      500 linear+bn  - linear      +0.5 +- 0.5  per seed ['+1.07', '+0.37', '+0.04']
+mnist     1000 quantum    - linear      -1.0 +- 0.5  per seed ['-1.34', '-0.50', '-1.23']
+mnist     1000 quantum    - mlp8        +1.4 +- 1.0  per seed ['+2.46', '+1.17', '+0.56']
+mnist     1000 quantum+bn - quantum     -0.5 +- 0.9  per seed ['-1.17', '-0.92', '+0.44']
+mnist     1000 quantum+bn - linear      -1.6 +- 0.9  per seed ['-2.51', '-1.42', '-0.79']
+mnist     1000 linear+bn  - linear      +0.2 +- 0.4  per seed ['-0.12', '+0.68', '+0.03']
+
+== results/protocol_v2/cifar_mech  (CIFAR-10, 4000; head lr fixed per head; probe = same linear probe as above)
+linear          head lr 0.03   backbone lr 0.0025  val  74.2  test  74.4 +-  0.2  probe  74.2 +-  0.1  sat>0.9 z  16.1%
+linear          head lr 0.03   backbone lr 0.005   val  74.8  test  74.8 +-  0.4  probe  74.8 +-  0.3  sat>0.9 z  17.9%
+linear          head lr 0.03   backbone lr 0.015   val  75.8  test  74.6 +-  0.5  probe  74.6 +-  0.6  sat>0.9 z  31.8%
+linear          head lr 0.03   backbone lr 0.03    val  73.5  test  72.8 +-  0.9  probe  72.8 +-  0.5  sat>0.9 z  38.6%
+linear          head lr 0.03   backbone lr 0.06    val  68.7  test  68.7 +-  0.3  probe  68.5 +-  0.3  sat>0.9 z  42.2%
+quantum         head lr 0.01   backbone lr 0.0025  val  67.2  test  66.4 +-  1.6  probe  68.0 +-  1.2  sat>0.9 z  30.1%
+quantum         head lr 0.01   backbone lr 0.005   val  69.0  test  67.7 +-  1.1  probe  69.9 +-  1.1  sat>0.9 z  30.4%
+quantum         head lr 0.01   backbone lr 0.015   val  65.0  test  64.7 +-  0.7  probe  66.0 +-  0.8  sat>0.9 z  34.7%
+quantum         head lr 0.01   backbone lr 0.03    val  10.0  test  10.0 +-  0.0  probe  21.9 +-  1.4  sat>0.9 z 100.0%
+quantum         head lr 0.01   backbone lr 0.06    val  10.1  test  10.0 +-  0.1  probe  16.5 +-  1.5  sat>0.9 z  99.9%
+quantum+frozen  head lr 0.003  backbone lr 0.0015  val  60.7  test  60.3 +-  1.3
+quantum+frozen  head lr 0.01   backbone lr 0.005   val  66.8  test  66.3 +-  1.1  probe  68.3 +-  0.7  sat>0.9 z  39.1%
+quantum+frozen  head lr 0.03   backbone lr 0.015   val  29.2  test  28.7 +- 32.3
+quantum+frozen  head lr 0.1    backbone lr 0.05    val  10.8  test  11.0 +-  1.7
+-- paired probe differences, quantum minus linear backbone at matched backbone lr
+backbone lr 0.0025   -6.3 +- 1.2  per seed ['-7.44', '-5.08', '-6.24']
+backbone lr 0.005    -4.9 +- 1.2  per seed ['-4.34', '-6.34', '-4.07']
+backbone lr 0.015    -8.6 +- 0.5  per seed ['-8.83', '-8.01', '-8.97']
+backbone lr 0.03    -50.9 +- 1.0  per seed ['-49.95', '-51.95', '-50.70']
+backbone lr 0.06    -52.1 +- 1.7  per seed ['-50.10', '-53.00', '-53.09']
+validation-selected backbone lr for linear: 0.015
+validation-selected backbone lr for quantum: 0.005
+probe, quantum minus linear, each at its selected backbone lr  -4.7 +- 1.2  per seed ['-3.74', '-5.97', '-4.32']
+frozen circuit, validation-selected head lr 0.01; probe frozen minus trained circuit  -1.6 +- 0.7  per seed ['-2.27', '-0.81', '-1.74']
 
 == results/checkpoints_mnist.csv  (saved checkpoint, eval mode, clean images)
   250 linear          test  61.5 +-  1.7  clean-train  79.7  clean gap  18.2  sat>0.9 per seed ['20.54', '14.55', '24.41']  sat>0.99 ['2.26', '1.65', '3.06']

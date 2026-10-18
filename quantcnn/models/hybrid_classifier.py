@@ -31,6 +31,7 @@ class HybridClassifier(nn.Module):
         n_var_layers: int = 4,
         reupload_mode: ReuploadMode = "none",
         quantum_sim: str = "pennylane",
+        pre_norm: str = "none",
     ) -> None:
         super().__init__()
         if bottleneck_dim is None:
@@ -59,6 +60,15 @@ class HybridClassifier(nn.Module):
         else:
             raise ValueError(head)
 
+        # Optional normalization between bottleneck and head ("bn": batch statistics
+        # plus a learned per-dimension affine). Trained with the head's parameter group.
+        if pre_norm == "bn":
+            self.pre_norm = nn.BatchNorm1d(b)
+        elif pre_norm == "none":
+            self.pre_norm = nn.Identity()
+        else:
+            raise ValueError(pre_norm)
+
     def forward(self, x):
         z = self.backbone(x)
-        return self.head(z)
+        return self.head(self.pre_norm(z))
