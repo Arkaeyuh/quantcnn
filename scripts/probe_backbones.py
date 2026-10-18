@@ -49,6 +49,11 @@ def _head_key(meta: dict) -> str:
     head = meta["head"] + (str(meta["mlp_hidden"]) if meta["head"] == "mlp" else "")
     head += "+bn" if meta.get("pre_norm", "none") == "bn" else ""
     head += "+frozen" if meta.get("freeze_circuit") else ""
+    head += f"+{meta['encoding']}" if meta.get("encoding", "pi_tanh") != "pi_tanh" else ""
+    head += "+noent" if meta.get("entangle", True) is False else ""
+    head += "+entlast" if meta.get("entangle", True) == "last" else ""
+    head += f"+{meta['entangle']}" if str(meta.get("entangle", True)).startswith("pairs") else ""
+    head += f"+L{meta['n_var_layers']}" if meta["head"] == "quantum" and meta.get("n_var_layers", 4) != 4 else ""
     mult = meta.get("lr_backbone_multiplier", 0.5)
     return head + (f"@bblr{meta['lr'] * mult:.3g}" if mult != 0.5 else "")
 
@@ -95,15 +100,18 @@ def main():
         for (n, head), (lr, runs) in sorted(_selected_runs(Path(a.runs_root), a.grids or GRIDS[ds]).items()):
             if a.heads != ["all"] and head not in a.heads:
                 continue
-            assert len(runs) == 3, (ds, n, head, lr)
+            assert len(runs) == 3 or a.grids == ["cifar_seeds"], (ds, n, head, lr)
             for run in runs:
                 meta = json.loads((run / "meta.json").read_text())
                 seed = int(meta["seed"])
                 if (ds, str(n), head, str(seed)) in done:
                     continue
                 model = HybridClassifier(10, 8, meta["backbone"], meta["head"], 1 if ds == "mnist" else 3,
-                                         mlp_hidden=meta.get("mlp_hidden"), reupload_mode="none",
-                                         quantum_sim="torch", pre_norm=meta.get("pre_norm", "none"))
+                                         mlp_hidden=meta.get("mlp_hidden"), n_var_layers=meta.get("n_var_layers", 4),
+                                         reupload_mode="none",
+                                         quantum_sim="torch", pre_norm=meta.get("pre_norm", "none"),
+                                         encoding=meta.get("encoding", "pi_tanh"),
+                                         entangle=meta.get("entangle", True))
                 model.load_state_dict(torch.load(run / "best_model.pt", map_location="cpu"))
                 model.to(device)
                 sp = get_splits(ds, n, seed, a.val_size)

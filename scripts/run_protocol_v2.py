@@ -19,6 +19,32 @@ with the official test split evaluated once on the selected checkpoint:
   3e-2, 6e-2}, omitting the rate the ``cifar_val`` run already used; (b) quantum
   head with the circuit frozen at initialization (``--freeze_circuit``), head
   learning rate {3e-3, 1e-2, 3e-2, 1e-1} at the default backbone multiplier.
+* ``cifar_circuit``: circuit ablations at CIFAR-10, 4000 images, head learning
+  rate {3e-3, 1e-2, 3e-2}: encoding (pi/2)*tanh z + pi/2, monotone under <Z>
+  (``half``); its even counterpart (pi/2)*tanh z with the same range width
+  (``half_sym``); and the default encoding without CNOT rings (``noent``).
+* ``cifar_entangle``: how much entanglement costs, same recipe: a CNOT ring after
+  the last variational layer only (``entlast``), and full rings with 1 or 2
+  variational layers instead of 4 (``L1``, ``L2``).
+* ``cifar_classical``: classical controls for the CNOT-free circuit, same recipe:
+  cos(pi*tanh z) -> Linear (``cos``) and [cos, sin](pi*tanh z) -> Linear
+  (``cossin``), head learning rate {3e-3, 1e-2, 3e-2, 1e-1}.
+* ``cifar_cosprod``: classical heads that reproduce the entangled circuits at zero
+  rotation angles, same recipe: products of cos(pi*tanh z_j) over each readout's
+  CNOT-ring support, then Linear, for the default circuit (``cosprod``, mean
+  support 2.5) and the last-ring-only circuit (``cosprod_last``, 5.25); head
+  learning rate {1e-3, 3e-3, 1e-2, 3e-2}.
+* ``cifar_pairs``: entangling but low-order circuits, same recipe: disjoint
+  CNOT(0,1), CNOT(2,3), ... after every variational layer (``pairs``; zero-rotation
+  product order 1) or the last one only (``pairs_last``; order 1.5), head learning rate
+  {3e-3, 1e-2, 3e-2}; and the classical product head on the ``pairs_last`` supports
+  (``cosprod_pairs_last``), {1e-3, 3e-3, 1e-2, 3e-2}.
+* ``cifar_seeds``: seeds 3 and 4 for the headline CIFAR-10/4000 cells (``SEED_CELLS``),
+  each at the learning rate validation selected on seeds 0-2 in its source grid.
+  Run it after the source grids are done.
+* ``mnist_circuit``: the ``cifar_circuit`` variants on MNIST, 500 and 1000 images,
+  on the ``mnist_search`` recipe (50 epochs, clip 1.0), head learning rate
+  {3e-3, 1e-2, 3e-2}.
 
 From repository root::
 
@@ -46,6 +72,22 @@ SEEDS = [0, 1, 2]
 DEFAULT_BB_MULT = 0.5
 MECH_HEAD_LR = {"linear": 3e-2, "quantum": 1e-2}
 MECH_BACKBONE_LRS = [2.5e-3, 5e-3, 1.5e-2, 3e-2, 6e-2]
+EXTRA_SEEDS = [3, 4]
+# (source grid, probe head key, run options) for the cells that get seeds 3-4.
+_C4000 = dict(dataset="cifar10", train_subset_size=4000, mlp_hidden=None, epochs=80, gradient_clip_norm=2.0)
+SEED_CELLS = [
+    ("cifar_val", "linear", dict(_C4000, head="linear")),
+    ("cifar_val", "mlp8", dict(_C4000, head="mlp", mlp_hidden=8)),
+    ("cifar_val", "quantum", dict(_C4000, head="quantum")),
+    ("cifar_circuit", "quantum+noent", dict(_C4000, head="quantum", no_entangle=True)),
+    ("cifar_entangle", "quantum+entlast", dict(_C4000, head="quantum", entangle_last_only=True)),
+    ("cifar_classical", "cos", dict(_C4000, head="cos")),
+    ("cifar_cosprod", "cosprod", dict(_C4000, head="cosprod")),
+    ("cifar_cosprod", "cosprod_last", dict(_C4000, head="cosprod_last")),
+    ("cifar_pairs", "quantum+pairs", dict(_C4000, head="quantum", entangle_pattern="pairs")),
+    ("cifar_pairs", "quantum+pairs_last", dict(_C4000, head="quantum", entangle_pattern="pairs_last")),
+    ("cifar_pairs", "cosprod_pairs_last", dict(_C4000, head="cosprod_pairs_last")),
+]
 EDGE_EXTENSION = {
     "mnist_search": [("mnist", n, h, hid, 1e-1) for n in [250, 500, 1000] for h, hid in [("linear", None), ("mlp", 8)]]
                     + [("mnist", 1000, "mlp", 7, 1e-1)],
@@ -54,6 +96,7 @@ EDGE_EXTENSION = {
     "mnist_bn": [("mnist", n, "quantum", None, 3e-1, "bn") for n in [250, 500, 1000]],
     "cifar_bn": [("cifar10", 1000, "quantum", None, 1e-1, "bn"), ("cifar10", 4000, "quantum", None, 1e-1, "bn"),
                  ("cifar10", 2000, "linear", None, 1e-1, "bn"), ("cifar10", 4000, "linear", None, 1e-1, "bn")],
+    "mnist_circuit": [("mnist", n, "quantum", None, 1e-1, dict(encoding="half")) for n in [500, 1000]],
 }
 
 
@@ -96,14 +139,64 @@ def _grid(name: str) -> list[dict]:
         for lr in [3e-3, 1e-2, 3e-2, 1e-1]:
             for sd in SEEDS:
                 items.append(dict(common, head="quantum", lr=lr, freeze_circuit=True, seed=sd))
+    elif name == "cifar_circuit":
+        common = dict(dataset="cifar10", train_subset_size=4000, head="quantum", mlp_hidden=None, epochs=80,
+                      gradient_clip_norm=2.0)
+        for variant in [dict(encoding="half"), dict(encoding="half_sym"), dict(no_entangle=True)]:
+            for lr in [3e-3, 1e-2, 3e-2]:
+                for sd in SEEDS:
+                    items.append(dict(common, **variant, lr=lr, seed=sd))
+    elif name == "cifar_entangle":
+        common = dict(dataset="cifar10", train_subset_size=4000, head="quantum", mlp_hidden=None, epochs=80,
+                      gradient_clip_norm=2.0)
+        for variant in [dict(entangle_last_only=True), dict(n_var_layers=1), dict(n_var_layers=2)]:
+            for lr in [3e-3, 1e-2, 3e-2]:
+                for sd in SEEDS:
+                    items.append(dict(common, **variant, lr=lr, seed=sd))
+    elif name == "cifar_classical":
+        common = dict(dataset="cifar10", train_subset_size=4000, mlp_hidden=None, epochs=80, gradient_clip_norm=2.0)
+        for head in ["cos", "cossin"]:
+            for lr in [3e-3, 1e-2, 3e-2, 1e-1]:
+                for sd in SEEDS:
+                    items.append(dict(common, head=head, lr=lr, seed=sd))
+    elif name == "cifar_cosprod":
+        for head in ["cosprod", "cosprod_last"]:
+            for lr in [1e-3, 3e-3, 1e-2, 3e-2]:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, head=head, lr=lr, seed=sd))
+    elif name == "cifar_pairs":
+        for pattern in ["pairs", "pairs_last"]:
+            for lr in [3e-3, 1e-2, 3e-2]:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, head="quantum", entangle_pattern=pattern, lr=lr, seed=sd))
+        for lr in [1e-3, 3e-3, 1e-2, 3e-2]:
+            for sd in SEEDS:
+                items.append(dict(_C4000, head="cosprod_pairs_last", lr=lr, seed=sd))
+    elif name == "cifar_seeds":
+        from scripts.probe_backbones import _selected_runs
+
+        for grid, key, opts in SEED_CELLS:
+            sel = _selected_runs(Path("runs") / "protocol_v2", [grid]).get((opts["train_subset_size"], key))
+            if sel is None:
+                raise RuntimeError(f"{grid} has no finished {key} runs to select an lr from")
+            for sd in EXTRA_SEEDS:
+                items.append(dict(opts, lr=sel[0], seed=sd))
+    elif name == "mnist_circuit":
+        common = dict(dataset="mnist", head="quantum", mlp_hidden=None, epochs=50, gradient_clip_norm=1.0)
+        for n in [500, 1000]:
+            for variant in [dict(encoding="half"), dict(encoding="half_sym"), dict(no_entangle=True)]:
+                for lr in [3e-3, 1e-2, 3e-2]:
+                    for sd in SEEDS:
+                        items.append(dict(common, **variant, train_subset_size=n, lr=lr, seed=sd))
     else:
         raise ValueError(name)
     # One more step for the cells whose validation-selected lr was the grid maximum.
-    for ds, n, head, hid, lr, *norm in EDGE_EXTENSION.get(name, []):
+    # A trailing str is the pre_norm; a trailing dict holds other run options (e.g. the encoding).
+    for ds, n, head, hid, lr, *extra in EDGE_EXTENSION.get(name, []):
+        opts = extra[0] if extra and isinstance(extra[0], dict) else dict(pre_norm=extra[0] if extra else "none")
         for sd in SEEDS:
             items.append(dict(dataset=ds, train_subset_size=n, head=head, mlp_hidden=hid, lr=lr, seed=sd,
-                              pre_norm=norm[0] if norm else "none", epochs=items[0]["epochs"],
-                              gradient_clip_norm=items[0]["gradient_clip_norm"]))
+                              epochs=items[0]["epochs"], gradient_clip_norm=items[0]["gradient_clip_norm"], **opts))
     return items
 
 
@@ -111,6 +204,11 @@ def _slug(it: dict) -> str:
     head = it["head"] + (f"{it['mlp_hidden']}" if it["head"] == "mlp" else "")
     head += "_bn" if it.get("pre_norm", "none") == "bn" else ""
     head += "_frozen" if it.get("freeze_circuit") else ""
+    head += f"_{it['encoding']}" if it.get("encoding", "pi_tanh") != "pi_tanh" else ""
+    head += "_noent" if it.get("no_entangle") else ""
+    head += "_entlast" if it.get("entangle_last_only") else ""
+    head += f"_L{it['n_var_layers']}" if it.get("n_var_layers", 4) != 4 else ""
+    head += f"_{it['entangle_pattern']}" if it.get("entangle_pattern") else ""
     mult = it.get("lr_backbone_multiplier", DEFAULT_BB_MULT)
     head += f"_bbm{mult:g}" if mult != DEFAULT_BB_MULT else ""
     return f"{it['dataset']}_subset{it['train_subset_size']}_{head}_lr{it['lr']:g}_s{it['seed']}"
@@ -148,7 +246,9 @@ def _export(root: Path, dest: Path) -> int:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--grid", choices=["mnist_search", "cifar_val", "mnist_bn", "cifar_bn", "cifar_mech"], required=True)
+    ap.add_argument("--grid", choices=["mnist_search", "cifar_val", "mnist_bn", "cifar_bn", "cifar_mech", "cifar_circuit",
+                                         "cifar_entangle", "cifar_classical", "cifar_cosprod",
+                                         "cifar_pairs", "cifar_seeds", "mnist_circuit"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

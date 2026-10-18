@@ -52,7 +52,7 @@ FIELDNAMES = [
 def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParser:
     p.add_argument("--dataset", choices=["mnist", "cifar10"], default="mnist")
     p.add_argument("--backbone", default=None)
-    p.add_argument("--head", choices=["linear", "mlp", "quantum"], default="quantum")
+    p.add_argument("--head", choices=["linear", "mlp", "quantum", "cos", "cossin", "cosprod", "cosprod_last", "cosprod_pairs_last"], default="quantum")
     p.add_argument("--reupload_mode", choices=["none", "light", "strong"], default="none")
     p.add_argument("--bottleneck_dim", type=int, default=8)
     p.add_argument("--n_var_layers", type=int, default=4)
@@ -93,6 +93,19 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
         help="Quantum head only: keep the VQC rotation angles at their initialization "
         "(the backbone and the readout Linear still train).",
     )
+    p.add_argument(
+        "--encoding",
+        choices=["pi_tanh", "half", "half_sym"],
+        default="pi_tanh",
+        help="Quantum head angle map (torch sim only): pi*tanh z; (pi/2)*tanh z + pi/2 (monotone "
+        "under <Z>); or (pi/2)*tanh z.",
+    )
+    p.add_argument("--no_entangle", action="store_true", help="Quantum head without CNOT rings (torch sim only).")
+    p.add_argument("--entangle_last_only", action="store_true",
+                   help="Quantum head with a CNOT ring after the last variational layer only (torch sim only).")
+    p.add_argument("--entangle_pattern", choices=["pairs", "pairs_last"], default=None,
+                   help="Quantum head with disjoint CNOT(0,1), CNOT(2,3), ... after every / the last "
+                   "variational layer instead of rings (torch sim only).")
     p.add_argument("--data_root", default="./data")
     p.add_argument("--out_dir", default=None, help="Directory for meta.json & metrics.csv.")
     p.add_argument(
@@ -119,6 +132,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     configure_train_parser(p)
     return p.parse_args(argv)
+
+
+def _entangle(args) -> bool | str:
+    if sum([args.no_entangle, args.entangle_last_only, args.entangle_pattern is not None]) > 1:
+        raise ValueError("--no_entangle, --entangle_last_only and --entangle_pattern are exclusive.")
+    if args.entangle_pattern is not None:
+        return args.entangle_pattern
+    return "last" if args.entangle_last_only else not args.no_entangle
 
 
 def backbone_for_dataset(ds_name: str) -> str:
@@ -169,6 +190,8 @@ def run_training(args: argparse.Namespace) -> Path:
         quantum_sim=args.quantum_sim,
         pre_norm=args.pre_norm,
         freeze_circuit=bool(args.freeze_circuit),
+        encoding=args.encoding,
+        entangle=_entangle(args),
     )
 
     set_seed(int(args.seed))
@@ -200,6 +223,8 @@ def run_training(args: argparse.Namespace) -> Path:
         reupload_mode=args.reupload_mode,
         quantum_sim=args.quantum_sim,
         pre_norm=args.pre_norm,
+        encoding=args.encoding,
+        entangle=_entangle(args),
     )
 
     if torch.cuda.is_available():

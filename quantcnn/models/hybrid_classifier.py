@@ -7,7 +7,7 @@ from typing import Literal
 import torch.nn as nn
 
 from quantcnn.models.backbone import CifarCNN, SmallCNN
-from quantcnn.models.classical_heads import LinearHead, MLPHead
+from quantcnn.models.classical_heads import CosProductHead, LinearHead, MLPHead, TrigFeatureHead
 from quantcnn.models.quantum_head import (
     QuantumClassifierHead,
     ReuploadMode,
@@ -16,7 +16,7 @@ from quantcnn.models.quantum_head import (
 )
 
 DatasetName = Literal["mnist", "cifar10"]
-HeadKind = Literal["linear", "mlp", "quantum"]
+HeadKind = Literal["linear", "mlp", "quantum", "cos", "cossin", "cosprod", "cosprod_last", "cosprod_pairs_last"]
 
 
 class HybridClassifier(nn.Module):
@@ -32,6 +32,8 @@ class HybridClassifier(nn.Module):
         reupload_mode: ReuploadMode = "none",
         quantum_sim: str = "pennylane",
         pre_norm: str = "none",
+        encoding: str = "pi_tanh",
+        entangle: bool | str = True,
     ) -> None:
         super().__init__()
         if bottleneck_dim is None:
@@ -55,8 +57,14 @@ class HybridClassifier(nn.Module):
             else:
                 hid = mlp_hidden
             self.head = MLPHead(b, hid, num_classes)
+        elif head in ("cos", "cossin"):
+            self.head = TrigFeatureHead(b, num_classes, with_sin=head == "cossin")
+        elif head in ("cosprod", "cosprod_last", "cosprod_pairs_last"):
+            self.head = CosProductHead(b, num_classes, n_var_layers, last_only=head != "cosprod",
+                                       pattern="pairs" if head == "cosprod_pairs_last" else "ring")
         elif head == "quantum":
-            self.head = QuantumClassifierHead(b, num_classes, n_var_layers, reupload_mode, sim=quantum_sim)
+            self.head = QuantumClassifierHead(b, num_classes, n_var_layers, reupload_mode, sim=quantum_sim,
+                                              encoding=encoding, entangle=entangle)
         else:
             raise ValueError(head)
 

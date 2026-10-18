@@ -35,12 +35,15 @@ CASES = {
     "quantum": "runs/protocol_v2/cifar_val/cifar10_subset4000_quantum_lr0.01_s{seed}",
     "quantum+frozen": "runs/protocol_v2/cifar_mech/cifar10_subset4000_quantum_frozen_lr0.01_s{seed}",
 }
+# Circuit ablations, each at its validation-selected head lr (filled in by --circuit_lrs).
+CIRCUIT = {"quantum+half": "half", "quantum+half_sym": "half_sym", "quantum+noent": "noent"}
 
 
 def _load(run: Path) -> HybridClassifier:
     meta = json.loads((run / "meta.json").read_text())
     model = HybridClassifier(10, 8, meta["backbone"], meta["head"], 3, reupload_mode="none",
-                             quantum_sim="torch", pre_norm=meta.get("pre_norm", "none"))
+                             quantum_sim="torch", pre_norm=meta.get("pre_norm", "none"),
+                             encoding=meta.get("encoding", "pi_tanh"), entangle=meta.get("entangle", True))
     model.load_state_dict(torch.load(run / "best_model.pt", map_location="cpu"))
     return model.eval()
 
@@ -55,9 +58,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="results/sign_symmetry.csv")
     ap.add_argument("--val_size", type=int, default=2000)
+    ap.add_argument("--circuit_lrs", nargs="*", default=[], metavar="VARIANT=LR",
+                    help="Also test cifar_circuit runs, e.g. quantum+half=0.01.")
     a = ap.parse_args()
+    cases = dict(CASES)
+    for spec in a.circuit_lrs:
+        name, lr = spec.split("=")
+        cases[name] = f"runs/protocol_v2/cifar_circuit/cifar10_subset4000_quantum_{CIRCUIT[name]}_lr{float(lr):g}_s{{seed}}"
     rows = []
-    for name, pattern in CASES.items():
+    for name, pattern in cases.items():
         for seed in range(3):
             model = _load(Path(pattern.format(seed=seed)))
             test = get_splits("cifar10", 4000, seed, a.val_size)["test"]

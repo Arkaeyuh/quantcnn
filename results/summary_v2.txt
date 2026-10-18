@@ -225,6 +225,151 @@ validation-selected backbone lr for quantum: 0.005
 probe, quantum minus linear, each at its selected backbone lr  -4.7 +- 1.2  per seed ['-3.74', '-5.97', '-4.32']
 frozen circuit, validation-selected head lr 0.01; probe frozen minus trained circuit  -1.6 +- 0.7  per seed ['-2.27', '-0.81', '-1.74']
 
+== results/protocol_v2/cifar_circuit  (lr chosen by mean val acc; probe = same linear probe)
+cifar10   4000 quantum+half       lr=0.01   val  70.3  test  69.7 +-  0.8  probe  70.2 +-  1.0   [test by lr: 0.003:64.8  0.01:69.7  0.03:66.1]
+cifar10   4000 quantum+half_sym   lr=0.01   val  71.0  test  69.7 +-  0.8  probe  70.6 +-  0.8   [test by lr: 0.003:66.8  0.01:69.7  0.03:35.8]
+cifar10   4000 quantum+noent      lr=0.01   val  73.4  test  73.3 +-  0.5  probe  73.7 +-  0.6   [test by lr: 0.003:71.3  0.01:73.3  0.03:50.0]
+-- paired probe differences (mean +- SD over seeds)
+cifar10   4000 quantum+half       - quantum         +0.3 +- 0.7  per seed ['-0.44', '+0.87', '+0.51']
+cifar10   4000 quantum+half       - linear          -4.4 +- 0.7  per seed ['-4.18', '-5.10', '-3.81']
+cifar10   4000 quantum+half_sym   - quantum         +0.7 +- 0.5  per seed ['+0.96', '+0.99', '+0.13']
+cifar10   4000 quantum+half_sym   - linear          -4.0 +- 1.1  per seed ['-2.78', '-4.98', '-4.19']
+cifar10   4000 quantum+noent      - quantum         +3.8 +- 1.6  per seed ['+3.09', '+5.68', '+2.72']
+cifar10   4000 quantum+noent      - linear          -0.8 +- 0.7  per seed ['-0.65', '-0.29', '-1.60']
+-- sign symmetry of the head on test embeddings (flip_all: 0 = blind to the sign of z)
+quantum            s0 flip_all 0.704  flip_one 0.239  acc z  67.8  acc -z  27.9
+quantum            s1 flip_all 0.584  flip_one 0.156  acc z  66.5  acc -z  34.0
+quantum            s2 flip_all 0.730  flip_one 0.249  acc z  68.7  acc -z  25.3
+quantum+frozen     s0 flip_all 0.100  flip_one 0.022  acc z  67.4  acc -z  66.6
+quantum+frozen     s1 flip_all 0.086  flip_one 0.025  acc z  65.1  acc -z  64.6
+quantum+frozen     s2 flip_all 0.120  flip_one 0.032  acc z  66.4  acc -z  65.0
+quantum+half       s0 flip_all 0.886  flip_one 0.744  acc z  69.3  acc -z  15.8
+quantum+half       s1 flip_all 0.900  flip_one 0.756  acc z  69.2  acc -z  23.1
+quantum+half       s2 flip_all 0.866  flip_one 0.751  acc z  70.6  acc -z  13.0
+quantum+half_sym   s0 flip_all 0.961  flip_one 0.484  acc z  70.3  acc -z   2.8
+quantum+half_sym   s1 flip_all 0.853  flip_one 0.741  acc z  68.8  acc -z   4.7
+quantum+half_sym   s2 flip_all 0.968  flip_one 0.534  acc z  70.0  acc -z   5.8
+quantum+noent      s0 flip_all 0.907  flip_one 0.305  acc z  72.9  acc -z  13.2
+quantum+noent      s1 flip_all 0.910  flip_one 0.318  acc z  73.8  acc -z  16.7
+quantum+noent      s2 flip_all 1.024  flip_one 0.342  acc z  73.1  acc -z   6.0
+
+== results/protocol_v2/cifar_entangle  (lr chosen by mean val acc; probe = same linear probe)
+cifar10   4000 quantum+L1         lr=0.01   val  51.2  test  50.9 +-  3.1  probe  56.8 +-  2.3   [test by lr: 0.003:41.1  0.01:50.9  0.03:29.7]
+cifar10   4000 quantum+L2         lr=0.01   val  58.7  test  58.0 +-  4.0  probe  61.2 +-  3.9   [test by lr: 0.003:48.9  0.01:58.0  0.03:30.8]
+cifar10   4000 quantum+entlast    lr=0.01   val  57.0  test  56.4 +-  2.1  probe  60.9 +-  2.1   [test by lr: 0.003:42.8  0.01:56.4  0.03:26.1]
+-- paired probe differences (mean +- SD over seeds)
+cifar10   4000 quantum+L1         - quantum        -13.0 +- 2.7  per seed ['-10.71', '-12.43', '-16.00']
+cifar10   4000 quantum+L1         - quantum+noent  -16.9 +- 2.7  per seed ['-13.80', '-18.11', '-18.72']
+cifar10   4000 quantum+L1         - linear         -17.7 +- 3.0  per seed ['-14.45', '-18.40', '-20.32']
+cifar10   4000 quantum+L2         - quantum         -8.7 +- 3.2  per seed ['-5.08', '-11.35', '-9.58']
+cifar10   4000 quantum+L2         - quantum+noent  -12.5 +- 4.4  per seed ['-8.17', '-17.03', '-12.30']
+cifar10   4000 quantum+L2         - linear         -13.3 +- 4.3  per seed ['-8.82', '-17.32', '-13.90']
+cifar10   4000 quantum+entlast    - quantum         -8.9 +- 1.1  per seed ['-8.05', '-10.16', '-8.62']
+cifar10   4000 quantum+entlast    - quantum+noent  -12.8 +- 2.7  per seed ['-11.14', '-15.84', '-11.34']
+cifar10   4000 quantum+entlast    - linear         -13.6 +- 2.2  per seed ['-11.79', '-16.13', '-12.94']
+
+== results/protocol_v2/cifar_classical  (lr chosen by mean val acc; probe = same linear probe)
+cifar10   4000 cos                lr=0.01   val  73.0  test  72.2 +-  0.3  probe  73.2 +-  0.1   [test by lr: 0.003:71.4  0.01:72.2  0.03:29.3  0.1:10.0]
+cifar10   4000 cossin             lr=0.01   val  72.9  test  72.0 +-  0.2  probe  72.8 +-  0.4   [test by lr: 0.003:70.6  0.01:72.0  0.03:28.9  0.1:10.0]
+-- paired probe differences (mean +- SD over seeds)
+cifar10   4000 cos                - quantum+noent   -0.5 +- 0.7  per seed ['+0.17', '-1.20', '-0.42']
+cifar10   4000 cos                - quantum         +3.3 +- 1.1  per seed ['+3.26', '+4.48', '+2.30']
+cifar10   4000 cos                - linear          -1.3 +- 0.8  per seed ['-0.48', '-1.49', '-2.02']
+cifar10   4000 cossin             - quantum+noent   -0.9 +- 0.5  per seed ['-0.93', '-1.44', '-0.45']
+cifar10   4000 cossin             - quantum         +2.9 +- 1.2  per seed ['+2.16', '+4.24', '+2.27']
+cifar10   4000 cossin             - linear          -1.8 +- 0.2  per seed ['-1.58', '-1.73', '-2.05']
+
+== results/protocol_v2/cifar_cosprod  (lr chosen by mean val acc; probe = same linear probe)
+cifar10   4000 cosprod            lr=0.01   val  65.9  test  66.3 +-  0.9  probe  67.8 +-  1.1   [test by lr: 0.001:57.0  0.003:60.8  0.01:66.3  0.03:28.5]
+cifar10   4000 cosprod_last       lr=0.01   val  49.4  test  48.6 +-  3.5  probe  54.2 +-  3.1   [test by lr: 0.001:43.2  0.003:41.0  0.01:48.6  0.03:45.6]
+-- paired probe differences (mean +- SD over seeds)
+cifar10   4000 cosprod            - quantum         -2.1 +- 2.2  per seed ['-2.11', '+0.05', '-4.28']
+cifar10   4000 cosprod            - quantum+noent   -5.9 +- 0.9  per seed ['-5.20', '-5.63', '-7.00']
+cifar10   4000 cosprod            - linear          -6.8 +- 1.6  per seed ['-5.85', '-5.92', '-8.60']
+cifar10   4000 cosprod_last       - quantum        -15.7 +- 2.0  per seed ['-15.22', '-17.89', '-13.96']
+cifar10   4000 cosprod_last       - quantum+noent  -19.5 +- 3.6  per seed ['-18.31', '-23.57', '-16.68']
+cifar10   4000 cosprod_last       - linear         -20.4 +- 3.0  per seed ['-18.96', '-23.86', '-18.28']
+
+== results/protocol_v2/cifar_pairs  (lr chosen by mean val acc; probe = same linear probe)
+cifar10   4000 cosprod_pairs_last lr=0.01   val  70.6  test  69.9 +-  1.1  probe  71.5 +-  1.6   [test by lr: 0.001:63.8  0.003:66.5  0.01:69.9  0.03:29.5]
+cifar10   4000 quantum+pairs      lr=0.01   val  73.5  test  72.2 +-  0.6  probe  73.0 +-  0.6   [test by lr: 0.003:70.9  0.01:72.2  0.03:30.0]
+cifar10   4000 quantum+pairs_last lr=0.01   val  69.7  test  70.2 +-  0.9  probe  71.2 +-  0.8   [test by lr: 0.003:66.4  0.01:70.2  0.03:49.0]
+-- paired probe differences (mean +- SD over seeds)
+cifar10   4000 cosprod_pairs_last - quantum         +1.7 +- 2.5  per seed ['+0.01', '+4.55', '+0.41']
+cifar10   4000 cosprod_pairs_last - quantum+noent   -2.2 +- 1.0  per seed ['-3.08', '-1.13', '-2.31']
+cifar10   4000 cosprod_pairs_last - linear          -3.0 +- 1.4  per seed ['-3.73', '-1.42', '-3.91']
+cifar10   4000 quantum+pairs      - quantum         +3.1 +- 0.6  per seed ['+3.04', '+3.75', '+2.64']
+cifar10   4000 quantum+pairs      - quantum+noent   -0.7 +- 1.1  per seed ['-0.05', '-1.93', '-0.08']
+cifar10   4000 quantum+pairs      - linear          -1.5 +- 0.8  per seed ['-0.70', '-2.22', '-1.68']
+cifar10   4000 quantum+pairs_last - quantum         +1.3 +- 0.3  per seed ['+1.25', '+1.63', '+0.99']
+cifar10   4000 quantum+pairs_last - quantum+noent   -2.5 +- 1.3  per seed ['-1.84', '-4.05', '-1.73']
+cifar10   4000 quantum+pairs_last - linear          -3.4 +- 0.9  per seed ['-2.49', '-4.34', '-3.33']
+
+== CIFAR-10/4000 headline cells, seeds 0-4 (lr selected on seeds 0-2; test, probe)
+linear           n=5  test  74.5 +-  0.7  probe n=5  74.5 +-  0.5
+mlp8             n=5  test  70.7 +-  0.4  probe n=5  70.8 +-  0.5
+quantum          n=5  test  67.8 +-  1.3  probe n=5  69.8 +-  1.0
+quantum+noent    n=5  test  73.1 +-  0.5  probe n=5  73.6 +-  0.5
+quantum+entlast  n=5  test  55.3 +-  3.1  probe n=5  60.1 +-  3.1
+cos              n=5  test  72.5 +-  0.5  probe n=5  73.3 +-  0.4
+cosprod          n=5  test  67.1 +-  1.3  probe n=5  68.8 +-  1.6
+cosprod_last     n=5  test  48.9 +-  3.9  probe n=5  54.8 +-  3.4
+quantum+pairs    n=5  test  72.2 +-  0.4  probe n=5  72.9 +-  0.6
+quantum+pairs_last n=5  test  70.0 +-  1.2  probe n=5  71.2 +-  0.7
+cosprod_pairs_last n=5  test  69.6 +-  0.8  probe n=5  71.2 +-  1.3
+-- paired differences over the seeds both cells have (mean +- SD)
+linear           - quantum        test  +6.7 +- 1.0  per seed ['+6.17', '+8.30', '+6.39', '+5.58', '+6.85']   probe  +4.7 +- 0.9  per seed ['+3.74', '+5.97', '+4.32', '+4.11', '+5.27']
+linear           - quantum+noent  test  +1.4 +- 0.5  per seed ['+1.09', '+0.90', '+2.01', '+1.97', '+1.09']   probe  +0.8 +- 0.5  per seed ['+0.65', '+0.29', '+1.60', '+0.85', '+0.82']
+mlp8             - linear         test  -3.8 +- 0.9  per seed ['-2.76', '-4.47', '-4.20', '-4.67', '-2.76']   probe  -3.6 +- 0.6  per seed ['-2.56', '-3.70', '-4.23', '-3.85', '-3.84']
+mlp8             - quantum        test  +2.9 +- 1.3  per seed ['+3.41', '+3.83', '+2.19', '+0.91', '+4.09']   probe  +1.0 +- 0.9  per seed ['+1.18', '+2.27', '+0.09', '+0.26', '+1.43']
+mlp8             - quantum+noent  test  -2.4 +- 0.8  per seed ['-1.67', '-3.57', '-2.19', '-2.70', '-1.67']   probe  -2.8 +- 0.6  per seed ['-1.91', '-3.41', '-2.63', '-3.00', '-3.02']
+quantum          - linear         test  -6.7 +- 1.0  per seed ['-6.17', '-8.30', '-6.39', '-5.58', '-6.85']   probe  -4.7 +- 0.9  per seed ['-3.74', '-5.97', '-4.32', '-4.11', '-5.27']
+quantum          - quantum+noent  test  -5.2 +- 1.4  per seed ['-5.08', '-7.40', '-4.38', '-3.61', '-5.76']   probe  -3.8 +- 1.2  per seed ['-3.09', '-5.68', '-2.72', '-3.26', '-4.45']
+quantum+noent    - linear         test  -1.4 +- 0.5  per seed ['-1.09', '-0.90', '-2.01', '-1.97', '-1.09']   probe  -0.8 +- 0.5  per seed ['-0.65', '-0.29', '-1.60', '-0.85', '-0.82']
+quantum+noent    - quantum        test  +5.2 +- 1.4  per seed ['+5.08', '+7.40', '+4.38', '+3.61', '+5.76']   probe  +3.8 +- 1.2  per seed ['+3.09', '+5.68', '+2.72', '+3.26', '+4.45']
+quantum+entlast  - linear         test -19.2 +- 2.7  per seed ['-16.13', '-20.73', '-17.74', '-18.28', '-23.04']   probe -14.3 +- 2.9  per seed ['-11.79', '-16.13', '-12.94', '-12.23', '-18.63']
+quantum+entlast  - quantum        test -12.5 +- 2.3  per seed ['-9.96', '-12.43', '-11.35', '-12.70', '-16.19']   probe  -9.7 +- 2.2  per seed ['-8.05', '-10.16', '-8.62', '-8.12', '-13.36']
+quantum+entlast  - quantum+noent  test -17.8 +- 3.0  per seed ['-15.04', '-19.83', '-15.73', '-16.31', '-21.95']   probe -13.5 +- 3.1  per seed ['-11.14', '-15.84', '-11.34', '-11.38', '-17.81']
+cos              - linear         test  -2.0 +- 0.7  per seed ['-2.13', '-2.20', '-2.94', '-1.68', '-1.03']   probe  -1.1 +- 0.6  per seed ['-0.48', '-1.49', '-2.02', '-0.68', '-0.85']
+cos              - quantum        test  +4.7 +- 1.2  per seed ['+4.04', '+6.10', '+3.45', '+3.90', '+5.82']   probe  +3.6 +- 0.9  per seed ['+3.26', '+4.48', '+2.30', '+3.43', '+4.42']
+cos              - quantum+noent  test  -0.6 +- 0.7  per seed ['-1.04', '-1.30', '-0.93', '+0.29', '+0.06']   probe  -0.3 +- 0.6  per seed ['+0.17', '-1.20', '-0.42', '+0.17', '-0.03']
+cosprod          - linear         test  -7.4 +- 1.7  per seed ['-6.97', '-8.28', '-9.79', '-6.47', '-5.49']   probe  -5.7 +- 1.9  per seed ['-5.85', '-5.92', '-8.60', '-3.88', '-4.06']
+cosprod          - quantum        test  -0.7 +- 1.7  per seed ['-0.80', '+0.02', '-3.40', '-0.89', '+1.36']   probe  -1.0 +- 2.2  per seed ['-2.11', '+0.05', '-4.28', '+0.23', '+1.21']
+cosprod          - quantum+noent  test  -6.0 +- 1.6  per seed ['-5.88', '-7.38', '-7.78', '-4.50', '-4.40']   probe  -4.8 +- 1.7  per seed ['-5.20', '-5.63', '-7.00', '-3.03', '-3.24']
+cosprod_last     - linear         test -25.6 +- 4.2  per seed ['-26.39', '-28.98', '-22.55', '-29.94', '-20.13']   probe -19.6 +- 3.6  per seed ['-18.96', '-23.86', '-18.28', '-22.28', '-14.76']
+cosprod_last     - quantum        test -18.9 +- 4.3  per seed ['-20.22', '-20.68', '-16.16', '-24.36', '-13.28']   probe -14.9 +- 3.5  per seed ['-15.22', '-17.89', '-13.96', '-18.17', '-9.49']
+cosprod_last     - quantum+noent  test -24.2 +- 4.2  per seed ['-25.30', '-28.08', '-20.54', '-27.97', '-19.04']   probe -18.8 +- 3.8  per seed ['-18.31', '-23.57', '-16.68', '-21.43', '-13.94']
+quantum+pairs    - linear         test  -2.3 +- 0.8  per seed ['-1.77', '-3.15', '-2.29', '-3.09', '-1.24']   probe  -1.6 +- 0.9  per seed ['-0.70', '-2.22', '-1.68', '-2.59', '-0.57']
+quantum+pairs    - quantum        test  +4.3 +- 1.2  per seed ['+4.40', '+5.15', '+4.10', '+2.49', '+5.61']   probe  +3.1 +- 1.2  per seed ['+3.04', '+3.75', '+2.64', '+1.52', '+4.70']
+quantum+pairs    - quantum+noent  test  -0.9 +- 0.8  per seed ['-0.68', '-2.25', '-0.28', '-1.12', '-0.15']   probe  -0.7 +- 1.0  per seed ['-0.05', '-1.93', '-0.08', '-1.74', '+0.25']
+quantum+pairs_last - linear         test  -4.5 +- 1.7  per seed ['-3.32', '-5.69', '-4.38', '-6.56', '-2.47']   probe  -3.3 +- 0.9  per seed ['-2.49', '-4.34', '-3.33', '-4.07', '-2.22']
+quantum+pairs_last - quantum        test  +2.2 +- 2.0  per seed ['+2.85', '+2.61', '+2.01', '-0.98', '+4.38']   probe  +1.4 +- 1.1  per seed ['+1.25', '+1.63', '+0.99', '+0.04', '+3.05']
+quantum+pairs_last - quantum+noent  test  -3.1 +- 1.5  per seed ['-2.23', '-4.79', '-2.37', '-4.59', '-1.38']   probe  -2.4 +- 1.1  per seed ['-1.84', '-4.05', '-1.73', '-3.22', '-1.40']
+cosprod_pairs_last - linear         test  -4.9 +- 0.9  per seed ['-5.24', '-3.87', '-5.15', '-5.98', '-4.10']   probe  -3.2 +- 1.3  per seed ['-3.73', '-1.42', '-3.91', '-4.68', '-2.40']
+cosprod_pairs_last - quantum        test  +1.8 +- 1.9  per seed ['+0.93', '+4.43', '+1.24', '-0.40', '+2.75']   probe  +1.5 +- 2.2  per seed ['+0.01', '+4.55', '+0.41', '-0.57', '+2.87']
+cosprod_pairs_last - quantum+noent  test  -3.5 +- 0.6  per seed ['-4.15', '-2.97', '-3.14', '-4.01', '-3.01']   probe  -2.4 +- 1.1  per seed ['-3.08', '-1.13', '-2.31', '-3.83', '-1.58']
+
+== results/protocol_v2/mnist_circuit  (lr chosen by mean val acc; probe = same linear probe)
+mnist      500 quantum+half       lr=0.03   val  85.1  test  85.4 +-  3.1  probe  88.4 +-  2.4   [test by lr: 0.003:82.0  0.01:83.3  0.03:85.4  0.1:52.4]
+mnist      500 quantum+half_sym   lr=0.01   val  90.9  test  90.8 +-  1.9  probe  91.7 +-  1.4   [test by lr: 0.003:84.0  0.01:90.8  0.03:89.6]
+mnist      500 quantum+noent      lr=0.01   val  94.6  test  94.5 +-  0.5  probe  94.4 +-  0.7   [test by lr: 0.003:92.3  0.01:94.5  0.03:94.0]
+mnist     1000 quantum+half       lr=0.03   val  93.0  test  92.8 +-  1.8  probe  93.7 +-  1.0   [test by lr: 0.003:91.9  0.01:93.3  0.03:92.8  0.1:35.9]
+mnist     1000 quantum+half_sym   lr=0.01   val  94.0  test  93.9 +-  0.7  probe  94.5 +-  0.8   [test by lr: 0.003:90.8  0.01:93.9  0.03:90.9]
+mnist     1000 quantum+noent      lr=0.01   val  96.6  test  96.4 +-  0.2  probe  96.5 +-  0.4   [test by lr: 0.003:95.5  0.01:96.4  0.03:96.0]
+-- paired probe differences (mean +- SD over seeds)
+mnist      500 quantum+half       - quantum         -3.2 +- 2.8  per seed ['-0.02', '-4.50', '-5.22']
+mnist      500 quantum+half       - linear          -5.5 +- 2.5  per seed ['-2.65', '-7.22', '-6.53']
+mnist      500 quantum+half_sym   - quantum         +0.0 +- 1.2  per seed ['+1.44', '-0.97', '-0.33']
+mnist      500 quantum+half_sym   - linear          -2.2 +- 1.3  per seed ['-1.19', '-3.69', '-1.64']
+mnist      500 quantum+noent      - quantum         +2.8 +- 0.4  per seed ['+3.05', '+2.89', '+2.36']
+mnist      500 quantum+noent      - linear          +0.5 +- 0.5  per seed ['+0.42', '+0.17', '+1.05']
+mnist     1000 quantum+half       - quantum         -1.3 +- 1.0  per seed ['-1.61', '-2.16', '-0.26']
+mnist     1000 quantum+half       - linear          -2.4 +- 0.8  per seed ['-2.95', '-2.66', '-1.49']
+mnist     1000 quantum+half_sym   - quantum         -0.5 +- 0.9  per seed ['+0.29', '-1.42', '-0.50']
+mnist     1000 quantum+half_sym   - linear          -1.6 +- 0.5  per seed ['-1.05', '-1.92', '-1.73']
+mnist     1000 quantum+noent      - quantum         +1.4 +- 0.4  per seed ['+1.94', '+1.25', '+1.14']
+mnist     1000 quantum+noent      - linear          +0.4 +- 0.4  per seed ['+0.60', '+0.75', '-0.09']
+
 == results/checkpoints_mnist.csv  (saved checkpoint, eval mode, clean images)
   250 linear          test  61.5 +-  1.7  clean-train  79.7  clean gap  18.2  sat>0.9 per seed ['20.54', '14.55', '24.41']  sat>0.99 ['2.26', '1.65', '3.06']
   250 mlp             test  36.7 +-  5.4  clean-train  46.4  clean gap   9.7  sat>0.9 per seed ['22.21', '20.94', '30.86']  sat>0.99 ['4.43', '3.6', '5.8']

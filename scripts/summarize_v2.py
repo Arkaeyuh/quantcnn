@@ -162,6 +162,86 @@ def mech(runs: Path, base_runs: Path, probe_path: Path, base_probe_path: Path):
           f"{_paired({i: qf[i][0] for i in qf}, {i: qt[i][0] for i in qt})}")
 
 
+def circuit(runs: Path, probe_paths: list[Path], sign_path: Path | None = None, refs=("quantum", "linear")):
+    """Head/circuit ablation grid (any dataset and size), lr selected on validation per cell.
+
+    Probe accuracies for each variant and for the reference heads are read from
+    ``probe_paths`` (later files override earlier ones for the same key).
+    """
+    from scripts.probe_backbones import _head_key
+
+    cells = defaultdict(lambda: defaultdict(dict))
+    for fin in sorted(runs.glob("*/final.json")):
+        m = json.loads((fin.parent / "meta.json").read_text())
+        f = json.loads(fin.read_text())
+        cells[(m["dataset"], int(m["train_subset_size"]), _head_key(m))][m["lr"]][int(m["seed"])] = (
+            f["val_acc"] * 100, f["test_acc"] * 100)
+    probes = defaultdict(dict)
+    for path in probe_paths:
+        if path.exists():
+            for r in csv.DictReader(path.open()):
+                probes[(r["dataset"], int(r["train_subset_size"]), r["source_head"])][int(r["seed"])] = float(
+                    r["probe_test_acc"])
+    print(f"\n== {runs}  (lr chosen by mean val acc; probe = same linear probe)")
+    for (ds, n, v), by_lr in sorted(cells.items()):
+        lr = max(by_lr, key=lambda k: st.mean(x[0] for x in by_lr[k].values()))
+        by = by_lr[lr]
+        grid = "  ".join(f"{k:g}:{st.mean(x[1] for x in by_lr[k].values()):.1f}" for k in sorted(by_lr))
+        pr = probes.get((ds, n, v), {})
+        ptxt = _ms([pr[i] for i in range(3)]) if len(pr) == 3 else "  (not probed)"
+        print(f"{ds:8s} {n:5d} {v:18s} lr={lr:<6g} val {st.mean(x[0] for x in by.values()):5.1f}  test "
+              f"{_ms([by[i][1] for i in range(3)])}  probe {ptxt}   [test by lr: {grid}]")
+    print("-- paired probe differences (mean +- SD over seeds)")
+    for ds, n, v in sorted(cells):
+        for ref in refs:
+            a, b = probes.get((ds, n, v), {}), probes.get((ds, n, ref), {})
+            if len(a) == 3 and len(b) == 3:
+                print(f"{ds:8s} {n:5d} {v:18s} - {ref:14s} {_paired(a, b)}")
+    if sign_path and sign_path.exists():
+        print("-- sign symmetry of the head on test embeddings (flip_all: 0 = blind to the sign of z)")
+        for r in csv.DictReader(sign_path.open()):
+            print(f"{r['head']:18s} s{r['seed']} flip_all {float(r['flip_all']):.3f}  flip_one {float(r['flip_one']):.3f}"
+                  f"  acc z {float(r['acc_z']):5.1f}  acc -z {float(r['acc_neg_z']):5.1f}")
+
+
+def five_seed(root: Path, probe_paths: list[Path]):
+    """Headline CIFAR-10/4000 cells over seeds 0-4: seeds 0-2 at the source grid's
+    validation-selected lr plus seeds 3-4 (grid ``cifar_seeds``) at that same lr."""
+    from scripts.probe_backbones import _head_key
+    from scripts.run_protocol_v2 import SEED_CELLS
+
+    test = defaultdict(dict)
+    for grid in {g for g, _, _ in SEED_CELLS} | {"cifar_seeds"}:
+        cells = defaultdict(lambda: defaultdict(dict))
+        for fin in sorted((root / grid).glob("*/final.json")):
+            m = json.loads((fin.parent / "meta.json").read_text())
+            if m["dataset"] == "cifar10" and int(m["train_subset_size"]) == 4000:
+                f = json.loads(fin.read_text())
+                cells[_head_key(m)][m["lr"]][int(m["seed"])] = (f["val_acc"], f["test_acc"] * 100)
+        for key, by_lr in cells.items():
+            lr = max(by_lr, key=lambda k: st.mean(x[0] for sd, x in by_lr[k].items() if sd < 3) if any(
+                sd < 3 for sd in by_lr[k]) else -1)
+            test[key].update({sd: x[1] for sd, x in by_lr[lr].items()})
+    probes = defaultdict(dict)
+    for path in probe_paths:
+        if path.exists():
+            for r in csv.DictReader(path.open()):
+                if r["dataset"] == "cifar10" and r["train_subset_size"] == "4000":
+                    probes[r["source_head"]][int(r["seed"])] = float(r["probe_test_acc"])
+    keys = [k for _, k, _ in SEED_CELLS]
+    print("\n== CIFAR-10/4000 headline cells, seeds 0-4 (lr selected on seeds 0-2; test, probe)")
+    for k in keys:
+        t, pr = test.get(k, {}), probes.get(k, {})
+        print(f"{k:16s} n={len(t)}  test {_ms(list(t.values())) if len(t) > 1 else '   -'}  "
+              f"probe n={len(pr)} {_ms(list(pr.values())) if len(pr) > 1 else '   -'}")
+    print("-- paired differences over the seeds both cells have (mean +- SD)")
+    for k in keys:
+        for ref in ("linear", "quantum", "quantum+noent"):
+            if k != ref and len(test.get(k, {})) == 5 and len(test.get(ref, {})) == 5:
+                print(f"{k:16s} - {ref:14s} test {_paired(test[k], test[ref])}   probe "
+                      f"{_paired(probes[k], probes[ref]) if len(probes.get(k, {})) == 5 and len(probes.get(ref, {})) == 5 else '-'}")
+
+
 def checkpoints(path: Path):
     cells = defaultdict(list)
     for r in csv.DictReader(path.open()):
@@ -181,6 +261,25 @@ def main():
     frozen(Path("results/frozen_heads.csv"))
     probe(Path("results/backbone_probe.csv"))
     mech(root / "cifar_mech", root / "cifar_val", Path("results/mech_probe.csv"), Path("results/backbone_probe.csv"))
+    base = [Path("results/backbone_probe.csv"), Path("results/circuit_probe.csv")]
+    if (root / "cifar_circuit").exists():
+        circuit(root / "cifar_circuit", base, Path("results/sign_symmetry.csv"))
+    if (root / "cifar_entangle").exists():
+        circuit(root / "cifar_entangle", base + [Path("results/entangle_probe.csv")],
+                refs=("quantum", "quantum+noent", "linear"))
+    if (root / "cifar_classical").exists():
+        circuit(root / "cifar_classical", base + [Path("results/classical_probe.csv")],
+                refs=("quantum+noent", "quantum", "linear"))
+    if (root / "cifar_cosprod").exists():
+        circuit(root / "cifar_cosprod", base + [Path("results/cosprod_probe.csv")],
+                refs=("quantum", "quantum+entlast", "quantum+noent", "linear"))
+    if (root / "cifar_pairs").exists():
+        circuit(root / "cifar_pairs", base + [Path("results/pairs_probe.csv")],
+                refs=("quantum", "quantum+noent", "cos", "linear"))
+    if (root / "cifar_seeds").exists():
+        five_seed(root, base + [Path(f"results/{n}_probe.csv") for n in ("entangle", "classical", "cosprod", "pairs", "seeds")])
+    if (root / "mnist_circuit").exists():
+        circuit(root / "mnist_circuit", base + [Path("results/mnist_circuit_probe.csv")])
     for name in ["checkpoints_mnist", "checkpoints_cifar10"]:
         checkpoints(Path("results") / f"{name}.csv")
 

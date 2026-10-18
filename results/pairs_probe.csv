@@ -1,0 +1,10 @@
+dataset,train_subset_size,source_head,source_lr,seed,source_test_acc,probe_lr,probe_val_acc,probe_train_acc,probe_test_acc,sat_090_z,sat_090_head_input
+cifar10,4000,cosprod_pairs_last,0.01,0,68.78,0.1,71.4,91.775,70.15,20.06,20.06
+cifar10,4000,cosprod_pairs_last,0.01,1,70.88,0.1,72.8,94.05,73.22,12.81,12.81
+cifar10,4000,cosprod_pairs_last,0.01,2,69.94,1,73.2,92.4,71.26,20.2,20.2
+cifar10,4000,quantum+pairs,0.01,0,72.25,0.3,74.15,96.175,73.18,2.25,2.25
+cifar10,4000,quantum+pairs,0.01,1,71.6,0.1,74.05,94.55,72.42,3.71,3.71
+cifar10,4000,quantum+pairs,0.01,2,72.8,0.1,74.15,96.3,73.49,1.53,1.53
+cifar10,4000,quantum+pairs_last,0.01,0,70.7,1,71.6,93.525,71.39,13.13,13.13
+cifar10,4000,quantum+pairs_last,0.01,1,69.06,0.1,71.45,88.45,70.3,9.94,9.94
+cifar10,4000,quantum+pairs_last,0.01,2,70.71,0.03,72.55,93.6,71.84,11.07,11.07

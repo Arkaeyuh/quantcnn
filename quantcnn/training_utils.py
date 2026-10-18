@@ -33,6 +33,8 @@ class RunConfig:
     quantum_sim: str = "pennylane"
     pre_norm: str = "none"
     freeze_circuit: bool = False
+    encoding: str = "pi_tanh"
+    entangle: bool | str = True
 
 
 def accuracy(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
