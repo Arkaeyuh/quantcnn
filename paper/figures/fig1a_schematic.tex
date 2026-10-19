@@ -1,31 +1,62 @@
-% Fig 1a schematic [MANUAL]: a TikZ skeleton of the model and the probe path.
-% Requires \usepackage{tikz} and \usetikzlibrary{positioning,arrows.meta,fit}.
-% Layout is a starting point; refine by hand.
+% Fig 1a schematic: CNN -> bottleneck z -> 8-qubit VQC head -> linear readout, and the common
+% linear probe on the frozen bottleneck. Requires tikz with positioning, arrows.meta, fit,
+% shapes.geometric.
 \begin{tikzpicture}[
-    node distance=3.5mm,
-    box/.style={draw, rounded corners=1.5pt, minimum height=6.5mm, inner sep=2pt, font=\footnotesize, align=center},
+    x=1cm, y=1cm, font=\footnotesize,
+    box/.style={draw, rounded corners=1.5pt, minimum height=6mm, inner sep=2.5pt, align=center},
+    gate/.style={draw, fill=white, minimum height=4.4mm, minimum width=9mm, inner sep=1pt, font=\scriptsize},
     arr/.style={-{Stealth[length=1.6mm]}, semithick},
   ]
-  \node[box] (img) {image};
-  \node[box, right=of img] (cnn) {CNN};
-  \node[box, right=of cnn] (z) {$z\in\mathbb{R}^8$};
-  \node[box, right=6mm of z, fill=blue!6] (enc) {$R_y(\pi\tanh z_j)$};
-  \node[box, right=of enc, fill=blue!6] (var) {$[R_y R_z \to \text{CNOT}]^{\times L}$};
-  \node[box, right=of var, fill=blue!6] (meas) {$\langle Z_k\rangle$};
-  \node[box, right=of meas] (lin) {Linear};
-  \node[draw, dashed, rounded corners=2pt, fit=(enc)(var)(meas), inner sep=2.5pt,
-        label={[font=\scriptsize]above:VQC head (8 qubits; default shown, CNOT placement varied)}] (vqc) {};
+  % classical front end
+  \node[box] (img) at (0, 0) {image};
+  \node[box, trapezium, trapezium angle=70, shape border rotate=270, minimum width=8mm] (cnn) at (1.45, 0) {CNN};
+  \node[box] (z) at (2.95, 0) {$z\in\mathbb{R}^8$};
   \draw[arr] (img) -- (cnn);
   \draw[arr] (cnn) -- (z);
-  \draw[arr] (z) -- (enc);
-  \draw[arr] (enc) -- (var);
-  \draw[arr] (var) -- (meas);
-  \draw[arr] (meas) -- (lin);
-  % probe path from the frozen bottleneck
-  \node[box, below=7mm of z, draw=gray, text=gray!80!black] (probe) {common linear probe\\(backbone frozen)};
-  \draw[arr, dashed, gray] (z) -- (probe);
+  \draw[arr] (z.east) -- (3.95, 0);
+
+  % qubit wires q0, q1, ..., q7
+  \foreach \y/\lab in {0.62/q_0, 0.22/q_1, -0.62/q_7} {
+    \draw[thin] (4.55, \y) -- (10.0, \y);
+    \node[font=\scriptsize, anchor=east] at (4.55, \y) {$\lab$};
+  }
+  \foreach \x in {5.15, 6.75, 9.45} \node[font=\scriptsize] at (\x, -0.18) {$\vdots$};
+
+  % encoding R_y(a_j)
+  \foreach \y/\j in {0.62/0, 0.22/1, -0.62/7}
+    \node[gate, fill=blue!6] at (5.15, \y) {$R_y(a_{\j})$};
+
+  % one variational layer: R_y R_z on every qubit, then a CNOT ring; repeated L times
+  \foreach \y in {0.62, 0.22, -0.62}
+    \node[gate] at (6.75, \y) {$R_y R_z$};
+  \fill (7.65, 0.62) circle (1.3pt);                       % CNOT(0 -> 1)
+  \draw (7.65, 0.62) -- (7.65, 0.22);
+  \draw (7.65, 0.22) circle (2.6pt); \draw (7.65, 0.13) -- (7.65, 0.31);
+  \fill (8.0, 0.22) circle (1.3pt);                        % CNOT(1 -> 2), down the ring
+  \draw (8.0, 0.22) -- (8.0, -0.08);
+  \node[font=\scriptsize] at (8.0, -0.2) {$\cdots$};
+  \fill (8.4, -0.62) circle (1.3pt);                       % CNOT(7 -> 0) closes the ring
+  \draw (8.4, -0.62) -- (8.4, 0.62);
+  \draw (8.4, 0.62) circle (2.6pt); \draw (8.4, 0.53) -- (8.4, 0.71);
+  \draw[dashed, rounded corners=2pt, gray] (6.15, -0.88) rectangle (8.65, 0.88);
+  \node[font=\scriptsize, gray!70!black, anchor=north] at (7.4, -0.9) {$\times L$; CNOT layout varied};
+
+  % measurement
+  \foreach \y/\k in {0.62/0, 0.22/1, -0.62/7}
+    \node[gate, minimum width=8mm] at (9.45, \y) {$\langle Z_{\k}\rangle$};
+
+  % head frame and readout
+  \node[draw, dashed, rounded corners=3pt, fit={(3.95, 1.0) (9.95, -1.25)}, inner sep=1pt,
+        label={[font=\scriptsize, anchor=south west]north west:VQC head, 8 qubits}] (head) {};
+  \node[box, anchor=west] (lin) at (10.75, 0) {Linear};
+  \draw[arr] (10.0, 0) -- (lin.west);
+
   % zero-rotation identity
-  \node[font=\footnotesize, below=5mm of var, align=center] (eq)
-    {$\langle Z_k\rangle = \prod_{j\in S_k}\cos(\pi\tanh z_j)$\\[-1pt]
-     {\scriptsize exact at zero variational rotations; $S_k$ set by the CNOTs}};
+  \node[font=\scriptsize, anchor=west] at (4.25, -1.65)
+    {$a_j=\pi\tanh z_j$;\ \ at zero variational rotations
+     $\langle Z_k\rangle=\prod_{j\in S_k}\cos a_j$, with $S_k$ fixed by the CNOTs};
+
+  % common linear probe on the frozen bottleneck
+  \node[box, draw=gray, text=gray!70!black] (probe) at (2.55, -1.5) {common linear probe\\[-1pt](backbone frozen)};
+  \draw[arr, dashed, gray] (z) -- (probe);
 \end{tikzpicture}

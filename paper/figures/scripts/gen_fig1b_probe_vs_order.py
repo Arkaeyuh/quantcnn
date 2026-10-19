@@ -47,7 +47,7 @@ def order(structure) -> float:
 
 def main():
     _, probes = five_seed_data(Path("results/protocol_v2"), FIVE_SEED_PROBES)
-    fig, ax = plt.subplots(figsize=(3.2, 2.75))
+    fig, ax = plt.subplots(figsize=(4.0, 2.75))
     lin = list(probes["linear"].values())
     m, sd = st.mean(lin), st.stdev(lin)
     ax.axhspan(m - sd, m + sd, color=REFERENCE, alpha=0.18, lw=0)

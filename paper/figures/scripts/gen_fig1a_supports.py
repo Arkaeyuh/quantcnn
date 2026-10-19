@@ -32,8 +32,8 @@ PANELS = {
 def main():
     from matplotlib.colors import ListedColormap
 
-    fig, axes = plt.subplots(1, len(PANELS), figsize=(3.4, 1.15))
-    for ax, (label, structure) in zip(axes, PANELS.items()):
+    fig, axes = plt.subplots(2, 2, figsize=(2.5, 2.75))
+    for ax, (label, structure) in zip(axes.flat, PANELS.items()):
         supports = [[k] for k in range(N)] if structure is None else cnot_ring_supports(N, *structure)
         m = np.zeros((N, N))
         for k, s in enumerate(supports):
@@ -45,10 +45,12 @@ def main():
         ax.tick_params(which="both", length=0, labelbottom=False, labelleft=False)
         for side in ax.spines.values():
             side.set_visible(False)
-        ax.set_xlabel(f"{label}\norder {st.mean(len(s) for s in supports):g}", fontsize=7, labelpad=2)
-    axes[0].set_ylabel("readout $k$", fontsize=7, labelpad=1)
-    axes[0].annotate("input $j$", xy=(0.5, 1.02), xycoords="axes fraction", ha="center", va="bottom", fontsize=7)
-    fig.subplots_adjust(wspace=0.15)
+        ax.set_xlabel(f"{label}, order {st.mean(len(s) for s in supports):g}", fontsize=7, labelpad=2)
+    for ax in axes[:, 0]:
+        ax.set_ylabel("readout $k$", fontsize=7, labelpad=1)
+    for ax in axes[0]:
+        ax.annotate("input $j$", xy=(0.5, 1.02), xycoords="axes fraction", ha="center", va="bottom", fontsize=7)
+    fig.subplots_adjust(wspace=0.12, hspace=0.32)
     save_fig(fig, "fig1a_supports")
 
 

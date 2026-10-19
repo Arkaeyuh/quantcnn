@@ -221,6 +221,12 @@ def _grid(name: str) -> list[dict]:
             if step is not None:
                 for sd in SEEDS:
                     items.append(dict(opts, lr=step, seed=sd))
+    elif name == "cifar_pretrained_10k_lr":
+        # Per-size lr selection at 10,000 images (the 10k grid reused the 4,000-image lrs).
+        for _, _, opts in NIGHT_SEED_CELLS[:4]:
+            for lr in [3e-4, 1e-3, 3e-3]:
+                for sd in SEEDS:
+                    items.append(dict(opts, train_subset_size=10000, lr=lr, seed=sd))
     elif name == "cifar_pretrained2_edge":
         # cosprod and pairs selected 1e-3, the bottom of their grid: one more step down.
         for opts in [dict(_PRETRAINED, head="cosprod"), dict(_PRETRAINED, head="quantum", entangle_pattern="pairs")]:
@@ -367,7 +373,7 @@ def main():
                                          "cifar_pretrained_10k", "cifar_pretrained_edge",
                                          "cifar_pretrained_1k", "cifar_pretrained_1k_lr",
                                          "pretrained2_seeds", "cifar_pretrained_edge2",
-                                         "cifar_pretrained2_edge"], required=True)
+                                         "cifar_pretrained2_edge", "cifar_pretrained_10k_lr"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)
