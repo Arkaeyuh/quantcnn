@@ -98,7 +98,8 @@ def _heldout(vqc, vqc0, proj, z: torch.Tensor, y: torch.Tensor) -> dict:
         X = torch.cat([q0, torch.ones(len(q0), 1, dtype=q0.dtype)], 1)
         W = torch.linalg.lstsq(X[fit], q[fit]).solution
         qe, pe = q[ev], X[ev] @ W
-        r2 = (1 - ((qe - pe) ** 2).sum() / ((qe - qe.mean(0)) ** 2).sum()).item()
+        ss_res_h, ss_tot_h = ((qe - pe) ** 2).sum().item(), ((qe - qe.mean(0)) ** 2).sum().item()
+        r2 = 1 - ss_res_h / ss_tot_h
         acc = (proj(qe.float()).argmax(1) == y[ev]).float().mean().item()
         acc_remap = (proj(pe.float()).argmax(1) == y[ev]).float().mean().item()
     Wf = W.float()
@@ -108,7 +109,7 @@ def _heldout(vqc, vqc0, proj, z: torch.Tensor, y: torch.Tensor) -> dict:
     gr = _lossgrad(lambda x: proj(remap(x)), z[ev], y[ev])
     c0 = torch.nn.functional.cosine_similarity(g, g0, dim=1)
     cr = torch.nn.functional.cosine_similarity(g, gr, dim=1)
-    return dict(r2_heldout=round(r2, 4), acc_heldout=round(acc * 100, 2), acc_remap_heldout=round(acc_remap * 100, 2),
+    return dict(ss_res_heldout=round(ss_res_h, 4), ss_tot_heldout=round(ss_tot_h, 4), r2_heldout=round(r2, 4), acc_heldout=round(acc * 100, 2), acc_remap_heldout=round(acc_remap * 100, 2),
                 lossgrad_cos_zeroed=round(c0.median().item(), 4), lossgrad_neg_zeroed=round((c0 < 0).float().mean().item(), 4),
                 lossgrad_cos_remap=round(cr.median().item(), 4), lossgrad_neg_remap=round((cr < 0).float().mean().item(), 4))
 
@@ -130,17 +131,20 @@ def main():
             with torch.no_grad():
                 vqc0.qlayer.weights.zero_()
                 q, q0 = vqc(z).double(), vqc0(z).double()
-                rel = ((q - q0).norm() / (q - q.mean(0)).norm()).item()
+                diff_norm, spread_norm = (q - q0).norm().item(), (q - q.mean(0)).norm().item()
+                rel = diff_norm / spread_norm
                 X = torch.cat([q0, torch.ones(len(q0), 1, dtype=q0.dtype)], 1)
                 pred = X @ torch.linalg.lstsq(X, q).solution
-                r2 = (1 - ((q - pred) ** 2).sum() / ((q - q.mean(0)) ** 2).sum()).item()
+                ss_res, ss_tot = ((q - pred) ** 2).sum().item(), ((q - q.mean(0)) ** 2).sum().item()
+                r2 = 1 - ss_res / ss_tot
                 acc = (proj(q.float()).argmax(1) == y).float().mean().item()
                 acc0 = (proj(q0.float()).argmax(1) == y).float().mean().item()
             jq, jq0 = _jacobian(vqc, z), _jacobian(vqc0, z)
             w = proj.weight.detach()
             jh, jh0 = w @ jq, w @ jq0
             wts = vqc.qlayer.weights.detach()
-            row = dict(head=name, lr=lr, seed=seed, out_rel_err=round(rel, 4), out_r2=round(r2, 4),
+            row = dict(head=name, lr=lr, seed=seed, out_diff_norm=round(diff_norm, 4), out_spread_norm=round(spread_norm, 4),
+                       out_rel_err=round(rel, 4), out_ss_res=round(ss_res, 4), out_ss_tot=round(ss_tot, 4), out_r2=round(r2, 4),
                        jac_cos_q=round(_median_cos(jq, jq0), 4), jac_cos_logits=round(_median_cos(jh, jh0), 4),
                        acc=round(acc * 100, 2), acc_zeroed=round(acc0 * 100, 2),
                        mean_abs_ry=round(wts[..., 0].abs().mean().item(), 4),
