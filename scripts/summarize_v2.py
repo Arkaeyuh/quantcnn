@@ -287,6 +287,44 @@ def five_seed(root: Path, probe_paths: list[Path]):
                       f"{_paired(probes[k], probes[ref]) if len(probes.get(k, {})) == 5 and len(probes.get(ref, {})) == 5 else '-'}")
 
 
+def budget(root: Path, probe_paths: list[Path]):
+    """2x training budget (``cifar_long``) against the 80-epoch runs of the same circuits at the
+    same lr and seeds: test, clean-train accuracy, final training loss and probe accuracy."""
+    from scripts.probe_backbones import _head_key
+
+    refs = {"quantum+noent": "cifar_circuit", "quantum": "cifar_val", "quantum+entlast": "cifar_entangle"}
+    probes = defaultdict(dict)
+    for path in probe_paths:
+        if path.exists():
+            for r in csv.DictReader(path.open()):
+                if r["dataset"] == "cifar10" and r["train_subset_size"] == "4000":
+                    probes[r["source_head"]][int(r["seed"])] = float(r["probe_test_acc"])
+
+    def cell(grid, key):
+        out = {}
+        for fin in sorted((root / grid).glob("cifar10_subset4000_*/final.json")):
+            m = json.loads((fin.parent / "meta.json").read_text())
+            if _head_key(m) == key and m["lr"] == 1e-2 and int(m["seed"]) < 3:
+                f = json.loads(fin.read_text())
+                rows = list(csv.DictReader((fin.parent / "metrics.csv").open()))
+                out[int(m["seed"])] = (f["test_acc"] * 100, f["train_clean_acc"] * 100, float(rows[-1]["train_loss"]))
+        return out
+
+    print(f"\n== {root / 'cifar_long'}  (2x budget, 160 epochs, lr 1e-2, seeds 0-2; vs 80 epochs)")
+    for key, grid in refs.items():
+        short, long_ = cell(grid, key), cell("cifar_long", key + "+ep160")
+        if len(long_) < 3:
+            continue
+        for tag, c, pk in (("80 ep", short, key), ("160 ep", long_, key + "+ep160")):
+            pr = probes.get(pk, {})
+            print(f"{key:16s} {tag:6s} test {_ms([c[i][0] for i in range(3)])}  clean-train {_ms([c[i][1] for i in range(3)])}"
+                  f"  final train loss {st.mean(c[i][2] for i in range(3)):.3f}  probe "
+                  f"{_ms([pr[i] for i in range(3)]) if len(pr) >= 3 else '-'}")
+        pl, ps = probes.get(key + "+ep160", {}), probes.get(key, {})
+        print(f"{key:16s} 160-80 test {_paired({i: long_[i][0] for i in range(3)}, {i: short[i][0] for i in range(3)})}"
+              f"   probe {_paired({i: pl[i] for i in range(3)}, {i: ps[i] for i in range(3)}) if len(pl) >= 3 else '-'}")
+
+
 def checkpoints(path: Path):
     cells = defaultdict(list)
     for r in csv.DictReader(path.open()):
@@ -325,6 +363,14 @@ def main():
         five_seed(root, FIVE_SEED_PROBES)
     if (root / "mnist_circuit").exists():
         circuit(root / "mnist_circuit", base + [Path("results/mnist_circuit_probe.csv")])
+    if (root / "cifar_support").exists():
+        circuit(root / "cifar_support", base + [Path(f"results/{n}_probe.csv") for n in ("classical", "cosprod", "support")],
+                refs=("cos", "cosprod", "quantum+noent", "linear"))
+    if (root / "cifar_long").exists():
+        budget(root, base + [Path("results/entangle_probe.csv"), Path("results/long_probe.csv")])
+    if (root / "mnist_order").exists():
+        circuit(root / "mnist_order", base + [Path("results/mnist_circuit_probe.csv"), Path("results/mnist_order_probe.csv")],
+                refs=("quantum", "quantum+noent", "linear"))
     for name in ["checkpoints_mnist", "checkpoints_cifar10"]:
         checkpoints(Path("results") / f"{name}.csv")
 

@@ -100,7 +100,7 @@ def main():
         "Not a probe difference: the final-epoch pre-clip backbone gradient norm is larger with the VQC "
         f"head than with the linear head (${_ms2(gn['quantum'])}$ vs ${_ms2(gn['linear'])}$)."
     )
-    body = r"""\begin{table}[t]
+    body = r"""\begin{table*}[t]
 \centering
 \caption{Controls on CIFAR-10 with 4,000 training images. Entries are differences in the test
 accuracy of the common linear probe on the frozen 8-dimensional bottleneck, in percentage
@@ -119,7 +119,7 @@ Control & Comparison & Probe $\Delta$ & Observation \\
 
 \smallskip
 \begin{minipage}{0.97\textwidth}\footnotesize """ + notes + r"""\end{minipage}
-\end{table}
+\end{table*}
 """
     write_table("table2_controls", body)
 

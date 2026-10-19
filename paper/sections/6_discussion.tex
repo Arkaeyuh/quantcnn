@@ -3,11 +3,10 @@
 
 \paragraph{A mechanism hypothesis.}
 Why should product order cost the backbone? Differentiating \cref{eq:identity} at zero
-rotations gives
+rotations gives, for $j\in\Sk$,
 \begin{equation}
   \frac{\partial \ZZ{k}}{\partial z_j}
-  = -\pi\,\mathrm{sech}^2(z_j)\,\sin\enc{j}\prod_{i\in\Sk\setminus\{j\}}\cos\enc{i},
-  \qquad j\in\Sk .
+  = -\pi\,\mathrm{sech}^2(z_j)\,\sin\enc{j}\prod_{i\in\Sk\setminus\{j\}}\cos\enc{i}.
 \end{equation}
 The gradient a bottleneck coordinate receives through readout $k$ is scaled by the cosines of
 every other coordinate in $\Sk$, and it approaches zero when any of them nears
@@ -16,13 +15,14 @@ the readouts couple 5.25 coordinates on average, multiplicatively. We hypothesiz
 coupling pushes the backbone toward codes in which class information is spread across
 coordinates in a way the products can use but a linear map reads less well. The evidence
 here is consistent with this account (the frozen circuit, which stays close to the product
-model, shows the same gap) but does not test it; a nonlinear probe, or a measurement of how
+model, shows the same gap, and at fixed order the designed supports that couple most inputs to
+a single hub tend to cost less than those that couple every input evenly) but does not test it; a nonlinear probe, or a measurement of how
 class information is distributed across coordinates as a function of order, would.
 
 \paragraph{Implications for hybrid design.}
 For CNN-fed quantum heads trained end to end, the CNOT layout is a choice about the
 backbone: the zero-rotation supports, computable before training, order the mean probe
-accuracy of every head we test. In our setting the low-order heads are the best quantum
+accuracy of every circuit we test, on both datasets and at both training budgets. In our setting the low-order heads are the best quantum
 heads, and the best of them, the ring-free head, is exactly a classical model by
 \cref{eq:ringfree}. Head comparisons in this setting should tune each
 head separately, as \cref{sec:tuning} shows, and should measure the backbone, not only the
@@ -33,9 +33,10 @@ We study one circuit family (8 qubits, $R_yR_z$ layers, $\pi\tanh$ angle encodin
 variants), in noiseless simulation, with small CNNs on low-data subsets of MNIST and
 CIFAR-10; the size of the effect at larger scale, with other encodings or on hardware is
 untested. Results use 3 seeds per cell and 5 for the CIFAR-10/4,000 headline cells, enough
-for consistent signs in paired comparisons but not for equivalence claims. Product order is
-observed at four values and co-varies with how much the supports of different readouts
-overlap, so the two are not separated. The identity is exact only at zero rotations; the
+for consistent signs in paired comparisons but not for equivalence claims. Product order is a
+single scalar: it orders the cost at fixed overlap and full rank, but at fixed order the
+distribution of coupling across inputs also matters by an amount we do not pin down
+(\cref{tab:support}), and the designed supports were tested with classical heads only. The identity is exact only at zero rotations; the
 trained default and last-ring circuits sit at $R^2=0.87$--$0.90$ of it, and low-order circuits
 move further. Finally, the probe is linear, so
 our claims concern the linear decodability of the bottleneck, not the information it holds.

@@ -49,7 +49,7 @@ def main():
                         f"(test {st.mean(rt.values()):.1f}, probe {st.mean(rp.values()):.1f}).")
         rows.append(f"{name}{mark} & {len(t)} & {ms(t.values())} & {ms(p.values())} & {dt} & {dp} \\\\")
     span = {k: f"{min(-x for x in v):.1f}--{max(-x for x in v):.1f}" for k, v in trig.items()}
-    body = r"""\begin{table}[t]
+    body = r"""\begin{table*}[t]
 \centering
 \caption{Without CNOT rings the VQC head is exactly a classical per-coordinate sinusoidal model,
 $\mathrm{logits} = W[\alpha_j\cos a_j + \beta_j\sin a_j]_{j=1}^{8} + b$ with $a_j = \pi\tanh z_j$
@@ -75,7 +75,7 @@ Head & $n$ & Test & Probe & Test & Probe \\
 
 \smallskip
 {\footnotesize """ + note + r"""}
-\end{table}
+\end{table*}
 """
     write_table("table3_ringfree_classical", body)
 

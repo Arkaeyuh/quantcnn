@@ -31,8 +31,8 @@ test accuracy (94.5, 96.4) equals the linear head's (94.3, 96.4) to within 0.2 p
 \label{sec:order}
 
 Which property of the rings matters? \Cref{fig:hero}b places every head at the product order
-of \cref{eq:identity}. Across eleven heads at four orders, every head probes below every
-head of lower order. A ring after the last layer only keeps the default's parameter count and
+of \cref{eq:identity}. Across these eleven heads at four orders, the mean probe accuracy of
+every head is below that of every head of lower order. A ring after the last layer only keeps the default's parameter count and
 number of rotation layers but raises the order to 5.25; it lowers probe accuracy by
 $9.7\pm2.2$ points relative to the default (test $-12.5\pm2.3$; 5 seeds), and the 1- and
 2-layer circuits at the same order probe at 56.8 and 61.2 (3 seeds). Across these
@@ -50,16 +50,45 @@ circuit. Pairs after the
 last layer only (order 1.5) probe at $71.2\pm0.7$, between orders 1 and 2.5, as does the
 classical head on their products ($71.2\pm1.3$).
 
+In CNOT-derived supports, order rises together with how many inputs different readouts share,
+so we also trained classical product heads on designed supports that separate the two
+(\cref{tab:support}). Overlap, the mean number of inputs two readouts share, is equal for a
+``star'' layout of order 3 and two order-4 layouts, and nearly equal for a star of order 2 and
+a window of three consecutive inputs (0.82 vs 0.86). In each of these comparisons the
+lower-order head probes higher: by $5.4\pm3.1$ points against an order-4 layout whose support
+matrix, like every CNOT-derived one, has full rank, $4.6\pm2.5$ against a rank-5 window, and
+$4.1\pm1.0$ for the order-2 star against the order-3 window (all seeds positive). Order
+therefore matters at fixed overlap and full rank. At equal order, the stars, which put most
+inputs in a single product, probe $3.0\pm0.2$ and $1.0\pm1.3$ points above the windows; the
+first of these also differs in rank, so how the coupling is distributed across inputs matters
+in addition to order, by an amount these controls do not pin down. Order alone therefore does
+not set the cost: an order-3 star probes above the default ring's order-2.5 products (69.2 vs
+67.8, 3 seeds), and the designed heads also differ in how well they fit the training set (clean
+training accuracy 84.8\% for the order-3 star vs 73.6\% for the full-rank order-4 layout), so
+their contrasts mix structure with optimization.
+
+The pattern also replicates on MNIST with 1,000 images, where we fixed the layouts and wrote
+down the predicted ordering before running them. Probe accuracy is 96.5 without CNOTs, 95.5
+for pairs after the last layer, 95.1 for the default circuit and 91.5 for a ring after the
+last layer; the classical head on the default products probes $0.1\pm0.5$ below the default
+VQC, and the one on the last-ring products falls below that circuit (90.4).
+
 The identity is exact only at zero rotations, so we check how far the trained circuits move
-from it (\cref{app:zeroangle}). A circuit frozen at its initialization reproduces its
-zero-rotation model with $R^2=0.997$. Trained default and last-ring circuits stay close: a
-linear map of the zero-rotation readouts recovers 87\% and 90\% of the trained readout
-variance, and the input Jacobians of the logits align with cosine 0.77 and 0.80. Low-order
-circuits move further ($R^2$ 0.74--0.83); for the ring-free circuit this is the
-$\sin\enc{j}$ term of \cref{eq:ringfree}, which its trained rotations use. At order 5.25 the trained rotations recover part
-of the cost: the last-ring circuit beats the classical head on its products by
-$6.4\pm5.8$ test points. The products thus reproduce the accuracy trend and explain most of
-the trained ring circuits' readout variance.
+from it (\cref{app:zeroangle}), fitting an affine map from each circuit's zero-rotation
+readouts to its trained readouts on half of the validation set and evaluating it on the other
+half. A circuit frozen at its initialization is reproduced almost exactly ($R^2=0.997$). For
+the trained default and last-ring circuits the map recovers 87\% and 90\% of the held-out
+readout variance, and the backbone's cross-entropy gradient through the remapped products
+aligns with the trained one at median cosine 0.86 and 0.87. The products do not carry all
+task-relevant detail: the trained readout applied to the remapped products scores 7 and 6
+points below the trained circuit, and without the remapping the gradient alignment is weaker
+(median 0.59 for the default circuit, and negative for one seed). Low-order circuits move
+further ($R^2$ 0.73--0.83); for the ring-free circuit this is the $\sin\enc{j}$ term of
+\cref{eq:ringfree}, which its trained rotations use. At order 5.25 the trained rotations
+recover part of the cost: the last-ring circuit beats the classical head on its products by
+$6.4\pm5.8$ test points. The products thus reproduce the accuracy trend and most of the
+trained ring circuits' readouts and gradient directions, and the trained rotations add task
+detail on top of them.
 
 \subsection{Without CNOTs the head is a classical sinusoidal model}
 \label{sec:sinusoid}
@@ -89,3 +118,11 @@ not recover the probe ($-1.6\pm0.7$ against the trained circuit). BatchNorm befo
 and two alternative encodings, one of which breaks the sign symmetry of
 $\cos(\pi\tanh z)$, recover at most 0.7 probe points. Lowering product order gives by far the
 largest recoveries.
+
+Higher-order circuits also fit their training data less well under the 80-epoch budget
+(clean training accuracy 96.8\% without CNOTs, 87.9\% for the default circuit and 66.7\% for a
+ring after the last layer), so part of the gap could be under-training. Doubling the budget
+to 160 epochs raises every probe but keeps the ordering (\cref{tab:budget}). The default
+circuit then fits its training set nearly as well as the ring-free one (98.7\% vs 99.9\%) and
+still probes $2.6\pm0.5$ points lower, for every seed. The last-ring circuit remains under-fit
+at 160 epochs (79.5\%), so its larger cost includes slower optimization.

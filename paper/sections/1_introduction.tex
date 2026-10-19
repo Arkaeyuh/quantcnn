@@ -32,7 +32,7 @@ Our contributions are:
   \item \textbf{A tuning audit} (\cref{sec:tuning}). Under a revised protocol (longer
         training, validation-based selection, each head's learning rate tuned), the VQC's
         apparent advantage over a near-parameter-matched MLP on MNIST shrinks from up to 18
-        points to at most 3.3. On CIFAR-10 the VQC still trails the MLP by 3.1--9.2 points,
+        points to a largest observed mean of 3.3. On CIFAR-10 the VQC still trails the MLP by 3.1--9.2 points,
         and among the linear, MLP and default VQC heads the linear head has the highest mean
         test accuracy in all six dataset--size settings.
   \item \textbf{A representation cost tied to the CNOT layers} (\cref{sec:gap,sec:ring}). On
@@ -44,8 +44,10 @@ Our contributions are:
   \item \textbf{A structural account} (\cref{sec:order,sec:sinusoid}). Probe accuracy falls
         with product order across eleven heads (\cref{fig:hero}b). Classical heads trained
         on a circuit's zero-rotation products, with no circuit, follow the same trend; on the
-        default circuit's products the paired probe difference to the VQC is $-1.0\pm2.2$. A
-        circuit that keeps its CNOTs
+        default circuit's products the paired probe difference to the VQC is $-1.0\pm2.2$.
+        Classical heads with designed supports favor lower order at fixed mean overlap
+        between readouts and full rank, though order alone does not set the cost, and the ordering replicates on MNIST under predictions fixed before
+        the runs. A circuit that keeps its CNOTs
         but has product order 1 recovers $3.1\pm1.2$ points over the default. Without CNOTs
         the head is exactly a classical per-coordinate sinusoidal model, and classical heads
         of that form come within 0.3--0.9 probe points of it.
@@ -53,6 +55,6 @@ Our contributions are:
 
 The practical upshot is concrete: in this design, the entangling layout of a quantum head
 is a choice about the backbone's representation, and product order, computable from the CNOT
-pattern before training, orders the mean probe accuracy of every head we test. \Cref{sec:related} positions the work, \cref{sec:setup} gives
+pattern before training, orders the mean probe accuracy of every circuit we test. \Cref{sec:related} positions the work, \cref{sec:setup} gives
 the model, protocol and identity, \cref{sec:tuning,sec:backbone} report the results, and
 \cref{sec:discussion} discusses a mechanism hypothesis and the limits of the evidence.

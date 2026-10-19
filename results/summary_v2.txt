@@ -370,6 +370,69 @@ mnist     1000 quantum+half_sym   - linear          -1.6 +- 0.5  per seed ['-1.0
 mnist     1000 quantum+noent      - quantum         +1.4 +- 0.4  per seed ['+1.94', '+1.25', '+1.14']
 mnist     1000 quantum+noent      - linear          +0.4 +- 0.4  per seed ['+0.60', '+0.75', '-0.09']
 
+== results/protocol_v2/cifar_support  (lr chosen by mean val acc; probe = same linear probe)
+cifar10   4000 cosprod_gap4       lr=0.01   val  60.8  test  60.5 +-  3.1  probe  63.8 +-  2.3   [test by lr: 0.003:51.2  0.01:60.5  0.03:58.2]
+cifar10   4000 cosprod_star2      lr=0.01   val  70.9  test  71.3 +-  0.2  probe  72.3 +-  0.3   [test by lr: 0.003:66.2  0.01:71.3  0.03:47.4]
+cifar10   4000 cosprod_star3      lr=0.01   val  67.6  test  67.6 +-  1.2  probe  69.2 +-  1.0   [test by lr: 0.003:60.8  0.01:67.6  0.03:47.5]
+cifar10   4000 cosprod_win2       lr=0.01   val  68.4  test  68.1 +-  0.4  probe  69.3 +-  0.4   [test by lr: 0.003:63.6  0.01:68.1  0.03:48.4]
+cifar10   4000 cosprod_win3       lr=0.01   val  65.7  test  65.2 +-  1.5  probe  68.2 +-  0.8   [test by lr: 0.003:57.6  0.01:65.2  0.03:12.3]
+cifar10   4000 cosprod_win4       lr=0.01   val  62.2  test  61.6 +-  4.6  probe  64.5 +-  3.4   [test by lr: 0.003:49.9  0.01:61.6  0.03:44.2]
+-- paired probe differences (mean +- SD over seeds)
+cifar10   4000 cosprod_gap4       - cos             -9.5 +- 2.2  per seed ['-7.95', '-8.46', '-12.02']
+cifar10   4000 cosprod_gap4       - cosprod         -4.0 +- 1.4  per seed ['-2.58', '-4.03', '-5.44']
+cifar10   4000 cosprod_gap4       - quantum+noent  -10.0 +- 2.3  per seed ['-7.78', '-9.66', '-12.44']
+cifar10   4000 cosprod_gap4       - linear         -10.8 +- 2.9  per seed ['-8.43', '-9.95', '-14.04']
+cifar10   4000 cosprod_star2      - cos             -1.0 +- 0.4  per seed ['-1.38', '-0.58', '-0.90']
+cifar10   4000 cosprod_star2      - cosprod         +4.5 +- 1.0  per seed ['+3.99', '+3.85', '+5.68']
+cifar10   4000 cosprod_star2      - quantum+noent   -1.4 +- 0.3  per seed ['-1.21', '-1.78', '-1.32']
+cifar10   4000 cosprod_star2      - linear          -2.3 +- 0.6  per seed ['-1.86', '-2.07', '-2.92']
+cifar10   4000 cosprod_star3      - cos             -4.1 +- 1.1  per seed ['-5.33', '-3.58', '-3.29']
+cifar10   4000 cosprod_star3      - cosprod         +1.4 +- 1.7  per seed ['+0.04', '+0.85', '+3.29']
+cifar10   4000 cosprod_star3      - quantum+noent   -4.6 +- 0.8  per seed ['-5.16', '-4.78', '-3.71']
+cifar10   4000 cosprod_star3      - linear          -5.4 +- 0.4  per seed ['-5.81', '-5.07', '-5.31']
+cifar10   4000 cosprod_win2       - cos             -4.0 +- 0.5  per seed ['-4.49', '-3.40', '-4.02']
+cifar10   4000 cosprod_win2       - cosprod         +1.5 +- 0.9  per seed ['+0.88', '+1.03', '+2.56']
+cifar10   4000 cosprod_win2       - quantum+noent   -4.5 +- 0.1  per seed ['-4.32', '-4.60', '-4.44']
+cifar10   4000 cosprod_win2       - linear          -5.3 +- 0.6  per seed ['-4.97', '-4.89', '-6.04']
+cifar10   4000 cosprod_win3       - cos             -5.0 +- 0.8  per seed ['-5.05', '-5.82', '-4.24']
+cifar10   4000 cosprod_win3       - cosprod         +0.4 +- 1.9  per seed ['+0.32', '-1.39', '+2.34']
+cifar10   4000 cosprod_win3       - quantum+noent   -5.5 +- 1.3  per seed ['-4.88', '-7.02', '-4.66']
+cifar10   4000 cosprod_win3       - linear          -6.4 +- 0.9  per seed ['-5.53', '-7.31', '-6.26']
+cifar10   4000 cosprod_win4       - cos             -8.7 +- 3.6  per seed ['-12.78', '-6.12', '-7.25']
+cifar10   4000 cosprod_win4       - cosprod         -3.3 +- 3.6  per seed ['-7.41', '-1.69', '-0.67']
+cifar10   4000 cosprod_win4       - quantum+noent   -9.2 +- 3.0  per seed ['-12.61', '-7.32', '-7.67']
+cifar10   4000 cosprod_win4       - linear         -10.0 +- 2.9  per seed ['-13.26', '-7.61', '-9.27']
+
+== results/protocol_v2/cifar_long  (2x budget, 160 epochs, lr 1e-2, seeds 0-2; vs 80 epochs)
+quantum+noent    80 ep  test  73.3 +-  0.5  clean-train  96.8 +-  0.8  final train loss 0.210  probe  73.7 +-  0.6
+quantum+noent    160 ep test  74.7 +-  0.6  clean-train  99.9 +-  0.1  final train loss 0.028  probe  75.4 +-  0.4
+quantum+noent    160-80 test  +1.4 +- 0.3  per seed ['+1.65', '+1.51', '+1.05']   probe  +1.7 +- 0.4  per seed ['+2.06', '+1.44', '+1.45']
+quantum          80 ep  test  67.7 +-  1.1  clean-train  87.9 +-  2.6  final train loss 0.470  probe  69.9 +-  1.1
+quantum          160 ep test  70.8 +-  0.1  clean-train  98.7 +-  0.8  final train loss 0.080  probe  72.7 +-  0.4
+quantum          160-80 test  +3.1 +- 1.2  per seed ['+3.05', '+4.31', '+1.98']   probe  +2.9 +- 1.2  per seed ['+2.19', '+4.28', '+2.11']
+quantum+entlast  80 ep  test  56.4 +-  2.1  clean-train  66.7 +-  3.4  final train loss 1.017  probe  60.9 +-  2.1
+quantum+entlast  160 ep test  59.6 +-  7.6  clean-train  79.5 +- 15.1  final train loss 0.669  probe  64.7 +-  4.7
+quantum+entlast  160-80 test  +3.2 +- 5.5  per seed ['+8.23', '-2.71', '+4.16']   probe  +3.7 +- 2.6  per seed ['+5.91', '+0.77', '+4.44']
+
+== results/protocol_v2/mnist_order  (lr chosen by mean val acc; probe = same linear probe)
+mnist     1000 cosprod            lr=0.01   val  93.9  test  94.0 +-  0.4  probe  95.0 +-  0.4   [test by lr: 0.003:91.7  0.01:94.0  0.03:93.1]
+mnist     1000 cosprod_last       lr=0.03   val  88.1  test  88.6 +-  0.8  probe  90.4 +-  1.4   [test by lr: 0.003:78.4  0.01:83.2  0.03:88.6  0.1:77.6]
+mnist     1000 quantum+entlast    lr=0.01   val  85.3  test  85.3 +-  1.2  probe  91.5 +-  0.7   [test by lr: 0.003:74.6  0.01:85.3  0.03:82.7]
+mnist     1000 quantum+pairs_last lr=0.03   val  95.7  test  95.3 +-  0.9  probe  95.5 +-  0.7   [test by lr: 0.003:93.1  0.01:95.0  0.03:95.3  0.1:11.3]
+-- paired probe differences (mean +- SD over seeds)
+mnist     1000 cosprod            - quantum         -0.1 +- 0.5  per seed ['-0.15', '-0.57', '+0.36']
+mnist     1000 cosprod            - quantum+noent   -1.6 +- 0.7  per seed ['-2.09', '-1.82', '-0.78']
+mnist     1000 cosprod            - linear          -1.1 +- 0.3  per seed ['-1.49', '-1.07', '-0.87']
+mnist     1000 cosprod_last       - quantum         -4.7 +- 1.4  per seed ['-4.51', '-6.21', '-3.47']
+mnist     1000 cosprod_last       - quantum+noent   -6.2 +- 1.4  per seed ['-6.45', '-7.46', '-4.61']
+mnist     1000 cosprod_last       - linear          -5.8 +- 1.0  per seed ['-5.85', '-6.71', '-4.70']
+mnist     1000 quantum+entlast    - quantum         -3.5 +- 0.7  per seed ['-3.80', '-4.11', '-2.69']
+mnist     1000 quantum+entlast    - quantum+noent   -5.0 +- 1.0  per seed ['-5.74', '-5.36', '-3.83']
+mnist     1000 quantum+entlast    - linear          -4.6 +- 0.6  per seed ['-5.14', '-4.61', '-3.92']
+mnist     1000 quantum+pairs_last - quantum         +0.4 +- 0.7  per seed ['+0.79', '-0.42', '+0.77']
+mnist     1000 quantum+pairs_last - quantum+noent   -1.1 +- 0.7  per seed ['-1.15', '-1.67', '-0.37']
+mnist     1000 quantum+pairs_last - linear          -0.6 +- 0.2  per seed ['-0.55', '-0.92', '-0.46']
+
 == results/checkpoints_mnist.csv  (saved checkpoint, eval mode, clean images)
   250 linear          test  61.5 +-  1.7  clean-train  79.7  clean gap  18.2  sat>0.9 per seed ['20.54', '14.55', '24.41']  sat>0.99 ['2.26', '1.65', '3.06']
   250 mlp             test  36.7 +-  5.4  clean-train  46.4  clean gap   9.7  sat>0.9 per seed ['22.21', '20.94', '30.86']  sat>0.99 ['4.43', '3.6', '5.8']

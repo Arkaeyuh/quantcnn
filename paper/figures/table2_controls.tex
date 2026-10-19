@@ -1,4 +1,4 @@
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \caption{Controls on CIFAR-10 with 4,000 training images. Entries are differences in the test
 accuracy of the common linear probe on the frozen 8-dimensional bottleneck, in percentage
@@ -30,4 +30,4 @@ Contrast: remove CNOT rings & ring-free $-$ default & $+3.8 \pm 1.6$ & recovers 
 
 \smallskip
 \begin{minipage}{0.97\textwidth}\footnotesize $^a$Head lr fixed at 0.01 (VQC) and 0.03 (linear) while the backbone lr varies; the VQC collapses at the tested backbone lrs 0.03 and 0.06. Other rows: each head at its validation-selected head lr, backbone lr $0.5\times$ head lr. $^b$Monotone: $R_y(\frac{\pi}{2}\tanh z + \frac{\pi}{2})$; symmetric control: $R_y(\frac{\pi}{2}\tanh z)$, same range width; default: $R_y(\pi\tanh z)$. Not a probe difference: the final-epoch pre-clip backbone gradient norm is larger with the VQC head than with the linear head ($1.92 \pm 0.13$ vs $0.75 \pm 0.02$).\end{minipage}
-\end{table}
+\end{table*}

@@ -1,22 +1,19 @@
 \documentclass{article}
-\usepackage{iclr2027_conference,times}
 
-% Math
+% ICML 2027 style not yet released; icml2026.sty is the stand-in (swap the package name
+% and \bibliographystyle when the 2027 files are published).
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\usepackage{icml2026}
+
 \usepackage{amsmath,amssymb,amsfonts,amsthm,mathtools}
 \usepackage{braket}
-
-% Typography
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{hyperref}
-\usepackage{url}
-\usepackage{booktabs}
 \usepackage{array}
-\usepackage{nicefrac}
-\usepackage{microtype}
-\usepackage{xcolor}
-\usepackage{graphicx}
 \usepackage{multirow}
+\usepackage{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,fit}
 
@@ -30,13 +27,27 @@
 
 \input{math_commands}
 
-\title{Products of Cosines: How the Entangling Layers of Quantum Classifier Heads Shape the CNN Representations Trained Through Them}
-
-\author{Anonymous Authors}
+\icmltitlerunning{Products of Cosines: Entangling Layers of Quantum Heads Shape CNN Representations}
 
 \begin{document}
 
-\maketitle
+\twocolumn[
+  \icmltitle{Products of Cosines: How the Entangling Layers of Quantum Classifier Heads\\
+    Shape the CNN Representations Trained Through Them}
+
+  \begin{icmlauthorlist}
+    \icmlauthor{Anonymous Authors}{anon}
+  \end{icmlauthorlist}
+
+  \icmlaffiliation{anon}{Anonymous Institution}
+  \icmlcorrespondingauthor{Anonymous Authors}{anon@example.com}
+
+  \icmlkeywords{Quantum Machine Learning, Variational Quantum Circuits, Representation Learning, Hybrid Models}
+
+  \vskip 0.3in
+]
+
+\printAffiliationsAndNotice{}
 
 \begin{abstract}
 \input{sections/0_abstract}
@@ -50,11 +61,19 @@
 \input{sections/6_discussion}
 \input{sections/7_conclusion}
 
+\section*{Impact Statement}
+This paper presents work whose goal is to advance the field of Machine Learning, specifically
+the evaluation of hybrid quantum--classical classifiers. Its practical consequence is
+methodological: comparisons between quantum and classical heads should tune each head
+separately and measure the representation the head induces. There are many potential
+societal consequences of our work, none which we feel must be specifically highlighted here.
+
 \bibliography{references}
-\bibliographystyle{iclr2027_conference}
+\bibliographystyle{icml2026}
 
 \newpage
 \appendix
+\onecolumn
 \input{sections/A_appendix}
 
 \end{document}

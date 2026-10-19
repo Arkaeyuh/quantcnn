@@ -52,7 +52,10 @@ FIELDNAMES = [
 def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParser:
     p.add_argument("--dataset", choices=["mnist", "cifar10"], default="mnist")
     p.add_argument("--backbone", default=None)
-    p.add_argument("--head", choices=["linear", "mlp", "quantum", "cos", "cossin", "cosprod", "cosprod_last", "cosprod_pairs_last"], default="quantum")
+    p.add_argument("--head", choices=["linear", "mlp", "quantum", "cos", "cossin", "cosprod", "cosprod_last", "cosprod_pairs_last",
+                                       "cosprod_win2", "cosprod_win3", "cosprod_win4", "cosprod_star2", "cosprod_star3",
+                                       "cosprod_gap4"],
+                   default="quantum")
     p.add_argument("--reupload_mode", choices=["none", "light", "strong"], default="none")
     p.add_argument("--bottleneck_dim", type=int, default=8)
     p.add_argument("--n_var_layers", type=int, default=4)

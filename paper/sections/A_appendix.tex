@@ -33,12 +33,36 @@ $W[\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}]_j+b$.
 \Cref{tab:zeroangle} compares each trained circuit with the same circuit after setting every
 rotation to zero, on the validation embeddings of the run's own backbone. The frozen circuit
 anchors the measurement: rotations held at their $\mathcal{U}(-0.1,0.1)$ initialization
-reproduce the product model almost exactly ($R^2=0.997$). Trained ring circuits stay close to
-their product model in both output and input Jacobian, which is what the backbone's gradient
-sees. Zeroing the rotations under the \emph{trained} readout costs 14--23 accuracy points,
-but this overstates the gap, because the readout is not refit; the $R^2$ column shows that
-most of the difference is a linear re-mixing of the same products. Low-order circuits drift
-further, as \cref{sec:sinusoid} explains for the ring-free case.
+reproduce the product model almost exactly. Held-out $R^2$ equals the in-sample value to
+within 0.015 for every run, so the affine map does not overfit. These are endpoint
+measurements: they say how close the trained circuit is to its product model, not that
+training followed the product model's trajectory. Two results bound the approximation.
+First, the products, even after remapping, lose task-relevant detail: held-out accuracy drops
+by 6--12 points. Second, gradient alignment depends on the remapping: with the trained
+readout applied directly to the zeroed circuit, the median loss-gradient cosine is 0.59 for
+the default circuit, and $-0.08$ for its seed 4 (0.96 after remapping); after remapping it is
+0.79--0.87 for every entangling circuit, with 3--8\% of samples negative on average (18\% in
+the worst run). Zeroing the
+rotations without remapping costs 14--23 accuracy points, which mostly reflects the
+unrefitted readout. Low-order circuits drift further, as \cref{sec:sinusoid} explains for the
+ring-free case.
+
+\section{Order versus Overlap, and Training Budget}
+\label{app:support}
+
+\input{figures/tableA_support}
+
+\input{figures/tableA_budget}
+
+\Cref{tab:support} lists the designed-support heads of \cref{sec:order}. Overlap is the mean
+over ordered readout pairs $k\neq l$ of $|S_k\cap S_l|$; if input $j$ appears in $d_j$ supports,
+order is $\frac18\sum_j d_j$ and overlap is $\frac1{56}\sum_j d_j(d_j-1)$, so for windows,
+where every $d_j$ equals the order, the two rise together. Stars hold the order while
+concentrating the $d_j$ on one or two inputs. Windows of width 2 and 4 have rank-deficient
+support matrices; the gapped window of width 4 restores full rank at the same order and
+overlap and probes like the rank-5 window ($-0.7$ on average, mixed in sign), so rank does not
+account for the order-4 deficit. \Cref{tab:budget} gives the training-budget check
+of \cref{sec:controls}. Linear heads were not rerun at 160 epochs.
 
 \section{Exploratory Sweep with One Shared Recipe}
 \label{app:sweep}

@@ -35,7 +35,7 @@ def main():
                         f" & {paired(q, sel[(n, 'mlp8')])} & {paired(shared[(n, 'quantum')], shared[(n, 'mlp8')])} \\\\")
         rows.append("\\midrule")
     rows.pop()
-    body = r"""\begin{table}[t]
+    body = r"""\begin{table*}[t]
 \centering
 \caption{Test accuracy (\%) of three heads on the same CNN, each with its head learning rate
 selected by mean validation accuracy over the tested grid (backbone lr is coupled at $0.5\times$
@@ -56,7 +56,7 @@ Data & $N_\mathrm{train}$ & Linear & MLP-8 & VQC & Linear & MLP-8 & (lr $10^{-3}
 """ + "\n".join(rows) + r"""
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 """
     write_table("table1_matched_tuning", body)
 

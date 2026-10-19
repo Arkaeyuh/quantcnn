@@ -1,0 +1,13 @@
+dataset,train_subset_size,source_head,source_lr,seed,source_test_acc,probe_lr,probe_val_acc,probe_train_acc,probe_test_acc,sat_090_z,sat_090_head_input
+mnist,1000,cosprod,0.01,0,93.98,0.1,94.85,99.6,94.92,45.45,45.45
+mnist,1000,cosprod,0.01,1,93.66,0.1,94.95,99.9,94.54,53.42,53.42
+mnist,1000,cosprod,0.01,2,94.41,0.03,94.7,99.7,95.43,11.87,11.87
+mnist,1000,cosprod_last,0.03,0,88.64,0.3,89.2,99.3,90.56,75.99,75.99
+mnist,1000,cosprod_last,0.03,1,87.85,1,89.45,99.0,88.9,65.96,65.96
+mnist,1000,cosprod_last,0.03,2,89.43,0.3,91.7,99.4,91.6,71.95,71.95
+mnist,1000,quantum+entlast,0.01,0,86.36,0.1,91.55,98.5,91.27,46.88,46.88
+mnist,1000,quantum+entlast,0.01,1,84.03,0.3,92.3,98.5,91.0,12.5,12.5
+mnist,1000,quantum+entlast,0.01,2,85.66,0.1,92.9,99.1,92.38,25.76,25.76
+mnist,1000,quantum+pairs_last,0.03,0,95.99,0.1,95.8,100.0,95.86,40.65,40.65
+mnist,1000,quantum+pairs_last,0.03,1,94.37,0.1,95.4,99.8,94.69,47.62,47.62
+mnist,1000,quantum+pairs_last,0.03,2,95.69,0.3,96.05,100.0,95.84,46.86,46.86

@@ -71,16 +71,31 @@ def cnot_ring_supports(n_qubits: int, n_var_layers: int, last_only: bool = False
     return out
 
 
+# Designed supports for the order-vs-overlap control (8 inputs). ``win<w>``: each readout is a
+# window of w consecutive inputs, so every input sits in w supports. ``star<w>``: supports
+# share inputs 0 (and 1), concentrating the overlap; star2 approximately matches win3's mean
+# pairwise overlap (23/28 vs 24/28) at order 2, star3 matches win4's exactly (12/7) at order 3.
+# Support-matrix ranks: win2 7, win4 5, all others 8; ``gap4`` ({k,k+1,k+2,k+4}) is a full-rank
+# order-4 layout with star3's overlap.
+DESIGNED_SUPPORTS = {
+    **{f"win{w}": [[(k + i) % 8 for i in range(w)] for k in range(8)] for w in (2, 3, 4)},
+    "star2": [[1, 2]] + [[0, k] for k in range(1, 8)],
+    "star3": [[1, 2, 3]] + [[0, 1, k] for k in range(2, 8)] + [[0, 2, 3]],
+    "gap4": [[(k + i) % 8 for i in (0, 1, 2, 4)] for k in range(8)],
+}
+
+
 class CosProductHead(nn.Module):
     """Classical control for the entangled VQC: products of cos(pi*tanh z_j) over each
     readout's support from ``cnot_ring_supports``, then Linear. This is the default
     circuit (``last_only=False``), the last-ring-only circuit, or (``pattern="pairs"``)
-    the disjoint-pairs circuits at zero rotation angles."""
+    the disjoint-pairs circuits at zero rotation angles; or explicit ``supports``."""
 
     def __init__(self, in_dim: int, num_classes: int, n_var_layers: int = 4, last_only: bool = False,
-                 pattern: str = "ring") -> None:
+                 pattern: str = "ring", supports: list[list[int]] | None = None) -> None:
         super().__init__()
-        supports = cnot_ring_supports(in_dim, n_var_layers, last_only, pattern)
+        if supports is None:
+            supports = cnot_ring_supports(in_dim, n_var_layers, last_only, pattern)
         mask = torch.zeros(in_dim, in_dim)
         for k, sup in enumerate(supports):
             mask[k, sup] = 1.0

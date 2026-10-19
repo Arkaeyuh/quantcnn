@@ -74,6 +74,7 @@ MECH_HEAD_LR = {"linear": 3e-2, "quantum": 1e-2}
 MECH_BACKBONE_LRS = [2.5e-3, 5e-3, 1.5e-2, 3e-2, 6e-2]
 EXTRA_SEEDS = [3, 4]
 # (source grid, probe head key, run options) for the cells that get seeds 3-4.
+DEFAULT_EPOCHS = {"mnist": 50, "cifar10": 80}
 _C4000 = dict(dataset="cifar10", train_subset_size=4000, mlp_hidden=None, epochs=80, gradient_clip_norm=2.0)
 SEED_CELLS = [
     ("cifar_val", "linear", dict(_C4000, head="linear")),
@@ -97,6 +98,8 @@ EDGE_EXTENSION = {
     "cifar_bn": [("cifar10", 1000, "quantum", None, 1e-1, "bn"), ("cifar10", 4000, "quantum", None, 1e-1, "bn"),
                  ("cifar10", 2000, "linear", None, 1e-1, "bn"), ("cifar10", 4000, "linear", None, 1e-1, "bn")],
     "mnist_circuit": [("mnist", n, "quantum", None, 1e-1, dict(encoding="half")) for n in [500, 1000]],
+    "mnist_order": [("mnist", 1000, "quantum", None, 1e-1, dict(entangle_pattern="pairs_last")),
+                    ("mnist", 1000, "cosprod_last", None, 1e-1, {})],
 }
 
 
@@ -172,6 +175,23 @@ def _grid(name: str) -> list[dict]:
         for lr in [1e-3, 3e-3, 1e-2, 3e-2]:
             for sd in SEEDS:
                 items.append(dict(_C4000, head="cosprod_pairs_last", lr=lr, seed=sd))
+    elif name == "cifar_support":
+        for head in ["cosprod_win2", "cosprod_star2", "cosprod_win3", "cosprod_star3", "cosprod_win4", "cosprod_gap4"]:
+            for lr in [3e-3, 1e-2, 3e-2]:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, head=head, lr=lr, seed=sd))
+    elif name == "cifar_long":
+        # 2x training budget at the validation-selected head lr (1e-2 for all three circuits).
+        for variant in [dict(no_entangle=True), dict(), dict(entangle_last_only=True)]:
+            for sd in SEEDS:
+                items.append(dict(_C4000, head="quantum", **variant, lr=1e-2, seed=sd, epochs=160))
+    elif name == "mnist_order":
+        common = dict(dataset="mnist", train_subset_size=1000, mlp_hidden=None, epochs=50, gradient_clip_norm=1.0)
+        for variant in [dict(head="quantum", entangle_last_only=True), dict(head="quantum", entangle_pattern="pairs_last"),
+                        dict(head="cosprod"), dict(head="cosprod_last")]:
+            for lr in [3e-3, 1e-2, 3e-2]:
+                for sd in SEEDS:
+                    items.append(dict(common, **variant, lr=lr, seed=sd))
     elif name == "cifar_seeds":
         from scripts.probe_backbones import _selected_runs
 
@@ -209,6 +229,7 @@ def _slug(it: dict) -> str:
     head += "_entlast" if it.get("entangle_last_only") else ""
     head += f"_L{it['n_var_layers']}" if it.get("n_var_layers", 4) != 4 else ""
     head += f"_{it['entangle_pattern']}" if it.get("entangle_pattern") else ""
+    head += f"_ep{it['epochs']}" if it["epochs"] != DEFAULT_EPOCHS[it["dataset"]] else ""
     mult = it.get("lr_backbone_multiplier", DEFAULT_BB_MULT)
     head += f"_bbm{mult:g}" if mult != DEFAULT_BB_MULT else ""
     return f"{it['dataset']}_subset{it['train_subset_size']}_{head}_lr{it['lr']:g}_s{it['seed']}"
@@ -248,7 +269,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--grid", choices=["mnist_search", "cifar_val", "mnist_bn", "cifar_bn", "cifar_mech", "cifar_circuit",
                                          "cifar_entangle", "cifar_classical", "cifar_cosprod",
-                                         "cifar_pairs", "cifar_seeds", "mnist_circuit"], required=True)
+                                         "cifar_pairs", "cifar_seeds", "mnist_circuit", "cifar_support",
+                                         "cifar_long", "mnist_order"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

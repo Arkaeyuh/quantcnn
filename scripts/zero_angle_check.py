@@ -18,6 +18,17 @@ validation embeddings of the run's own backbone:
   the rotations zeroed (trained readout Linear kept);
 * ``mean_abs_ry`` / ``mean_abs_rz``: trained rotation magnitudes (rad).
 
+Held-out and task-level checks (the validation set is split by index parity; the affine
+map q ~ [q0, 1] W is fit on the even half and evaluated on the odd half):
+
+* ``r2_heldout``: R^2 of that map on the held-out half;
+* ``acc_heldout`` / ``acc_remap_heldout``: held-out accuracy of the trained head, and of the
+  trained readout applied to the remapped zero-angle readouts proj(W^T [q0, 1]);
+* ``lossgrad_cos_zeroed`` / ``lossgrad_cos_remap`` (median) and ``lossgrad_neg_zeroed`` /
+  ``lossgrad_neg_remap`` (fraction < 0): per-sample cosine, on the held-out half, between
+  the cross-entropy gradient d loss / dz of the trained head and that of the zeroed head
+  (trained readout kept) or of the remapped zeroed head.
+
 From repository root::
 
     PYTHONPATH=. python -m scripts.zero_angle_check --out results/zero_angle_check.csv
@@ -73,6 +84,35 @@ def _median_cos(a: torch.Tensor, b: torch.Tensor) -> float:
     return torch.nn.functional.cosine_similarity(a, b, dim=1).median().item()
 
 
+def _lossgrad(f, z: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    """Per-sample d CE / dz (samples are independent, so the gradient of the summed loss)."""
+    z = z.clone().requires_grad_(True)
+    torch.nn.functional.cross_entropy(f(z), y, reduction="sum").backward()
+    return z.grad
+
+
+def _heldout(vqc, vqc0, proj, z: torch.Tensor, y: torch.Tensor) -> dict:
+    fit, ev = torch.arange(len(z)) % 2 == 0, torch.arange(len(z)) % 2 == 1
+    with torch.no_grad():
+        q, q0 = vqc(z).double(), vqc0(z).double()
+        X = torch.cat([q0, torch.ones(len(q0), 1, dtype=q0.dtype)], 1)
+        W = torch.linalg.lstsq(X[fit], q[fit]).solution
+        qe, pe = q[ev], X[ev] @ W
+        r2 = (1 - ((qe - pe) ** 2).sum() / ((qe - qe.mean(0)) ** 2).sum()).item()
+        acc = (proj(qe.float()).argmax(1) == y[ev]).float().mean().item()
+        acc_remap = (proj(pe.float()).argmax(1) == y[ev]).float().mean().item()
+    Wf = W.float()
+    remap = lambda x: torch.cat([vqc0(x), torch.ones(len(x), 1)], 1) @ Wf  # noqa: E731
+    g = _lossgrad(lambda x: proj(vqc(x)), z[ev], y[ev])
+    g0 = _lossgrad(lambda x: proj(vqc0(x)), z[ev], y[ev])
+    gr = _lossgrad(lambda x: proj(remap(x)), z[ev], y[ev])
+    c0 = torch.nn.functional.cosine_similarity(g, g0, dim=1)
+    cr = torch.nn.functional.cosine_similarity(g, gr, dim=1)
+    return dict(r2_heldout=round(r2, 4), acc_heldout=round(acc * 100, 2), acc_remap_heldout=round(acc_remap * 100, 2),
+                lossgrad_cos_zeroed=round(c0.median().item(), 4), lossgrad_neg_zeroed=round((c0 < 0).float().mean().item(), 4),
+                lossgrad_cos_remap=round(cr.median().item(), 4), lossgrad_neg_remap=round((cr < 0).float().mean().item(), 4))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="results/zero_angle_check.csv")
@@ -104,7 +144,8 @@ def main():
                        jac_cos_q=round(_median_cos(jq, jq0), 4), jac_cos_logits=round(_median_cos(jh, jh0), 4),
                        acc=round(acc * 100, 2), acc_zeroed=round(acc0 * 100, 2),
                        mean_abs_ry=round(wts[..., 0].abs().mean().item(), 4),
-                       mean_abs_rz=round(wts[..., 1].abs().mean().item(), 4))
+                       mean_abs_rz=round(wts[..., 1].abs().mean().item(), 4),
+                       **_heldout(vqc, vqc0, proj, z, y))
             print(row, flush=True)
             rows.append(row)
     with open(a.out, "w", newline="") as fh:

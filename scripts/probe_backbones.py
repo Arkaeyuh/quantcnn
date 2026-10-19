@@ -54,6 +54,7 @@ def _head_key(meta: dict) -> str:
     head += "+entlast" if meta.get("entangle", True) == "last" else ""
     head += f"+{meta['entangle']}" if str(meta.get("entangle", True)).startswith("pairs") else ""
     head += f"+L{meta['n_var_layers']}" if meta["head"] == "quantum" and meta.get("n_var_layers", 4) != 4 else ""
+    head += f"+ep{meta['epochs']}" if meta["epochs"] != {"mnist": 50, "cifar10": 80}[meta["dataset"]] else ""
     mult = meta.get("lr_backbone_multiplier", 0.5)
     return head + (f"@bblr{meta['lr'] * mult:.3g}" if mult != 0.5 else "")
 
