@@ -35,3 +35,7 @@ paper-backup-*/
 MANIFEST.md
 PAPER_PLAN.md
 PAPER_PLAN_*.md
+
+# internal audit report (kept local)
+EXPERIMENT_AUDIT.md
+EXPERIMENT_AUDIT.json
