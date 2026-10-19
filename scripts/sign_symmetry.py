@@ -49,11 +49,6 @@ def _load(run: Path) -> HybridClassifier:
 
 
 @torch.no_grad()
-def _rel_change(vqc, z: torch.Tensor, zf: torch.Tensor, perm: torch.Tensor) -> float:
-    return _rel_parts(vqc, z, zf, perm)[0]
-
-
-@torch.no_grad()
 def _rel_parts(vqc, z: torch.Tensor, zf: torch.Tensor, perm: torch.Tensor) -> tuple[float, float, float]:
     """(median ratio, median raw flip change |q(zf) - q(z)|, median raw between-sample distance)."""
     q = vqc(z)
@@ -80,11 +75,13 @@ def main():
             z, y = _embed(model, test, torch.device("cpu"))
             g = torch.Generator().manual_seed(seed)
             perm = torch.randperm(len(z), generator=g)
-            flip_one = []
+            flip_one, flip_one_raw = [], []
             for j in range(z.shape[1]):
                 zf = z.clone()
                 zf[:, j] = -zf[:, j]
-                flip_one.append(_rel_change(model.head.vqc, z, zf, perm))
+                r_j, raw_j, _ = _rel_parts(model.head.vqc, z, zf, perm)
+                flip_one.append(r_j)
+                flip_one_raw.append(raw_j)
             with torch.no_grad():
                 acc = (model.head(z).argmax(1) == y).float().mean().item()
                 acc_neg = (model.head(-z).argmax(1) == y).float().mean().item()
@@ -92,6 +89,7 @@ def main():
             row = dict(head=name, seed=seed, flip_all=round(ratio, 4), flip_all_raw_change=round(raw_flip, 4),
                        between_sample_raw_dist=round(raw_between, 4),
                        flip_one=round(sum(flip_one) / len(flip_one), 4),
+                       flip_one_raw_change=round(sum(flip_one_raw) / len(flip_one_raw), 4),
                        acc_z=round(acc * 100, 2), acc_neg_z=round(acc_neg * 100, 2))
             print(row, flush=True)
             rows.append(row)

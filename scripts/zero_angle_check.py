@@ -109,7 +109,8 @@ def _heldout(vqc, vqc0, proj, z: torch.Tensor, y: torch.Tensor) -> dict:
     gr = _lossgrad(lambda x: proj(remap(x)), z[ev], y[ev])
     c0 = torch.nn.functional.cosine_similarity(g, g0, dim=1)
     cr = torch.nn.functional.cosine_similarity(g, gr, dim=1)
-    return dict(ss_res_heldout=round(ss_res_h, 4), ss_tot_heldout=round(ss_tot_h, 4), r2_heldout=round(r2, 4), acc_heldout=round(acc * 100, 2), acc_remap_heldout=round(acc_remap * 100, 2),
+    return dict(n_heldout=int(ev.sum()), mse_heldout=round(ss_res_h / qe.numel(), 6),
+                ss_res_heldout=round(ss_res_h, 4), ss_tot_heldout=round(ss_tot_h, 4), r2_heldout=round(r2, 4), acc_heldout=round(acc * 100, 2), acc_remap_heldout=round(acc_remap * 100, 2),
                 lossgrad_cos_zeroed=round(c0.median().item(), 4), lossgrad_neg_zeroed=round((c0 < 0).float().mean().item(), 4),
                 lossgrad_cos_remap=round(cr.median().item(), 4), lossgrad_neg_remap=round((cr < 0).float().mean().item(), 4))
 
