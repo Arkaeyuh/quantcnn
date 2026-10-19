@@ -150,3 +150,8 @@ paper/                     ICML-format paper; figures/ holds the figure/table ge
   close to the zero-rotation product model.
 - Learning rates are selected on a 2,000-image validation set held out from the training
   pool; test accuracy is reported once, at the selected rate and epoch.
+
+## License
+
+Code is released under the MIT License (see `LICENSE`). MNIST and CIFAR-10 are downloaded at
+runtime and are not redistributed here.
