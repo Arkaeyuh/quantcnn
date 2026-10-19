@@ -16,8 +16,8 @@ lowers probe accuracy as well: MLP-8 backbones probe $3.6\pm0.6$ points below li
 backbones on CIFAR-10/4,000, $1.0\pm0.9$ above the VQC. The gap is not an artifact of linear
 decoding: a two-layer MLP probe on the same bottlenecks recovers at most 0.4 points more than
 the linear probe for any head, and puts the default VQC $4.8\pm0.9$ points below the linear
-head (\cref{app:mechanism}). The bottleneck's class information is linearly accessible, and
-the VQC-trained one carries less of it. The rest of this section shows that the VQC's share
+head (\cref{app:mechanism}). As far as a linear and a two-layer probe can tell, the bottleneck's class
+information is linearly accessible, and the VQC-trained one carries less of it. The rest of this section shows that the VQC's share
 of the gap depends on its CNOT structure, which no classical head has.
 
 \subsection{Removing the CNOT rings recovers most of the gap}
@@ -128,8 +128,8 @@ largest recoveries.
 Higher-order circuits also fit their training data less well under the 80-epoch budget
 (clean training accuracy 96.6\% without CNOTs, 89.2\% for the default circuit and 65.6\% for a
 ring after the last layer), so part of the gap could be under-training. Doubling the budget
-to 160 epochs for every head, the linear one included, raises every probe but keeps the
-ordering (\cref{tab:budget}). The default circuit then fits its training set nearly as well as
+to 160 epochs for the linear, default, ring-free and last-ring heads (CIFAR-10/4,000)
+raises every probe but keeps the ordering (\cref{tab:budget}). The default circuit then fits its training set nearly as well as
 the ring-free and linear heads (98.8\% vs 99.9\%) and still probes $2.8\pm0.4$ points below
 the ring-free head and $3.1\pm0.3$ below the linear one (5 seeds, every seed negative). The
 last-ring circuit remains under-fit at 160 epochs (79.5\%), so its larger cost includes slower
@@ -149,7 +149,7 @@ $7.2\pm2.3$ points below it and the last-ring circuit $18.0\pm4.7$ below (5 seed
 negative); on the three seeds probed with both, a two-layer MLP probe gives the same gaps to
 within a point (default circuit: $-5.8$ vs $-5.7$). The cost depends
 strongly on data: the default circuit trails by $22.3\pm2.9$ points at 1,000 images and by
-$1.8\pm0.5$ at 10,000, while the ring-free head stays within 1.6 points of linear at every
+$1.9\pm0.4$ at 10,000, while the ring-free head stays within 1.6 points of linear at every
 size. Small quantum heads are usually proposed for exactly the low-data regime where this
 cost is largest. One result differs from the small CNN: the classical head on the default
 circuit's products costs less than the circuit itself ($-4.0\pm1.6$ vs $-7.2\pm2.3$; the

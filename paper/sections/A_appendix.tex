@@ -43,8 +43,8 @@ readout applied directly to the zeroed circuit, the median loss-gradient cosine 
 the default circuit, and $-0.08$ for its seed 4 (0.96 after remapping); after remapping it is
 0.79--0.87 for every entangling circuit, with 3--8\% of samples negative on average (18\% in
 the worst run). Zeroing the
-rotations without remapping costs 14--23 accuracy points, which mostly reflects the
-unrefitted readout. Low-order circuits drift further, as \cref{sec:sinusoid} explains for the
+rotations without remapping costs 14--23 accuracy points on average for the two ring circuits
+and 31--43 for the pairs and CNOT-free circuits, which mostly reflects the unrefitted readout. Low-order circuits drift further, as \cref{sec:sinusoid} explains for the
 ring-free case.
 
 \section{Order versus Overlap, and Training Budget}
@@ -82,7 +82,8 @@ learning rate $10^{-3}$ (backbone $5\times10^{-4}$), 25 epochs on MNIST and 80 o
 three data re-uploading schedules for the VQC, and checkpoints chosen by best test-split
 accuracy. Because the test split took part in checkpoint selection, these numbers are
 exploratory; mean final-epoch accuracy is within 1.35 points of best-epoch accuracy in all 30
-configurations and no ordering of heads changes. \Cref{tab:mnist,tab:cifar} give the results.
+configurations and no ordering of heads changes (\texttt{scripts/make\_tables.py} on the
+released per-epoch logs in \texttt{results/raw}). \Cref{tab:mnist,tab:cifar} give the results.
 Re-uploading lowered accuracy in every setting under this recipe (\textsc{none} $>$
 \textsc{light} $>$ \textsc{strong}); it was not part of the tuned protocol.
 

@@ -27,8 +27,8 @@ an exact, noiseless simulator.
 2. **The quantum head lowers the quality of the CNN it trains.** Freezing each trained CNN
    and fitting the *same* linear probe to its 8-number summary, the default quantum head's
    CNN scores 4.7 points lower than a linear head's on CIFAR-10 (4,000 images, 5 seeds,
-   every seed lower). A two-layer MLP probe finds the same gap, so the summary carries less
-   class information, not just information that is harder to read.
+   every seed lower). A two-layer MLP probe finds the same gap, so the loss is not just one
+   of linear readability.
 3. **The CNOT gates are responsible, through one quantity.** With all trainable rotations
    at zero, each measurement is exactly a product of cosines of the inputs, over a set of
    inputs fixed by the CNOT gates. The average size of that set, the *product order*, tracks

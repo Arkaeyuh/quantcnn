@@ -13,9 +13,9 @@ every other coordinate in $\Sk$, and it approaches zero when any of them nears
 $\enc{i}=\pm\pi/2$. With order 1 each coordinate learns from its own readout; at order 5.25
 the readouts couple 5.25 coordinates on average, multiplicatively. We hypothesize that this
 coupling makes the class signal each coordinate receives depend on the state of the others,
-so that higher-order heads train backbones that fit less class information into the
-bottleneck. Two results constrain the account. The MLP probe rules out the alternative that
-the information is present but less linearly readable (\cref{app:mechanism}), consistent with
+so that higher-order heads train backbones whose bottlenecks carry less class signal
+that our probes can recover. Two results constrain the account. The MLP probe argues against
+the alternative that the information is present but only nonlinearly readable (\cref{app:mechanism}), consistent with
 the high-order circuits' weaker training fit. An attempt to remove the coupling directly, by
 keeping the forward products and passing each input's gradient only through its own factor,
 was inconclusive: the decoupled heads fit the training set far worse than the coupled ones
@@ -27,7 +27,8 @@ while keeping the head's function, would isolate the mechanism.
 \paragraph{Implications for hybrid design.}
 For CNN-fed quantum heads trained end to end, the CNOT layout is a choice about the
 backbone: the zero-rotation supports, computable before training, order the mean probe
-accuracy of every circuit we test, on both datasets and at both training budgets. In our setting the low-order heads are the best quantum
+accuracy of every circuit we test on both datasets, and of the three circuits we also
+train at twice the budget. In our setting the low-order heads are the best quantum
 heads, and the best of them, the ring-free head, is exactly a classical model by
 \cref{eq:ringfree}. Head comparisons in this setting should tune each
 head separately, as \cref{sec:tuning} shows, and should measure the backbone, not only the

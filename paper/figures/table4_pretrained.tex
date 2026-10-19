@@ -5,9 +5,10 @@ head (CIFAR-10; backbone learning rate $0.1\times$ the head's; 30 epochs at $128
 test accuracy (\%) of the common linear probe on the frozen 8-dimensional bottleneck, and its
 paired difference to the linear head in percentage points (mean $\pm$ SD; 4,000 images: number
 of seeds in parentheses; 1,000 and 10,000 images: 3 seeds). Head learning rates are selected
-on validation at 1,000 and 4,000 images and reused at 10,000. At 4,000 images every head's grid
-spans $3\times10^{-4}$--$10^{-2}$, extended to $10^{-4}$ for the default and last-ring circuits,
-and every selected rate is interior. The last column repeats the 4,000-image difference with a two-layer MLP probe (3 seeds).}
+on validation separately at each size. At 4,000 images every head's grid spans
+$3\times10^{-4}$--$10^{-2}$, extended to $10^{-4}$ for the default and last-ring circuits; at
+10,000 images it spans $3\times10^{-4}$--$3\times10^{-3}$, extended to $10^{-4}$ for the linear,
+default and last-ring heads. At both sizes every selected rate is interior. The last column repeats the 4,000-image difference with a two-layer MLP probe (3 seeds).}
 \label{tab:pretrained}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -17,12 +18,12 @@ and every selected rate is interior. The last column repeats the 4,000-image dif
 \cmidrule(lr){3-3}\cmidrule(lr){4-5}\cmidrule(lr){6-6}\cmidrule(lr){7-7}
 Head & Order & $-$ linear & probe & $-$ linear & $-$ linear & $-$ linear \\
 \midrule
-linear & --- & $82.9 \pm 0.9$ & $89.4 \pm 0.4$ (5) & --- & $92.5 \pm 0.2$ & --- \\
-VQC, no CNOT & 1 & $-1.6 \pm 1.2$ & $89.4 \pm 0.4$ (5) & $0.0 \pm 0.1$ & $+0.1 \pm 0.0$ & $-0.6 \pm 0.3$ \\
+linear & --- & $82.9 \pm 0.9$ & $89.4 \pm 0.4$ (5) & --- & $92.6 \pm 0.4$ & --- \\
+VQC, no CNOT & 1 & $-1.6 \pm 1.2$ & $89.4 \pm 0.4$ (5) & $0.0 \pm 0.1$ & $-0.1 \pm 0.4$ & $-0.6 \pm 0.3$ \\
 VQC, pairs & 1 &  & $89.3 \pm 0.4$ (5) & $-0.2 \pm 0.3$ &  & $-0.8 \pm 0.5$ \\
 cos-prod.\ (default supports) & 2.5 &  & $85.5 \pm 1.6$ (5) & $-4.0 \pm 1.6$ &  & $-3.0 \pm 1.1$ \\
-VQC, ring (default) & 2.5 & $-22.3 \pm 2.9$ & $82.3 \pm 2.3$ (5) & $-7.2 \pm 2.3$ & $-1.8 \pm 0.5$ & $-5.8 \pm 0.3$ \\
-VQC, ring, last & 5.25 & $-34.1 \pm 6.3$ & $71.4 \pm 4.8$ (5) & $-18.0 \pm 4.7$ & $-7.9 \pm 1.3$ & $-18.5 \pm 3.9$ \\
+VQC, ring (default) & 2.5 & $-22.3 \pm 2.9$ & $82.3 \pm 2.3$ (5) & $-7.2 \pm 2.3$ & $-1.9 \pm 0.4$ & $-5.8 \pm 0.3$ \\
+VQC, ring, last & 5.25 & $-34.1 \pm 6.3$ & $71.4 \pm 4.8$ (5) & $-18.0 \pm 4.7$ & $-8.0 \pm 1.0$ & $-18.5 \pm 3.9$ \\
 \bottomrule
 \end{tabular}
 \end{table*}
