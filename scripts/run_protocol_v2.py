@@ -221,6 +221,11 @@ def _grid(name: str) -> list[dict]:
             if step is not None:
                 for sd in SEEDS:
                     items.append(dict(opts, lr=step, seed=sd))
+    elif name == "cifar_pretrained_edge2":
+        # The default and last-ring circuits selected 3e-4 (already one step below the grid): one more step.
+        for _, key, opts in NIGHT_SEED_CELLS[1:4:2]:
+            for sd in SEEDS:
+                items.append(dict(opts, lr=1e-4, seed=sd))
     elif name in ("cifar_pretrained_10k", "cifar_pretrained_1k"):
         # Data-scale check: 10,000 / 1,000 training images, each head at its lr selected on 4,000.
         from scripts.probe_backbones import _selected_runs
@@ -356,7 +361,7 @@ def main():
                                          "cifar_pretrained2", "cifar_long2", "night_seeds",
                                          "cifar_pretrained_10k", "cifar_pretrained_edge",
                                          "cifar_pretrained_1k", "cifar_pretrained_1k_lr",
-                                         "pretrained2_seeds"], required=True)
+                                         "pretrained2_seeds", "cifar_pretrained_edge2"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)
