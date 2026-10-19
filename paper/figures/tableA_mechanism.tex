@@ -1,0 +1,48 @@
+\begin{table}[h]
+\centering
+\caption{Linear vs nonlinear probe on the same frozen bottlenecks (CIFAR-10, 4,000 training
+images; MLP probe: standardization, then $8\to256\to256\to10$ with ReLU, probe learning rate and
+epoch selected on validation; mean $\pm$ SD over $n$ seeds; last column paired). The MLP probe
+recovers at most a fraction of a point more than the linear probe for any head, and VQC $-$
+linear is $-4.8 \pm 0.9$ under the MLP probe vs $-4.7 \pm 0.9$ under the linear
+probe.}
+\label{tab:mlpprobe}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Head the backbone was trained with & $n$ & Linear probe & MLP probe & MLP $-$ linear \\
+\midrule
+linear & 5 & $74.5 \pm 0.5$ & $74.4 \pm 0.5$ & $0.0 \pm 0.1$ \\
+MLP-8 & 5 & $70.8 \pm 0.5$ & $70.8 \pm 0.6$ & $0.0 \pm 0.6$ \\
+VQC, no CNOT & 5 & $73.6 \pm 0.5$ & $73.6 \pm 0.4$ & $0.0 \pm 0.4$ \\
+VQC, pairs & 5 & $72.9 \pm 0.6$ & $72.9 \pm 0.5$ & $0.0 \pm 0.4$ \\
+VQC, pairs, last & 5 & $71.2 \pm 0.7$ & $71.2 \pm 0.5$ & $0.0 \pm 0.4$ \\
+VQC, ring (default) & 5 & $69.8 \pm 1.0$ & $69.6 \pm 0.8$ & $-0.2 \pm 0.3$ \\
+VQC, ring, last & 5 & $60.1 \pm 3.1$ & $60.3 \pm 2.7$ & $+0.2 \pm 0.9$ \\
+cos & 5 & $73.3 \pm 0.4$ & $73.2 \pm 0.6$ & $-0.2 \pm 0.3$ \\
+cos-prod.\ (default supports) & 5 & $68.8 \pm 1.6$ & $69.0 \pm 1.5$ & $+0.2 \pm 0.2$ \\
+cos-prod.\ (last-ring supports) & 5 & $54.8 \pm 3.4$ & $55.2 \pm 3.3$ & $+0.4 \pm 0.4$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Gradient-decoupled classical product heads: same forward products, but each
+input's gradient passes only through its own cosine factor (straight-through on the other
+factors). CIFAR-10, 4,000 images, 3 seeds; decoupled heads at their validation-selected
+learning rate (grid $10^{-3}$--$3\times10^{-2}$), coupled heads as in \cref{tab:support}.
+Decoupling fails to fit the training set, so it does not isolate the effect of coupling.}
+\label{tab:decoupled}
+\small
+\begin{tabular}{lccccc}
+\toprule
+& & \multicolumn{2}{c}{Clean-train acc.} & \multicolumn{2}{c}{Probe} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Products & lr & coupled & decoupled & coupled & decoupled \\
+\midrule
+default supports & 0.003 & $84.0 \pm 1.7$ & $55.7 \pm 3.7$ & $67.8 \pm 1.1$ & $57.7 \pm 1.5$ \\
+last-ring supports & 0.003 & $56.4 \pm 5.2$ & $42.4 \pm 5.3$ & $54.2 \pm 3.1$ & $48.9 \pm 4.7$ \\
+\bottomrule
+\end{tabular}
+\end{table}

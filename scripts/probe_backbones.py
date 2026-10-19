@@ -43,6 +43,7 @@ from scripts.frozen_heads import _embed, _train_head
 GRIDS = {"mnist": ["mnist_search", "mnist_bn"], "cifar10": ["cifar_val", "cifar_bn"]}
 HEADS = ["linear", "mlp8", "quantum", "linear+bn", "quantum+bn"]
 PROBE_LRS = [3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 1.0]
+MLP_PROBE_LRS = [1e-3, 3e-3, 1e-2, 3e-2]
 
 
 def _head_key(meta: dict) -> str:
@@ -89,6 +90,8 @@ def main():
     ap.add_argument("--threads", type=int, default=4)
     ap.add_argument("--grids", nargs="+", default=None, help="Override the grids read (default: GRIDS[dataset]).")
     ap.add_argument("--heads", nargs="+", default=HEADS, help="Head keys to probe, or 'all'.")
+    ap.add_argument("--probe", choices=["linear", "mlp"], default="linear",
+                    help="linear: the common linear probe; mlp: an 8-256-256-10 ReLU probe on standardized z.")
     a = ap.parse_args()
     torch.set_num_threads(a.threads)
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -123,8 +126,8 @@ def main():
                 sat_z = (torch.tanh(z_test).abs() > 0.9).float().mean().item()
                 sat_in = (torch.tanh(_head_input(model, z_test)).abs() > 0.9).float().mean().item()
                 best = None
-                for plr in PROBE_LRS:
-                    r = _train_head("linear", emb, seed, plr, 60)
+                for plr in (PROBE_LRS if a.probe == "linear" else MLP_PROBE_LRS):
+                    r = _train_head("linear" if a.probe == "linear" else "mlp_probe", emb, seed, plr, 60)
                     if best is None or r["val_acc"] > best[1]["val_acc"]:
                         best = (plr, r)
                 plr, r = best

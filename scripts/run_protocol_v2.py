@@ -100,6 +100,8 @@ EDGE_EXTENSION = {
     "mnist_circuit": [("mnist", n, "quantum", None, 1e-1, dict(encoding="half")) for n in [500, 1000]],
     "mnist_order": [("mnist", 1000, "quantum", None, 1e-1, dict(entangle_pattern="pairs_last")),
                     ("mnist", 1000, "cosprod_last", None, 1e-1, {})],
+    # Selected lr at the grid minimum: one step down.
+    "cifar_sg": [("cifar10", 4000, "cosprod_sg", None, 1e-3, {}), ("cifar10", 4000, "cosprod_last_sg", None, 1e-3, {})],
 }
 
 
@@ -177,6 +179,11 @@ def _grid(name: str) -> list[dict]:
                 items.append(dict(_C4000, head="cosprod_pairs_last", lr=lr, seed=sd))
     elif name == "cifar_support":
         for head in ["cosprod_win2", "cosprod_star2", "cosprod_win3", "cosprod_star3", "cosprod_win4", "cosprod_gap4"]:
+            for lr in [3e-3, 1e-2, 3e-2]:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, head=head, lr=lr, seed=sd))
+    elif name == "cifar_sg":
+        for head in ["cosprod_sg", "cosprod_last_sg"]:
             for lr in [3e-3, 1e-2, 3e-2]:
                 for sd in SEEDS:
                     items.append(dict(_C4000, head=head, lr=lr, seed=sd))
@@ -270,7 +277,7 @@ def main():
     ap.add_argument("--grid", choices=["mnist_search", "cifar_val", "mnist_bn", "cifar_bn", "cifar_mech", "cifar_circuit",
                                          "cifar_entangle", "cifar_classical", "cifar_cosprod",
                                          "cifar_pairs", "cifar_seeds", "mnist_circuit", "cifar_support",
-                                         "cifar_long", "mnist_order"], required=True)
+                                         "cifar_long", "mnist_order", "cifar_sg"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

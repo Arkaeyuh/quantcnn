@@ -24,7 +24,9 @@ def diffs(a: dict, b: dict) -> list[float]:
 def paired(a: dict, b: dict) -> str:
     """Signed paired difference a - b, mean +- SD over seeds, in math mode."""
     d = diffs(a, b)
-    return f"${st.mean(d):+.1f} \\pm {st.stdev(d):.1f}$"
+    m = st.mean(d)
+    sign = "" if abs(m) < 0.05 else ("+" if m > 0 else "-")  # no "-0.0"
+    return f"${sign}{abs(m):.1f} \\pm {st.stdev(d):.1f}$"
 
 
 def write_table(name: str, body: str):

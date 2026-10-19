@@ -12,12 +12,17 @@ The gradient a bottleneck coordinate receives through readout $k$ is scaled by t
 every other coordinate in $\Sk$, and it approaches zero when any of them nears
 $\enc{i}=\pm\pi/2$. With order 1 each coordinate learns from its own readout; at order 5.25
 the readouts couple 5.25 coordinates on average, multiplicatively. We hypothesize that this
-coupling pushes the backbone toward codes in which class information is spread across
-coordinates in a way the products can use but a linear map reads less well. The evidence
-here is consistent with this account (the frozen circuit, which stays close to the product
-model, shows the same gap, and at fixed order the designed supports that couple most inputs to
-a single hub tend to cost less than those that couple every input evenly) but does not test it; a nonlinear probe, or a measurement of how
-class information is distributed across coordinates as a function of order, would.
+coupling makes the class signal each coordinate receives depend on the state of the others,
+so that higher-order heads train backbones that fit less class information into the
+bottleneck. Two results constrain the account. The MLP probe rules out the alternative that
+the information is present but less linearly readable (\cref{app:mechanism}), consistent with
+the high-order circuits' weaker training fit. An attempt to remove the coupling directly, by
+keeping the forward products and passing each input's gradient only through its own factor,
+was inconclusive: the decoupled heads fit the training set far worse than the coupled ones
+(55.7\% vs 84.0\% clean training accuracy for the default supports), so the mismatched
+gradient, not the absence of coupling, dominates their result (\cref{tab:decoupled}). A test
+that preserves the true gradient, for example a reparameterization that changes the coupling
+while keeping the head's function, would isolate the mechanism.
 
 \paragraph{Implications for hybrid design.}
 For CNN-fed quantum heads trained end to end, the CNOT layout is a choice about the
@@ -38,5 +43,5 @@ single scalar: it orders the cost at fixed overlap and full rank, but at fixed o
 distribution of coupling across inputs also matters by an amount we do not pin down
 (\cref{tab:support}), and the designed supports were tested with classical heads only. The identity is exact only at zero rotations; the
 trained default and last-ring circuits sit at $R^2=0.87$--$0.90$ of it, and low-order circuits
-move further. Finally, the probe is linear, so
-our claims concern the linear decodability of the bottleneck, not the information it holds.
+move further. Finally, our probes are linear and a two-layer MLP; information recoverable only
+by stronger decoders is not measured.

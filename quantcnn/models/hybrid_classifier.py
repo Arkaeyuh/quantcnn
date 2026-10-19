@@ -18,7 +18,7 @@ from quantcnn.models.quantum_head import (
 DatasetName = Literal["mnist", "cifar10"]
 HeadKind = Literal["linear", "mlp", "quantum", "cos", "cossin", "cosprod", "cosprod_last", "cosprod_pairs_last",
                    "cosprod_win2", "cosprod_win3", "cosprod_win4", "cosprod_star2", "cosprod_star3",
-                   "cosprod_gap4"]
+                   "cosprod_gap4", "cosprod_sg", "cosprod_last_sg"]
 
 
 class HybridClassifier(nn.Module):
@@ -61,9 +61,11 @@ class HybridClassifier(nn.Module):
             self.head = MLPHead(b, hid, num_classes)
         elif head in ("cos", "cossin"):
             self.head = TrigFeatureHead(b, num_classes, with_sin=head == "cossin")
-        elif head in ("cosprod", "cosprod_last", "cosprod_pairs_last"):
-            self.head = CosProductHead(b, num_classes, n_var_layers, last_only=head != "cosprod",
-                                       pattern="pairs" if head == "cosprod_pairs_last" else "ring")
+        elif head in ("cosprod", "cosprod_last", "cosprod_pairs_last", "cosprod_sg", "cosprod_last_sg"):
+            self.head = CosProductHead(b, num_classes, n_var_layers,
+                                       last_only=head not in ("cosprod", "cosprod_sg"),
+                                       pattern="pairs" if head == "cosprod_pairs_last" else "ring",
+                                       decouple_grad=head.endswith("_sg"))
         elif head.startswith("cosprod_") and head[len("cosprod_"):] in DESIGNED_SUPPORTS:
             self.head = CosProductHead(b, num_classes, supports=DESIGNED_SUPPORTS[head[len("cosprod_"):]])
         elif head == "quantum":

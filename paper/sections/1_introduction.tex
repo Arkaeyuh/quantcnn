@@ -37,7 +37,8 @@ Our contributions are:
         test accuracy in all six dataset--size settings.
   \item \textbf{A representation cost tied to the CNOT layers} (\cref{sec:gap,sec:ring}). On
         CIFAR-10 with 4,000 training images the default VQC head lowers bottleneck probe
-        accuracy by $4.7\pm0.9$ points relative to a linear head (5 seeds). Removing the CNOT
+        accuracy by $4.7\pm0.9$ points relative to a linear head (5 seeds), and a two-layer
+        MLP probe finds the same gap, so the bottleneck carries less class information. Removing the CNOT
         rings recovers $3.8\pm1.2$ points. Five controls---backbone learning rate, frozen
         rotations, pre-encoding BatchNorm and two alternative encodings---leave a substantial
         gap (\cref{sec:controls}).

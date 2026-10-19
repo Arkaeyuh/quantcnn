@@ -89,11 +89,15 @@ class CosProductHead(nn.Module):
     """Classical control for the entangled VQC: products of cos(pi*tanh z_j) over each
     readout's support from ``cnot_ring_supports``, then Linear. This is the default
     circuit (``last_only=False``), the last-ring-only circuit, or (``pattern="pairs"``)
-    the disjoint-pairs circuits at zero rotation angles; or explicit ``supports``."""
+    the disjoint-pairs circuits at zero rotation angles; or explicit ``supports``.
+    ``decouple_grad`` keeps the forward products but removes the multiplicative coupling
+    from the backward pass (mechanism test)."""
 
     def __init__(self, in_dim: int, num_classes: int, n_var_layers: int = 4, last_only: bool = False,
-                 pattern: str = "ring", supports: list[list[int]] | None = None) -> None:
+                 pattern: str = "ring", supports: list[list[int]] | None = None,
+                 decouple_grad: bool = False) -> None:
         super().__init__()
+        self.decouple_grad = decouple_grad
         if supports is None:
             supports = cnot_ring_supports(in_dim, n_var_layers, last_only, pattern)
         mask = torch.zeros(in_dim, in_dim)
@@ -106,4 +110,9 @@ class CosProductHead(nn.Module):
         c = torch.cos(math.pi * torch.tanh(x))  # (B, n)
         # prod_j c_j^{mask_kj}: take the product over masked entries, others replaced by 1.
         feats = torch.where(self.mask.bool(), c[:, None, :], torch.ones_like(c)[:, None, :]).prod(-1)
+        if self.decouple_grad:
+            # Same forward value; backward passes d feat_k / d c_j = 1 for j in S_k, i.e. each
+            # input's gradient no longer scales with the other factors of the product.
+            own = (self.mask * (c - c.detach())[:, None, :]).sum(-1)
+            feats = feats.detach() + own
         return self.fc(feats)
