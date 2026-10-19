@@ -1,0 +1,5 @@
+dataset,train_subset_size,source_head,source_lr,seed,source_test_acc,probe_lr,probe_val_acc,probe_train_acc,probe_test_acc,sat_090_z,sat_090_head_input
+cifar10,4000,cosprod+resnet18_pt,0.001,3,81.13,0.1,85.2,92.6,83.26,61.38,61.38
+cifar10,4000,cosprod+resnet18_pt,0.001,4,82.17,0.1,83.95,94.575,84.55,68.19,68.19
+cifar10,4000,quantum+pairs+resnet18_pt,0.001,3,89.89,0.1,89.85,99.825,89.46,31.12,31.12
+cifar10,4000,quantum+pairs+resnet18_pt,0.001,4,89.39,0.3,89.35,99.8,89.14,33.37,33.37

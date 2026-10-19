@@ -9,6 +9,8 @@ CNOT layers. Probe accuracy falls as the mean order of these products rises, fro
 order 1 to 69.8 at the default order 2.5 and 60.1 at order 5.25; classical heads trained on
 the same products follow the same trend, the circuit ordering holds at twice the training
 budget and on MNIST, designed classical supports favor lower order at fixed mean overlap
-between readouts, and an entangling circuit with product order 1 recovers 3.1 points. Without CNOTs the head is exactly a classical per-coordinate
-sinusoidal model, and under matched per-head tuning a linear head has the highest mean test
+between readouts, and an entangling circuit with product order 1 recovers 3.1 points. On an
+ImageNet-pretrained ResNet-18 the same ordering holds, and the default head's cost grows to 22
+points with 1,000 training images while the ring-free head stays within 1.6 points of a linear
+head. Without CNOTs the head is exactly a classical per-coordinate sinusoidal model, and under matched per-head tuning a linear head has the highest mean test
 accuracy among linear, small-MLP and default VQC heads in every setting we test.

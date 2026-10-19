@@ -55,9 +55,11 @@ def _head_key(meta: dict) -> str:
     head += "+entlast" if meta.get("entangle", True) == "last" else ""
     head += f"+{meta['entangle']}" if str(meta.get("entangle", True)).startswith("pairs") else ""
     head += f"+L{meta['n_var_layers']}" if meta["head"] == "quantum" and meta.get("n_var_layers", 4) != 4 else ""
-    head += f"+ep{meta['epochs']}" if meta["epochs"] != {"mnist": 50, "cifar10": 80}[meta["dataset"]] else ""
+    pretrained = meta.get("backbone") not in (None, "mnist", "cifar10")
+    head += f"+ep{meta['epochs']}" if meta["epochs"] != {"mnist": 50, "cifar10": 80}[meta["dataset"]] and not pretrained else ""
+    head += f"+{meta['backbone']}" if pretrained else ""
     mult = meta.get("lr_backbone_multiplier", 0.5)
-    return head + (f"@bblr{meta['lr'] * mult:.3g}" if mult != 0.5 else "")
+    return head + (f"@bblr{meta['lr'] * mult:.3g}" if mult != 0.5 and not pretrained else "")
 
 
 def _selected_runs(runs_root: Path, grids: list[str]) -> dict[tuple[int, str], tuple[float, list[Path]]]:
@@ -104,9 +106,11 @@ def main():
         for (n, head), (lr, runs) in sorted(_selected_runs(Path(a.runs_root), a.grids or GRIDS[ds]).items()):
             if a.heads != ["all"] and head not in a.heads:
                 continue
-            assert len(runs) == 3 or a.grids == ["cifar_seeds"], (ds, n, head, lr)
+            assert len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"]), (ds, n, head, lr)
             for run in runs:
                 meta = json.loads((run / "meta.json").read_text())
+                if meta["dataset"] != ds:
+                    continue  # mixed-dataset grids (night_seeds)
                 seed = int(meta["seed"])
                 if (ds, str(n), head, str(seed)) in done:
                     continue

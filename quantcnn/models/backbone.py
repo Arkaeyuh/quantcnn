@@ -61,3 +61,33 @@ class CifarCNN(nn.Module):
         h = self.net(x)
         h = self.gap(h).flatten(1)
         return self.proj(h)
+
+
+class PretrainedResNet18(nn.Module):
+    """ImageNet-pretrained ResNet-18 fine-tuned as the backbone for CIFAR-10.
+
+    Inputs arrive CIFAR-normalized at 32x32; they are mapped back to pixel space,
+    re-normalized with ImageNet statistics and upsampled to ``resolution`` before the
+    network. The classifier is replaced by a linear projection to the bottleneck.
+    """
+
+    CIFAR_MEAN, CIFAR_STD = (0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)
+    IMAGENET_MEAN, IMAGENET_STD = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
+
+    def __init__(self, bottleneck_dim: int, resolution: int = 128) -> None:
+        super().__init__()
+        from torchvision.models import ResNet18_Weights, resnet18
+
+        self.net = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
+        self.net.fc = nn.Linear(512, bottleneck_dim)
+        self.resolution = resolution
+        shape = (1, 3, 1, 1)
+        self.register_buffer("c_mean", torch.tensor(self.CIFAR_MEAN).view(shape), persistent=False)
+        self.register_buffer("c_std", torch.tensor(self.CIFAR_STD).view(shape), persistent=False)
+        self.register_buffer("i_mean", torch.tensor(self.IMAGENET_MEAN).view(shape), persistent=False)
+        self.register_buffer("i_std", torch.tensor(self.IMAGENET_STD).view(shape), persistent=False)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = (x * self.c_std + self.c_mean - self.i_mean) / self.i_std
+        x = nn.functional.interpolate(x, size=self.resolution, mode="bilinear", align_corners=False)
+        return self.net(x)

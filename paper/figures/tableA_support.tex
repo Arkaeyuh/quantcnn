@@ -2,25 +2,25 @@
 \centering
 \caption{Classical product heads whose supports separate product order from overlap (mean
 pairwise $|S_k\cap S_l|$), trained end to end like every other head (CIFAR-10, 4,000 training
-images; 3 seeds; each at its validation-selected learning rate). Rank: rank of the $8\times8$
+images; $n$ seeds, each at its validation-selected learning rate; differences paired over shared seeds). Rank: rank of the $8\times8$
 support matrix, which bounds the number of independent input directions the products can
 respond to. Window $w$: $S_k=\{k,\dots,k{+}w{-}1\}$; gapped window 4: $\{k,k{+}1,k{+}2,k{+}4\}$
 (mod 8). Star 2: $\{1,2\},\{0,1\},\{0,2\},\dots,\{0,7\}$. Star 3: $\{1,2,3\},
-\{0,1,2\},\{0,1,3\},\dots,\{0,1,7\},\{0,2,3\}$. Paired probe differences: star 3 $-$ gapped window 4 (equal overlap, both rank 8): $+5.4 \pm 3.1$; star 2 $-$ window 3 (approximately equal overlap, both rank 8): $+4.1 \pm 1.0$; star 3 $-$ window 4 (equal overlap, rank 8 vs 5): $+4.6 \pm 2.5$; star 2 $-$ window 2 (equal order, rank 8 vs 7): $+3.0 \pm 0.2$; star 3 $-$ window 3 (equal order, both rank 8): $+1.0 \pm 1.3$.}
+\{0,1,2\},\{0,1,3\},\dots,\{0,1,7\},\{0,2,3\}$. Paired probe differences: star 3 $-$ gapped window 4 (equal overlap, both rank 8): $+5.4 \pm 2.7$; star 2 $-$ window 3 (approximately equal overlap, both rank 8): $+3.9 \pm 1.9$; star 3 $-$ window 4 (equal overlap, rank 8 vs 5): $+5.6 \pm 2.2$; star 2 $-$ window 2 (equal order, rank 8 vs 7): $+3.0 \pm 0.2$; star 3 $-$ window 3 (equal order, both rank 8): $+1.8 \pm 2.8$.}
 \label{tab:support}
 \small
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccccc}
 \toprule
-Supports & Order & Overlap & Rank & Test & Probe \\
+Supports & Order & Overlap & Rank & $n$ & Test & Probe \\
 \midrule
-cos (order 1) & 1 & 0.00 & 8 & $72.2 \pm 0.3$ & $73.2 \pm 0.1$ \\
-window 2 & 2 & 0.29 & 7 & $68.1 \pm 0.4$ & $69.3 \pm 0.4$ \\
-star 2 & 2 & 0.82 & 8 & $71.3 \pm 0.2$ & $72.3 \pm 0.3$ \\
-default ring products & 2.5 & 0.57 & 8 & $66.3 \pm 0.9$ & $67.8 \pm 1.1$ \\
-window 3 & 3 & 0.86 & 8 & $65.2 \pm 1.5$ & $68.2 \pm 0.8$ \\
-star 3 & 3 & 1.71 & 8 & $67.6 \pm 1.2$ & $69.2 \pm 1.0$ \\
-window 4 & 4 & 1.71 & 5 & $61.6 \pm 4.6$ & $64.5 \pm 3.4$ \\
-gapped window 4 & 4 & 1.71 & 8 & $60.5 \pm 3.1$ & $63.8 \pm 2.3$ \\
+cos (order 1) & 1 & 0.00 & 8 & 3 & $72.2 \pm 0.3$ & $73.2 \pm 0.1$ \\
+window 2 & 2 & 0.29 & 7 & 3 & $68.1 \pm 0.4$ & $69.3 \pm 0.4$ \\
+star 2 & 2 & 0.82 & 8 & 5 & $69.8 \pm 2.2$ & $70.9 \pm 1.9$ \\
+default ring products & 2.5 & 0.57 & 8 & 3 & $66.3 \pm 0.9$ & $67.8 \pm 1.1$ \\
+window 3 & 3 & 0.86 & 8 & 5 & $64.2 \pm 2.9$ & $67.1 \pm 2.3$ \\
+star 3 & 3 & 1.71 & 8 & 5 & $67.2 \pm 1.2$ & $68.9 \pm 1.1$ \\
+window 4 & 4 & 1.71 & 5 & 5 & $60.1 \pm 3.9$ & $63.3 \pm 3.1$ \\
+gapped window 4 & 4 & 1.71 & 8 & 5 & $61.0 \pm 2.4$ & $63.5 \pm 1.8$ \\
 \bottomrule
 \end{tabular}
 \end{table}

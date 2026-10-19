@@ -1,22 +1,24 @@
 \begin{table}[h]
 \centering
-\caption{Twice the training budget (160 instead of 80 epochs, same head learning rate
-$10^{-2}$ and cosine schedule; CIFAR-10, 4,000 training images; 3 seeds). Clean-train:
+\caption{Twice the training budget (160 instead of 80 epochs, each head at its 80-epoch learning
+rate and cosine schedule; CIFAR-10, 4,000 training images; $n$ seeds). Clean-train:
 accuracy on the unaugmented training subset at the selected checkpoint; loss: final-epoch
 training loss on augmented batches. At 160 epochs, default $-$ no-CNOT probe accuracy is
-$-2.6 \pm 0.5$ (paired).}
+$-2.8 \pm 0.4$ and default $-$ linear is $-3.1 \pm 0.3$ (paired).}
 \label{tab:budget}
 \small
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccccc}
 \toprule
-Circuit & Epochs & Clean-train & Train loss & Test & Probe \\
+Head & Epochs & $n$ & Clean-train & Train loss & Test & Probe \\
 \midrule
-no CNOT & 80 & $96.8 \pm 0.8$ & 0.21 & $73.3 \pm 0.5$ & $73.7 \pm 0.6$ \\
- & 160 & $99.9 \pm 0.1$ & 0.03 & $74.7 \pm 0.6$ & $75.4 \pm 0.4$ \\
-ring (default) & 80 & $87.9 \pm 2.6$ & 0.47 & $67.7 \pm 1.1$ & $69.9 \pm 1.1$ \\
- & 160 & $98.7 \pm 0.8$ & 0.08 & $70.8 \pm 0.1$ & $72.7 \pm 0.4$ \\
-ring, last & 80 & $66.7 \pm 3.4$ & 1.02 & $56.4 \pm 2.1$ & $60.9 \pm 2.1$ \\
- & 160 & $79.5 \pm 15.1$ & 0.67 & $59.6 \pm 7.6$ & $64.7 \pm 4.7$ \\
+linear & 80 & 5 & $98.7 \pm 0.4$ & 0.13 & $74.5 \pm 0.7$ & $74.5 \pm 0.5$ \\
+ & 160 & 5 & $99.9 \pm 0.1$ & 0.03 & $75.6 \pm 0.6$ & $75.5 \pm 0.4$ \\
+no CNOT & 80 & 5 & $96.6 \pm 0.7$ & 0.22 & $73.1 \pm 0.5$ & $73.6 \pm 0.5$ \\
+ & 160 & 5 & $99.9 \pm 0.1$ & 0.03 & $74.6 \pm 0.5$ & $75.1 \pm 0.4$ \\
+ring (default) & 80 & 5 & $89.2 \pm 2.5$ & 0.44 & $67.8 \pm 1.3$ & $69.8 \pm 1.0$ \\
+ & 160 & 5 & $98.8 \pm 0.6$ & 0.08 & $70.6 \pm 0.5$ & $72.4 \pm 0.6$ \\
+ring, last & 80 & 5 & $65.6 \pm 5.4$ & 1.02 & $55.3 \pm 3.1$ & $60.1 \pm 3.1$ \\
+ & 160 & 3 & $79.5 \pm 15.1$ & 0.67 & $59.6 \pm 7.6$ & $64.7 \pm 4.7$ \\
 \bottomrule
 \end{tabular}
 \end{table}

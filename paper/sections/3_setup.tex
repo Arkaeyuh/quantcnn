@@ -3,7 +3,8 @@
 
 \paragraph{Model.}
 A CNN backbone maps an image to a bottleneck $\vz\in\R^8$ (MNIST: three convolutional
-blocks, about 94K parameters; CIFAR-10: four blocks, about 0.96M). Each head is trained
+blocks, about 94K parameters; CIFAR-10: four blocks, about 0.96M; \cref{sec:pretrained}
+also uses an ImageNet-pretrained ResNet-18). Each head is trained
 jointly with its own copy of the backbone. The \emph{linear} head is a single dense layer
 (90 parameters); \emph{MLP-8} has one hidden layer of width 8 with ReLU (162). The default
 \emph{VQC} head encodes $\enc{j}=\pi\tanh z_j$ by $R_y(\enc{j})$ on qubit $j$, applies $L=4$

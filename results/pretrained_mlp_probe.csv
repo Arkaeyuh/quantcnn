@@ -1,0 +1,13 @@
+dataset,train_subset_size,source_head,source_lr,seed,source_test_acc,probe_lr,probe_val_acc,probe_train_acc,probe_test_acc,sat_090_z,sat_090_head_input
+cifar10,4000,linear+resnet18_pt,0.001,0,90.22,0.001,90.2,99.95,89.83,81.84,81.84
+cifar10,4000,linear+resnet18_pt,0.001,1,89.64,0.001,89.8,100.0,89.56,79.77,79.77
+cifar10,4000,linear+resnet18_pt,0.001,2,90.15,0.001,90.5,100.0,90.04,82.34,82.34
+cifar10,4000,quantum+entlast+resnet18_pt,0.0003,0,49.92,0.001,67.3,75.1,68.2,29.12,29.12
+cifar10,4000,quantum+entlast+resnet18_pt,0.0003,1,59.42,0.003,75.4,84.8,75.37,33.14,33.14
+cifar10,4000,quantum+entlast+resnet18_pt,0.0003,2,54.98,0.003,71.45,78.525,70.41,29.14,29.14
+cifar10,4000,quantum+noent+resnet18_pt,0.001,0,89.18,0.03,88.8,99.8,88.95,33.65,33.65
+cifar10,4000,quantum+noent+resnet18_pt,0.001,1,89.88,0.01,89.2,99.975,89.3,32.42,32.42
+cifar10,4000,quantum+noent+resnet18_pt,0.001,2,90.24,0.001,90.45,99.975,89.39,30.89,30.89
+cifar10,4000,quantum+resnet18_pt,0.0003,0,81.72,0.001,83.6,90.725,84.2,43.39,43.39
+cifar10,4000,quantum+resnet18_pt,0.0003,1,75.9,0.001,83.75,92.2,83.41,27.52,27.52
+cifar10,4000,quantum+resnet18_pt,0.0003,2,81.31,0.001,85.35,92.85,84.32,22.1,22.1
