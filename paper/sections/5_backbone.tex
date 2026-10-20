@@ -61,14 +61,14 @@ so we also trained classical product heads on designed supports that separate th
 a window of three consecutive inputs (0.82 vs 0.86). In each of these comparisons the
 lower-order head probes higher: by $5.4\pm2.7$ points against an order-4 layout whose support
 matrix, like every CNOT-derived one, has full rank, $5.6\pm2.2$ against a rank-5 window, and
-$3.9\pm1.9$ for the order-2 star against the order-3 window (5 seeds, all positive). Order
-therefore matters at fixed overlap and full rank. At equal order, the stars, which put most
+$3.9\pm1.9$ for the order-2 star against the order-3 window (5 seeds, all positive): in these
+matched comparisons the lower-order layout probes higher at fixed overlap and full rank. At equal order, the stars, which put most
 inputs in a single product, probe $3.0\pm0.2$ (3 seeds) and $1.8\pm2.8$ (5 seeds, mixed signs)
 points above the windows; the
 first of these also differs in rank, so how the coupling is distributed across inputs matters
 in addition to order, by an amount these controls do not pin down. Order alone therefore does
-not set the cost: an order-3 star probes above the default ring's order-2.5 products (68.9 vs
-67.8), and the designed heads also differ in how well they fit the training set (clean training
+not set the cost: an order-3 star probes as high as the default ring's order-2.5 products (68.9
+vs 68.8, 5 shared seeds), and the designed heads also differ in how well they fit the training set (clean training
 accuracy 84.8\% for the order-3 star vs 73.6\% for the full-rank order-4 layout, seeds 0--2), so
 their contrasts mix structure with optimization.
 
@@ -160,8 +160,9 @@ fixed learning rate, the default circuit's test accuracy spans up to 16 points o
 seeds. The classical head on its products probes above it ($-4.0\pm1.6$ vs $-7.2\pm2.3$
 against linear), but the same circuit with its rotations frozen at exactly zero, whose
 forward map and input gradients equal the products head's (a numerical test in the released
-code), probes $78.8\pm3.7$, below both (3 seeds; the trained circuits stay close to their
+code), probes $78.8\pm3.7$ at its selected rate, the top of its grid ($3\times10^{-3}$), below both (3 seeds; the trained circuits stay close to their
 zero-rotation model here, mean held-out $R^2\geq0.99$ per circuit and $\geq0.988$ for every run,
-\cref{app:zeroangle}). We therefore read the gap between
-the products head and the circuit on this backbone as run-to-run variation, not as an effect
-of the function class.
+\cref{app:zeroangle}). The products head beats the trained
+circuit in all five paired seeds, but the same function can land several points lower from a
+different random draw, so we leave the source of that gap, optimization variability or the
+small trainable rotations, unresolved.
