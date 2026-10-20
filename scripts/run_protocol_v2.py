@@ -241,9 +241,17 @@ def _grid(name: str) -> list[dict]:
                     items.append(dict(common, **variant, lr=lr, seed=sd))
     elif name == "cifar_pretrained_zero":
         # Default circuit with rotations frozen at exactly zero: the forward map equals the products head.
-        for lr in [3e-4, 1e-3, 3e-3]:
+        for lr in [3e-4, 1e-3, 3e-3, 1e-2]:
             for sd in SEEDS:
                 items.append(dict(_PRETRAINED, head="quantum", freeze_circuit=True, vqc_init_scale=0.0, lr=lr, seed=sd))
+    elif name == "cifar_pretrained_budget":
+        # Same number of optimizer updates as 4,000 images x 30 epochs; each size's selected lr.
+        for n, epochs, lrs in [(1000, 120, dict(linear=1e-3, quantum=1e-3, noent=1e-3)),
+                               (10000, 12, dict(linear=3e-4, quantum=3e-4, noent=1e-3))]:
+            for key, variant in [("linear", dict(head="linear")), ("quantum", dict(head="quantum")),
+                                 ("noent", dict(head="quantum", no_entangle=True))]:
+                for sd in SEEDS:
+                    items.append(dict(_PRETRAINED, **variant, train_subset_size=n, epochs=epochs, lr=lrs[key], seed=sd))
     elif name == "cifar_pretrained_10k_edge":
         # Linear, default and last-ring heads selected 3e-4 (grid bottom) at 10k images: one step down.
         for i in (0, 1, 3):
@@ -398,7 +406,7 @@ def main():
                                          "pretrained2_seeds", "cifar_pretrained_edge2",
                                          "cifar_pretrained2_edge", "cifar_pretrained_10k_lr",
                                          "cifar_pretrained_10k_edge", "cifar_init",
-                                         "cifar_pretrained_zero"], required=True)
+                                         "cifar_pretrained_zero", "cifar_pretrained_budget"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

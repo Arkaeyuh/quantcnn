@@ -78,6 +78,16 @@ def _selected_runs(runs_root: Path, grids: list[str]) -> dict[tuple[int, str], t
     return out
 
 
+def _all_runs(runs_root: Path, grids: list[str]) -> dict[tuple[int, str], list[tuple[float, list[Path]]]]:
+    """(size, head) -> [(lr, run dirs)] for every lr (lockstep comparisons pair runs at a fixed lr)."""
+    cells = defaultdict(lambda: defaultdict(list))
+    for grid in grids:
+        for fin in sorted((runs_root / grid).glob("*/final.json")):
+            meta = json.loads((fin.parent / "meta.json").read_text())
+            cells[(int(meta["train_subset_size"]), _head_key(meta))][meta["lr"]].append(fin.parent)
+    return {key: [(lr, sorted(d, key=lambda p: p.name)) for lr, d in sorted(by_lr.items())] for key, by_lr in cells.items()}
+
+
 @torch.no_grad()
 def _head_input(model: HybridClassifier, z: torch.Tensor) -> torch.Tensor:
     model.eval()
@@ -93,6 +103,10 @@ def main():
     ap.add_argument("--threads", type=int, default=4)
     ap.add_argument("--grids", nargs="+", default=None, help="Override the grids read (default: GRIDS[dataset]).")
     ap.add_argument("--heads", nargs="+", default=HEADS, help="Head keys to probe, or 'all'.")
+    ap.add_argument("--all_lrs", action="store_true",
+                    help="Probe every lr of each head instead of the validation-selected one.")
+    ap.add_argument("--mlp_lrs", nargs="+", type=float, default=MLP_PROBE_LRS,
+                    help="Learning-rate grid of the MLP probe.")
     ap.add_argument("--probe", choices=["linear", "mlp"], default="linear",
                     help="linear: the common linear probe; mlp: an 8-256-256-10 ReLU probe on standardized z.")
     a = ap.parse_args()
@@ -102,18 +116,25 @@ def main():
     done = set()
     if out.exists():
         with out.open() as fh:
-            done = {(r["dataset"], r["train_subset_size"], r["source_head"], r["seed"]) for r in csv.DictReader(fh)}
+            done = {(r["dataset"], r["train_subset_size"], r["source_head"], r["seed"])
+                    + ((r["source_lr"],) if a.all_lrs else ()) for r in csv.DictReader(fh)}
     for ds in a.datasets:
-        for (n, head), (lr, runs) in sorted(_selected_runs(Path(a.runs_root), a.grids or GRIDS[ds]).items()):
+        grids = a.grids or GRIDS[ds]
+        if a.all_lrs:
+            cells = [((n, head), lr_runs) for (n, head), v in sorted(_all_runs(Path(a.runs_root), grids).items())
+                     for lr_runs in v]
+        else:
+            cells = sorted(_selected_runs(Path(a.runs_root), grids).items())
+        for (n, head), (lr, runs) in cells:
             if a.heads != ["all"] and head not in a.heads:
                 continue
-            assert len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"]), (ds, n, head, lr)
+            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"]), (ds, n, head, lr)
             for run in runs:
                 meta = json.loads((run / "meta.json").read_text())
                 if meta["dataset"] != ds:
                     continue  # mixed-dataset grids (night_seeds)
                 seed = int(meta["seed"])
-                if (ds, str(n), head, str(seed)) in done:
+                if (ds, str(n), head, str(seed)) + ((f"{lr:g}",) if a.all_lrs else ()) in done:
                     continue
                 model = HybridClassifier(10, 8, meta["backbone"], meta["head"], 1 if ds == "mnist" else 3,
                                          mlp_hidden=meta.get("mlp_hidden"), n_var_layers=meta.get("n_var_layers", 4),
@@ -131,7 +152,7 @@ def main():
                 sat_z = (torch.tanh(z_test).abs() > 0.9).float().mean().item()
                 sat_in = (torch.tanh(_head_input(model, z_test)).abs() > 0.9).float().mean().item()
                 best = None
-                for plr in (PROBE_LRS if a.probe == "linear" else MLP_PROBE_LRS):
+                for plr in (PROBE_LRS if a.probe == "linear" else a.mlp_lrs):
                     r = _train_head("linear" if a.probe == "linear" else "mlp_probe", emb, seed, plr, 60)
                     if best is None or r["val_acc"] > best[1]["val_acc"]:
                         best = (plr, r)

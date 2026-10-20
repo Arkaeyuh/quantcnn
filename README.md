@@ -40,10 +40,12 @@ an exact, noiseless simulator.
 4. **Without CNOTs, the quantum head is exactly a classical model**: a per-input
    combination of `cos` and `sin` of the encoded features, which classical heads match
    within about a point.
-5. **It holds on a pretrained network and is worst with little data.** On an
-   ImageNet-pretrained ResNet-18 the same ordering holds; the default quantum head costs
-   22.3 points with 1,000 training images and 7.2 with 4,000, while the CNOT-free head
-   stays within 1.6 points of a linear head.
+5. **It holds on a pretrained network.** On an ImageNet-pretrained ResNet-18 the same
+   ordering holds. With the number of optimizer updates matched, the default quantum head
+   costs 6–7 points with 1,000 to 10,000 training images, while the CNOT-free head stays
+   within 0.5 points of a linear head. At a fixed 30 epochs the cost looks much larger
+   with little data (22.3 points at 1,000 images), largely because small sets get fewer
+   updates.
 
 Every number above is regenerated from the files in `results/` by the scripts listed
 below. Limitations (noiseless simulation, one circuit family, small datasets, 3–5 seeds)
@@ -92,6 +94,7 @@ python -m scripts.run_protocol_v2 --grid <grid> --n_workers 6 --threads_per_work
 | `cifar_pretrained`, `cifar_pretrained2`, `cifar_pretrained_1k`, `cifar_pretrained_10k` (+ `_1k_lr`, `_10k_lr`, edge-step grids) | ImageNet-pretrained ResNet-18 backbone at 1k / 4k / 10k images |
 | `cifar_seeds`, `night_seeds`, `pretrained2_seeds` | extra seeds (3–4) for the headline cells |
 | `cifar_init`, `cifar_pretrained_zero` | rotations initialized in U(−π, π); ResNet-18 VQC with rotations frozen at zero |
+| `cifar_pretrained_budget`, `scripts/lockstep_pretrained.py` | ResNet-18 at a matched number of updates (1k × 120, 10k × 12 epochs); three heads trained in lockstep from copied weights |
 
 **2. Probes and analyses** on the trained backbones:
 
@@ -102,6 +105,8 @@ python -m scripts.zero_angle_check      # trained circuits vs their zero-rotatio
 python -m scripts.sign_symmetry --circuit_lrs quantum+half=0.01 quantum+half_sym=0.01 quantum+noent=0.01
 python -m scripts.zero_angle_check --cases pretrained --out results/zero_angle_check_pretrained.csv
 python -m scripts.grad_rank           # effective rank of the backbone's loss gradient by head
+python -m scripts.lockstep_pretrained --n_workers 5
+python -m scripts.probe_backbones --all_lrs --heads all --datasets cifar10 --grids cifar_pretrained_lockstep --out results/lockstep_probe.csv
 ```
 
 **3. Summaries, tables, figures and the paper:**

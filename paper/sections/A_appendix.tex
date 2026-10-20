@@ -73,12 +73,25 @@ of \cref{sec:controls}, with the linear head also rerun at 160 epochs.
 
 \Cref{tab:mlpprobe} refits every headline backbone of \cref{fig:hero}b with a two-layer MLP probe
 under the same validation protocol as the linear probe; MNIST with 1,000 images gives the same
-picture (the MLP probe is within 0.5 points of the linear probe for every head). For the
-linear- and default-head backbones the MLP probe selects its lowest learning rate
-($10^{-3}$), so a better-tuned or stronger nonlinear decoder could recover more; we claim only
-that the gap persists under this probe. \Cref{tab:decoupled}
+picture (the MLP probe is within 0.5 points of the linear probe for every head). With the
+original grid the MLP probe selected its lowest learning rate ($10^{-3}$) for the linear- and
+default-head backbones. Extending the grid down to $10^{-4}$ for the five headline heads (linear,
+default, ring-free, last ring, pairs; 5 seeds) changes every contrast against the default
+circuit by less than 0.1 points (VQC $-$ linear $-4.8\pm0.7$, every seed negative); one
+default-head probe still selects the new lowest rate. A stronger nonlinear decoder could still
+recover more; we claim only that the gap persists under these probes. \Cref{tab:decoupled}
 gives the decoupling attempt discussed in \cref{sec:discussion}. \Cref{tab:gradrank} gives the
 effective rank of the backbone's loss gradient, and \cref{tab:init} the initialization control.
+
+\section{Pretrained-Backbone Controls}
+\label{app:ptcontrols}
+
+\Cref{tab:ptbudget} separates training size from the number of optimizer updates on the
+pretrained ResNet-18, and \cref{tab:lockstep} gives the lockstep comparison of the trained
+circuit, the circuit frozen at zero rotations and the products head discussed in
+\cref{sec:pretrained}.
+
+\input{figures/tableA_pretrained_controls}
 
 \section{Exploratory Sweep with One Shared Recipe}
 \label{app:sweep}

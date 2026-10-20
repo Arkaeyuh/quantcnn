@@ -18,7 +18,7 @@ that our probes can recover. Consistent with this, higher-order heads concentrat
 signal the backbone receives into fewer bottleneck directions: the effective rank (of 8) of the
 per-sample loss gradients $\partial\mathcal{L}/\partial z$ is 7.2 for the ring-free head, 4.5 for
 the default circuit and 3.7 for the last-ring circuit after training (7.3 for the linear head;
-ring-free above default in every seed), and the ordering already holds at initialization
+ring-free above default in every seed), and the mean ordering already holds at initialization
 (4.0, 2.8, 1.7; \cref{tab:gradrank}). This is a correlate of the probe cost, not a proof of
 cause. Two further results constrain the account. The MLP probe argues against
 the alternative that the information is present but only nonlinearly readable (\cref{app:mechanism}), consistent with
