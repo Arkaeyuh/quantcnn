@@ -159,8 +159,9 @@ cost is largest. On this backbone the high-order heads are also unstable across 
 fixed learning rate, the default circuit's test accuracy spans up to 16 points over three
 seeds. The classical head on its products probes above it ($-4.0\pm1.6$ vs $-7.2\pm2.3$
 against linear), but the same circuit with its rotations frozen at exactly zero, whose
-forward map and backbone gradients equal the products head's (to $10^{-6}$ in a direct
-check), probes $78.8\pm3.7$, below both (3 seeds; the trained circuits stay at $R^2\geq0.99$
-of their zero-rotation model here, \cref{app:zeroangle}). We therefore read the gap between
+forward map and input gradients equal the products head's (a numerical test in the released
+code), probes $78.8\pm3.7$, below both (3 seeds; the trained circuits stay close to their
+zero-rotation model here, mean held-out $R^2\geq0.99$ per circuit and $\geq0.988$ for every run,
+\cref{app:zeroangle}). We therefore read the gap between
 the products head and the circuit on this backbone as run-to-run variation, not as an effect
 of the function class.
