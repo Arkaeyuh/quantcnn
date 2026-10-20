@@ -59,6 +59,7 @@ checkpoint) are copied to ``results/protocol_v2/<grid>``, which is what
 from __future__ import annotations
 
 import argparse
+import math
 import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from copy import deepcopy
@@ -117,6 +118,9 @@ EDGE_EXTENSION = {
     # Selected lr at the grid minimum: one step down.
     "cifar_sg": [("cifar10", 4000, "cosprod_sg", None, 1e-3, {}), ("cifar10", 4000, "cosprod_last_sg", None, 1e-3, {})],
 }
+# Linear head still at the top after the first extension: a second step up.
+EDGE_EXTENSION["mnist_search"] += [("mnist", n, "linear", None, 3e-1) for n in [250, 500, 1000]]
+EDGE_EXTENSION["cifar_val"] += [("cifar10", n, "linear", None, 1e-1) for n in [2000, 4000]]
 
 
 def _grid(name: str) -> list[dict]:
@@ -227,6 +231,19 @@ def _grid(name: str) -> list[dict]:
             for lr in [3e-4, 1e-3, 3e-3]:
                 for sd in SEEDS:
                     items.append(dict(opts, train_subset_size=10000, lr=lr, seed=sd))
+    elif name == "cifar_init":
+        # Rotations start in uniform(-pi, pi) instead of near the identity.
+        common = dict(dataset="cifar10", train_subset_size=4000, head="quantum", mlp_hidden=None, epochs=80,
+                      gradient_clip_norm=2.0, vqc_init_scale=math.pi)
+        for variant in [{}, dict(no_entangle=True)]:
+            for lr in [3e-3, 1e-2, 3e-2]:
+                for sd in SEEDS:
+                    items.append(dict(common, **variant, lr=lr, seed=sd))
+    elif name == "cifar_pretrained_zero":
+        # Default circuit with rotations frozen at exactly zero: the forward map equals the products head.
+        for lr in [3e-4, 1e-3, 3e-3]:
+            for sd in SEEDS:
+                items.append(dict(_PRETRAINED, head="quantum", freeze_circuit=True, vqc_init_scale=0.0, lr=lr, seed=sd))
     elif name == "cifar_pretrained_10k_edge":
         # Linear, default and last-ring heads selected 3e-4 (grid bottom) at 10k images: one step down.
         for i in (0, 1, 3):
@@ -331,6 +348,7 @@ def _slug(it: dict) -> str:
     head += "_entlast" if it.get("entangle_last_only") else ""
     head += f"_L{it['n_var_layers']}" if it.get("n_var_layers", 4) != 4 else ""
     head += f"_{it['entangle_pattern']}" if it.get("entangle_pattern") else ""
+    head += f"_init{it['vqc_init_scale']:.3g}" if it.get("vqc_init_scale", 0.1) != 0.1 else ""
     head += f"_ep{it['epochs']}" if it["epochs"] != DEFAULT_EPOCHS[it["dataset"]] and not it.get("backbone") else ""
     head += f"_{it['backbone']}" if it.get("backbone") else ""
     mult = it.get("lr_backbone_multiplier", DEFAULT_BB_MULT)
@@ -379,7 +397,8 @@ def main():
                                          "cifar_pretrained_1k", "cifar_pretrained_1k_lr",
                                          "pretrained2_seeds", "cifar_pretrained_edge2",
                                          "cifar_pretrained2_edge", "cifar_pretrained_10k_lr",
-                                         "cifar_pretrained_10k_edge"], required=True)
+                                         "cifar_pretrained_10k_edge", "cifar_init",
+                                         "cifar_pretrained_zero"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

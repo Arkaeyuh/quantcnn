@@ -55,6 +55,7 @@ def _head_key(meta: dict) -> str:
     head += "+entlast" if meta.get("entangle", True) == "last" else ""
     head += f"+{meta['entangle']}" if str(meta.get("entangle", True)).startswith("pairs") else ""
     head += f"+L{meta['n_var_layers']}" if meta["head"] == "quantum" and meta.get("n_var_layers", 4) != 4 else ""
+    head += f"+init{meta['vqc_init_scale']:.3g}" if meta.get("vqc_init_scale", 0.1) != 0.1 else ""
     pretrained = meta.get("backbone") not in (None, "mnist", "cifar10")
     head += f"+ep{meta['epochs']}" if meta["epochs"] != {"mnist": 50, "cifar10": 80}[meta["dataset"]] and not pretrained else ""
     head += f"+{meta['backbone']}" if pretrained else ""

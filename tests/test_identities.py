@@ -7,7 +7,9 @@
   z_j only (Eq. 2);
 * pairs after every layer cancel only at zero rotations;
 * designed supports have the order / overlap / rank stated in the paper;
-* gradient-decoupled product heads keep the forward value and pass the stated gradient.
+* gradient-decoupled product heads keep the forward value and pass the stated gradient;
+* a VQC head with rotations frozen at zero equals the classical product head in output and
+  input gradient (same readout weights).
 """
 
 import itertools
@@ -17,6 +19,7 @@ import statistics as st
 import torch
 
 from quantcnn.models.classical_heads import DESIGNED_SUPPORTS, CosProductHead, cnot_ring_supports
+from quantcnn.models.quantum_head import QuantumClassifierHead
 from quantcnn.models.torch_vqc import TorchStatevectorVQC
 
 N = 8
@@ -110,6 +113,24 @@ def test_decoupled_head_forward_and_gradient():
     dc = -math.pi * (1 - torch.tanh(y.detach()) ** 2) * torch.sin(math.pi * torch.tanh(y.detach()))
     expected = (b.fc.weight.sum(0)[None, :, None] * b.mask[None]).sum(1) * dc
     assert torch.allclose(y.grad, expected, atol=1e-5)
+
+
+def test_zero_rotation_vqc_head_equals_product_head():
+    for entangle, last in [(True, False), ("last", True)]:
+        torch.manual_seed(0)
+        q = QuantumClassifierHead(N, 10, 4, "none", sim="torch", entangle=entangle)
+        c = CosProductHead(N, 10, 4, last_only=last)
+        with torch.no_grad():
+            q.vqc.qlayer.weights.zero_()
+            c.fc.load_state_dict(q.proj.state_dict())
+        x = torch.randn(32, N) * 1.5
+        x1, x2 = x.clone().requires_grad_(True), x.clone().requires_grad_(True)
+        o1, o2 = q(x1), c(x2)
+        y = torch.randint(0, 10, (32,))
+        torch.nn.functional.cross_entropy(o1, y).backward()
+        torch.nn.functional.cross_entropy(o2, y).backward()
+        assert torch.allclose(o1, o2, atol=1e-5), entangle
+        assert torch.allclose(x1.grad, x2.grad, atol=1e-6), entangle
 
 
 if __name__ == "__main__":

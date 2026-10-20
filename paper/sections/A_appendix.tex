@@ -64,15 +64,18 @@ overlap and probes like the rank-5 window ($-0.7$ on average, mixed in sign), so
 account for the order-4 deficit. \Cref{tab:budget} gives the training-budget check
 of \cref{sec:controls}, with the linear head also rerun at 160 epochs.
 
-\section{Nonlinear Probe and Gradient Decoupling}
+\section{Nonlinear Probe, Gradient Rank, Initialization and Gradient Decoupling}
 \label{app:mechanism}
 
 \input{figures/tableA_mechanism}
 
+\input{figures/tableA_gradrank_init}
+
 \Cref{tab:mlpprobe} refits every headline backbone of \cref{fig:hero}b with a two-layer MLP probe
 under the same validation protocol as the linear probe; MNIST with 1,000 images gives the same
 picture (the MLP probe is within 0.5 points of the linear probe for every head). \Cref{tab:decoupled}
-gives the decoupling attempt discussed in \cref{sec:discussion}.
+gives the decoupling attempt discussed in \cref{sec:discussion}. \Cref{tab:gradrank} gives the
+effective rank of the backbone's loss gradient, and \cref{tab:init} the initialization control.
 
 \section{Exploratory Sweep with One Shared Recipe}
 \label{app:sweep}

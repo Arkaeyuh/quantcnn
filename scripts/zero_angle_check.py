@@ -32,6 +32,7 @@ map q ~ [q0, 1] W is fit on the even half and evaluated on the odd half):
 From repository root::
 
     PYTHONPATH=. python -m scripts.zero_angle_check --out results/zero_angle_check.csv
+    PYTHONPATH=. python -m scripts.zero_angle_check --cases pretrained --out results/zero_angle_check_pretrained.csv
 """
 
 from __future__ import annotations
@@ -51,7 +52,7 @@ from scripts.probe_backbones import _selected_runs
 
 ROOT = Path("runs/protocol_v2")
 SLUG = "cifar10_subset4000_quantum{}_lr{:g}_s{}"
-# name -> (slug suffix, grid for seeds 0-2, seeds)
+# name -> (slug suffix, grid for seeds 0-2, seeds); seeds 3-4 live in the extra-seed grid
 CASES = {
     "quantum": ("", "cifar_val", range(5)),
     "quantum+entlast": ("_entlast", "cifar_entangle", range(5)),
@@ -60,6 +61,14 @@ CASES = {
     "quantum+pairs": ("_pairs", "cifar_pairs", range(5)),
     "quantum+pairs_last": ("_pairs_last", "cifar_pairs", range(5)),
 }
+# ImageNet-pretrained ResNet-18 backbone (--cases pretrained)
+PT = "_resnet18_pt_bbm0.1"
+CASES_PRETRAINED = {
+    "quantum+resnet18_pt": (PT, "cifar_pretrained", range(5)),
+    "quantum+entlast+resnet18_pt": ("_entlast" + PT, "cifar_pretrained", range(5)),
+    "quantum+noent+resnet18_pt": ("_noent" + PT, "cifar_pretrained", range(5)),
+}
+EXTRA_SEED_GRID = {"cases": "cifar_seeds", "pretrained": "night_seeds"}
 
 
 def _load(run: Path) -> HybridClassifier:
@@ -119,12 +128,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="results/zero_angle_check.csv")
     ap.add_argument("--val_size", type=int, default=2000)
+    ap.add_argument("--cases", choices=["cases", "pretrained"], default="cases",
+                    help="'pretrained': the ResNet-18 heads instead of the small-CNN ones.")
     a = ap.parse_args()
     rows = []
-    for name, (suffix, grid, seeds) in CASES.items():
+    for name, (suffix, grid, seeds) in (CASES if a.cases == "cases" else CASES_PRETRAINED).items():
         lr = _selected_runs(ROOT, [grid])[(4000, name)][0]  # validation-selected on seeds 0-2
         for seed in seeds:
-            run = ROOT / (grid if seed < 3 else "cifar_seeds") / SLUG.format(suffix, lr, seed)
+            run = ROOT / (grid if seed < 3 else EXTRA_SEED_GRID[a.cases]) / SLUG.format(suffix, lr, seed)
             model = _load(run)
             z, y = _embed(model, get_splits("cifar10", 4000, seed, a.val_size)["val"], torch.device("cpu"))
             vqc, proj = model.head.vqc, model.head.proj

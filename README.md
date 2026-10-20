@@ -34,7 +34,9 @@ an exact, noiseless simulator.
    inputs fixed by the CNOT gates. The average size of that set, the *product order*, tracks
    the cost: probe accuracy is 73.6 at order 1, 69.8 for the default circuit (order 2.5) and
    60.1 at order 5.25. Removing the CNOTs recovers 3.8 of the 4.7 points; a circuit that
-   keeps its CNOTs but has product order 1 recovers 3.1.
+   keeps its CNOTs but has product order 1 recovers 3.1. The cost persists when the rotations
+   start far from zero, and higher-order heads concentrate the gradient the CNN receives into
+   fewer directions.
 4. **Without CNOTs, the quantum head is exactly a classical model**: a per-input
    combination of `cos` and `sin` of the encoded features, which classical heads match
    within about a point.
@@ -89,6 +91,7 @@ python -m scripts.run_protocol_v2 --grid <grid> --n_workers 6 --threads_per_work
 | `cifar_mech`, `cifar_long`, `cifar_long2`, `cifar_sg` | controls: backbone learning rate, frozen circuit, 2x training budget, gradient decoupling |
 | `cifar_pretrained`, `cifar_pretrained2`, `cifar_pretrained_1k`, `cifar_pretrained_10k` (+ `_1k_lr`, `_10k_lr`, edge-step grids) | ImageNet-pretrained ResNet-18 backbone at 1k / 4k / 10k images |
 | `cifar_seeds`, `night_seeds`, `pretrained2_seeds` | extra seeds (3–4) for the headline cells |
+| `cifar_init`, `cifar_pretrained_zero` | rotations initialized in U(−π, π); ResNet-18 VQC with rotations frozen at zero |
 
 **2. Probes and analyses** on the trained backbones:
 
@@ -97,6 +100,8 @@ python -m scripts.probe_backbones --datasets cifar10 --grids <grid> --heads all 
 python -m scripts.probe_backbones --probe mlp --datasets cifar10 --grids <grid> --heads all --out results/<name>_mlp_probe.csv
 python -m scripts.zero_angle_check      # trained circuits vs their zero-rotation product model
 python -m scripts.sign_symmetry --circuit_lrs quantum+half=0.01 quantum+half_sym=0.01 quantum+noent=0.01
+python -m scripts.zero_angle_check --cases pretrained --out results/zero_angle_check_pretrained.csv
+python -m scripts.grad_rank           # effective rank of the backbone's loss gradient by head
 ```
 
 **3. Summaries, tables, figures and the paper:**

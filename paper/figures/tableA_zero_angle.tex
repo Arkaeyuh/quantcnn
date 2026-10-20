@@ -1,7 +1,7 @@
 \begin{table}[h]
 \centering
 \caption{Trained circuits against their own zero-rotation product model (CIFAR-10, 4,000
-training images; each run's validation embeddings, split by index parity; means over $n$
+training images; small CNN, and below the pretrained ResNet-18; each run's validation embeddings, split by index parity; means over $n$
 seeds). An affine map from the readouts of the same circuit with all rotations set to zero,
 $q_0$, to the trained readouts $q$ is fit on one half and evaluated on the other. $R^2$:
 held-out fraction of trained readout variance it recovers, a ratio relative to the circuit's
@@ -27,6 +27,11 @@ ring, last & 5.25 & 5 & 0.903 & 0.0326 & 55.7 & 49.4 & 0.75 & 0.87 & 0.10 / 0.41
 pairs, last & 1.5 & 5 & 0.826 & 0.0684 & 70.0 & 60.4 & 0.49 & 0.81 & 0.20 / 0.37 \\
 pairs & 1 & 5 & 0.788 & 0.0990 & 73.9 & 64.3 & 0.42 & 0.79 & 0.32 / 0.43 \\
 no CNOT & 1 & 5 & 0.734 & 0.1309 & 74.1 & 61.9 & 0.34 & 0.71 & 0.41 / 0.28 \\
+\midrule
+\multicolumn{10}{l}{\emph{Pretrained ResNet-18 backbone}} \\
+ring (default) & 2.5 & 5 & 0.997 & 0.0019 & 78.2 & 78.1 & 0.98 & 0.98 & 0.02 / 0.05 \\
+ring, last & 5.25 & 5 & 0.994 & 0.0037 & 58.6 & 59.3 & 0.91 & 0.91 & 0.05 / 0.05 \\
+no CNOT & 1 & 5 & 0.992 & 0.0067 & 90.4 & 90.2 & 0.93 & 0.93 & 0.06 / 0.05 \\
 \bottomrule
 \end{tabular}
 \end{table}

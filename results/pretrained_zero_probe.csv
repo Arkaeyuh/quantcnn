@@ -1,0 +1,4 @@
+dataset,train_subset_size,source_head,source_lr,seed,source_test_acc,probe_lr,probe_val_acc,probe_train_acc,probe_test_acc,sat_090_z,sat_090_head_input
+cifar10,4000,quantum+frozen+init0+resnet18_pt,0.003,0,82.65,0.3,82.7,96.55,82.96,68.91,68.91
+cifar10,4000,quantum+frozen+init0+resnet18_pt,0.003,1,73.32,1,75.5,86.925,75.76,77.32,77.32
+cifar10,4000,quantum+frozen+init0+resnet18_pt,0.003,2,76.62,0.3,78.9,88.45,77.76,69.26,69.26

@@ -14,7 +14,13 @@ $\enc{i}=\pm\pi/2$. With order 1 each coordinate learns from its own readout; at
 the readouts couple 5.25 coordinates on average, multiplicatively. We hypothesize that this
 coupling makes the class signal each coordinate receives depend on the state of the others,
 so that higher-order heads train backbones whose bottlenecks carry less class signal
-that our probes can recover. Two results constrain the account. The MLP probe argues against
+that our probes can recover. Consistent with this, higher-order heads concentrate the class
+signal the backbone receives into fewer bottleneck directions: the effective rank (of 8) of the
+per-sample loss gradients $\partial\mathcal{L}/\partial z$ is 7.2 for the ring-free head, 4.5 for
+the default circuit and 3.7 for the last-ring circuit after training (7.3 for the linear head;
+ring-free above default in every seed), and the ordering already holds at initialization
+(4.0, 2.8, 1.7; \cref{tab:gradrank}). This is a correlate of the probe cost, not a proof of
+cause. Two further results constrain the account. The MLP probe argues against
 the alternative that the information is present but only nonlinearly readable (\cref{app:mechanism}), consistent with
 the high-order circuits' weaker training fit. An attempt to remove the coupling directly, by
 keeping the forward products and passing each input's gradient only through its own factor,
@@ -36,7 +42,7 @@ head's accuracy.
 
 \paragraph{Limitations.}
 We study one circuit family (8 qubits, $R_yR_z$ layers, $\pi\tanh$ angle encoding with two
-variants), in noiseless simulation, with small CNNs and one pretrained ResNet-18 on subsets
+variants) on an 8-dimensional bottleneck, one qubit per coordinate, in noiseless simulation, with small CNNs and one pretrained ResNet-18 on subsets
 of MNIST and CIFAR-10 of at most 10,000 images; the size of the effect with other encodings,
 other pretrained models or on hardware is untested. Results use 3 seeds per cell and 5 for the CIFAR-10/4,000 headline cells, enough
 for consistent signs in paired comparisons but not for equivalence claims. Product order is a

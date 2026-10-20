@@ -97,6 +97,12 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
         "(the backbone and the readout Linear still train).",
     )
     p.add_argument(
+        "--vqc_init_scale",
+        type=float,
+        default=0.1,
+        help="Quantum head only: rotation angles start in uniform(-s, s) (default 0.1, near the identity).",
+    )
+    p.add_argument(
         "--encoding",
         choices=["pi_tanh", "half", "half_sym"],
         default="pi_tanh",
@@ -195,6 +201,7 @@ def run_training(args: argparse.Namespace) -> Path:
         freeze_circuit=bool(args.freeze_circuit),
         encoding=args.encoding,
         entangle=_entangle(args),
+        vqc_init_scale=float(args.vqc_init_scale),
     )
 
     set_seed(int(args.seed))
@@ -229,6 +236,11 @@ def run_training(args: argparse.Namespace) -> Path:
         encoding=args.encoding,
         entangle=_entangle(args),
     )
+    if cfg.vqc_init_scale != 0.1:
+        if args.head != "quantum":
+            raise ValueError("--vqc_init_scale requires --head quantum.")
+        with torch.no_grad():
+            model.head.vqc.qlayer.weights.uniform_(-cfg.vqc_init_scale, cfg.vqc_init_scale)
 
     if torch.cuda.is_available():
         device = torch.device("cuda")

@@ -16,8 +16,8 @@ under the new protocol the advantage is already $+10.8$, $+6.1$ and $-0.5$ (last
 only the learning rate changes between the two columns of \cref{tab:matched}, the VQC deficit to MLP-8 shrinks from 10.1--13.6 points to
 3.1--9.2, and the VQC's own test accuracy rises by 6.0, 6.1 and 10.7 points. A linear head
 has the highest mean in all six settings and beats the VQC for every seed; its mean lead is
-1.7--13.7 points on MNIST and 7.0--15.8 on CIFAR-10. Its selected rate sits at the top of its grid in
-five settings, so its lead may be understated.
+1.7--13.7 points on MNIST and 7.0--15.8 on CIFAR-10. Every selected rate is interior to its
+grid; for the linear head this took two extension steps in five settings.
 
 This audit fixes the comparisons used in the rest of the paper: every head is evaluated at
 its own validated learning rate. It also leaves a question. At 4,000 CIFAR-10 images the

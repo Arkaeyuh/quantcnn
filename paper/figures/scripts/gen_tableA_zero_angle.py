@@ -28,14 +28,25 @@ HEADS = {
     "quantum+pairs": ("pairs", (4, False, "pairs")),
     "quantum+noent": ("no CNOT", None),
 }
+# ImageNet-pretrained ResNet-18 backbone (results/zero_angle_check_pretrained.csv)
+HEADS_PT = {
+    "quantum+resnet18_pt": ("ring (default)", (4, False, "ring")),
+    "quantum+entlast+resnet18_pt": ("ring, last", (4, True, "ring")),
+    "quantum+noent+resnet18_pt": ("no CNOT", None),
+}
 
 
 def main():
     rows = defaultdict(list)
-    for r in csv.DictReader(Path("results/zero_angle_check.csv").open()):
-        rows[r["head"]].append(r)
+    for name in ("zero_angle_check", "zero_angle_check_pretrained"):
+        for r in csv.DictReader(Path(f"results/{name}.csv").open()):
+            rows[r["head"]].append(r)
     lines = []
-    for key, (label, structure) in HEADS.items():
+    for key, val in [*HEADS.items(), ("midrule", None), *HEADS_PT.items()]:
+        if key == "midrule":
+            lines.append(r"\midrule" + "\n" + r"\multicolumn{10}{l}{\emph{Pretrained ResNet-18 backbone}} \\")
+            continue
+        label, structure = val
         rs = rows[key]
         m = lambda c: st.mean(float(r[c]) for r in rs)  # noqa: E731
         order = 1 if structure is None else st.mean(len(s) for s in cnot_ring_supports(8, *structure))
@@ -45,7 +56,7 @@ def main():
     body = r"""\begin{table}[h]
 \centering
 \caption{Trained circuits against their own zero-rotation product model (CIFAR-10, 4,000
-training images; each run's validation embeddings, split by index parity; means over $n$
+training images; small CNN, and below the pretrained ResNet-18; each run's validation embeddings, split by index parity; means over $n$
 seeds). An affine map from the readouts of the same circuit with all rotations set to zero,
 $q_0$, to the trained readouts $q$ is fit on one half and evaluated on the other. $R^2$:
 held-out fraction of trained readout variance it recovers, a ratio relative to the circuit's

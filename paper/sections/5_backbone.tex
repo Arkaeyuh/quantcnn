@@ -94,7 +94,11 @@ further ($R^2$ 0.73--0.83); for the ring-free circuit this is the $\sin\enc{j}$ 
 recover part of the cost: the last-ring circuit beats the classical head on its products by
 $6.4\pm5.8$ test points. The products thus reproduce the accuracy trend and most of the
 trained ring circuits' readouts and gradient directions, and the trained rotations add task
-detail on top of them.
+detail on top of them. The cost does not depend on starting in the product regime: with the
+rotations initialized in $\mathcal{U}(-\pi,\pi)$, where the identity does not hold at the start,
+the default circuit still probes $4.6\pm1.7$ points below the ring-free one ($3.8\pm1.6$ on the
+same three seeds at the default initialization), and neither circuit's probe moves by more
+than a point on average (\cref{tab:init}).
 
 \subsection{Without CNOTs the head is a classical sinusoidal model}
 \label{sec:sinusoid}
@@ -151,7 +155,12 @@ within a point (default circuit: $-5.8$ vs $-5.7$). The cost depends
 strongly on data: the default circuit trails by $22.3\pm2.9$ points at 1,000 images and by
 $1.9\pm0.4$ at 10,000, while the ring-free head stays within 1.6 points of linear at every
 size. Small quantum heads are usually proposed for exactly the low-data regime where this
-cost is largest. One result differs from the small CNN: the classical head on the default
-circuit's products costs less than the circuit itself ($-4.0\pm1.6$ vs $-7.2\pm2.3$; the
-products probe $3.2\pm1.3$ points above the VQC, every seed positive), so on this backbone
-the products reproduce the ordering but only part of the circuit's cost.
+cost is largest. On this backbone the high-order heads are also unstable across runs: at a
+fixed learning rate, the default circuit's test accuracy spans up to 16 points over three
+seeds. The classical head on its products probes above it ($-4.0\pm1.6$ vs $-7.2\pm2.3$
+against linear), but the same circuit with its rotations frozen at exactly zero, whose
+forward map and backbone gradients equal the products head's (to $10^{-6}$ in a direct
+check), probes $78.8\pm3.7$, below both (3 seeds; the trained circuits stay at $R^2\geq0.99$
+of their zero-rotation model here, \cref{app:zeroangle}). We therefore read the gap between
+the products head and the circuit on this backbone as run-to-run variation, not as an effect
+of the function class.

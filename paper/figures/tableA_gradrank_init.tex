@@ -1,0 +1,43 @@
+\begin{table}[h]
+\centering
+\caption{Effective rank (of 8) of the class signal the backbone receives: $\exp H(p)$, with $p$
+the normalized eigenvalues of $\frac1N\sum_i g_ig_i^\top$, $g_i=\partial\mathcal{L}_i/\partial z$
+(cross-entropy) on the 2,000 validation embeddings (CIFAR-10, 4,000 training images; 5 seeds).
+Final: the trained run at its validation-selected lr. Init: a freshly initialized model of the
+same kind built with the run's seed. $\Delta$: paired difference to the default circuit.}
+\label{tab:gradrank}
+\small
+\begin{tabular}{lccccc}
+\toprule
+& & \multicolumn{2}{c}{Init} & \multicolumn{2}{c}{Final} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Head & Order & rank & $\Delta$ & rank & $\Delta$ \\
+\midrule
+linear & --- & $5.4 \pm 0.5$ & $+2.6 \pm 0.5$ & $7.3 \pm 0.2$ & $+2.8 \pm 0.7$ \\
+VQC, no CNOT & 1 & $4.0 \pm 0.6$ & $+1.2 \pm 0.8$ & $7.2 \pm 0.2$ & $+2.7 \pm 0.8$ \\
+VQC, ring (default) & 2.5 & $2.8 \pm 0.4$ & --- & $4.5 \pm 0.6$ & --- \\
+VQC, ring, last & 5.25 & $1.7 \pm 0.3$ & $-1.1 \pm 0.4$ & $3.7 \pm 0.6$ & $-0.8 \pm 0.6$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Initialization control: probe accuracy (\%) with the variational rotations initialized
+in $\mathcal{U}(-0.1,0.1)$ (near the identity, the protocol default) or $\mathcal{U}(-\pi,\pi)$
+(CIFAR-10, 4,000 training images; seeds 0--2; head lr selected on validation from
+$\{3\times10^{-3},10^{-2},3\times10^{-2}\}$ at the large initialization). The last row is the
+paired difference between the two circuits.}
+\label{tab:init}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Circuit & $\mathcal{U}(-0.1,0.1)$ & $\mathcal{U}(-\pi,\pi)$ & large $-$ small & selected lr \\
+\midrule
+VQC, ring (default) & $69.9 \pm 1.1$ & $69.0 \pm 1.8$ & $-0.9 \pm 1.6$ & 0.01 / 0.01 \\
+VQC, no CNOT & $73.7 \pm 0.6$ & $73.6 \pm 0.4$ & $-0.1 \pm 0.2$ & 0.01 / 0.01 \\
+\midrule
+no CNOT $-$ default & $+3.8 \pm 1.6$ & $+4.6 \pm 1.7$ & & \\
+\bottomrule
+\end{tabular}
+\end{table}

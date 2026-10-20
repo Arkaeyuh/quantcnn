@@ -35,6 +35,7 @@ class RunConfig:
     freeze_circuit: bool = False
     encoding: str = "pi_tanh"
     entangle: bool | str = True
+    vqc_init_scale: float = 0.1
 
 
 def accuracy(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:

@@ -10,6 +10,7 @@ A run counts as finished when it has `final.json`, `meta.json` and a `metrics.cs
 | cifar_classical | 24 | 24 | cifar10 | 4000 | cos, cossin | 0, 1, 2 | DONE |
 | cifar_cosprod | 24 | 24 | cifar10 | 4000 | cosprod, cosprod_last | 0, 1, 2 | DONE |
 | cifar_entangle | 27 | 27 | cifar10 | 4000 | quantum | 0, 1, 2 | DONE |
+| cifar_init | 18 | 18 | cifar10 | 4000 | quantum | 0, 1, 2 | DONE |
 | cifar_long | 9 | 9 | cifar10 | 4000 | quantum | 0, 1, 2 | DONE |
 | cifar_long2 | 9 | 9 | cifar10 | 4000 | linear, quantum | 0, 1, 2, 3, 4 | DONE |
 | cifar_mech | 36 | 36 | cifar10 | 4000 | linear, quantum | 0, 1, 2 | DONE |
@@ -18,13 +19,14 @@ A run counts as finished when it has `final.json`, `meta.json` and a `metrics.cs
 | cifar_pretrained2 | 24 | 24 | cifar10 | 4000 | cosprod, quantum | 0, 1, 2 | DONE |
 | cifar_pretrained_10k | 45 | 45 | cifar10 | 10000 | linear, quantum | 0, 1, 2 | DONE |
 | cifar_pretrained_1k | 36 | 36 | cifar10 | 1000 | linear, quantum | 0, 1, 2 | DONE |
+| cifar_pretrained_zero | 9 | 9 | cifar10 | 4000 | quantum | 0, 1, 2 | DONE |
 | cifar_seeds | 22 | 22 | cifar10 | 4000 | cos, cosprod, cosprod_last, cosprod_pairs_last, linear, mlp, quantum | 3, 4 | DONE |
 | cifar_sg | 24 | 24 | cifar10 | 4000 | cosprod_last_sg, cosprod_sg | 0, 1, 2 | DONE |
 | cifar_support | 54 | 54 | cifar10 | 4000 | cosprod_gap4, cosprod_star2, cosprod_star3, cosprod_win2, cosprod_win3, cosprod_win4 | 0, 1, 2 | DONE |
-| cifar_val | 96 | 96 | cifar10 | 1000, 2000, 4000 | linear, mlp, quantum | 0, 1, 2 | DONE |
+| cifar_val | 102 | 102 | cifar10 | 1000, 2000, 4000 | linear, mlp, quantum | 0, 1, 2 | DONE |
 | mnist_bn | 99 | 99 | mnist | 250, 500, 1000 | linear, quantum | 0, 1, 2 | DONE |
 | mnist_circuit | 60 | 60 | mnist | 500, 1000 | quantum | 0, 1, 2 | DONE |
 | mnist_order | 42 | 42 | mnist | 1000 | cosprod, cosprod_last, quantum | 0, 1, 2 | DONE |
-| mnist_search | 201 | 201 | mnist | 250, 500, 1000 | linear, mlp, quantum | 0, 1, 2 | DONE |
+| mnist_search | 210 | 210 | mnist | 250, 500, 1000 | linear, mlp, quantum | 0, 1, 2 | DONE |
 | night_seeds | 22 | 22 | cifar10, mnist | 1000, 4000 | cosprod_gap4, cosprod_star2, cosprod_star3, cosprod_win3, cosprod_win4, linear, quantum | 3, 4 | DONE |
 | pretrained2_seeds | 4 | 4 | cifar10 | 4000 | cosprod, quantum | 3, 4 | DONE |
