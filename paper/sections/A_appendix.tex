@@ -85,6 +85,25 @@ recover more; we claim only that the gap persists under these probes. \Cref{tab:
 gives the decoupling attempt discussed in \cref{sec:discussion}. \Cref{tab:gradrank} gives the
 effective rank of the backbone's loss gradient, and \cref{tab:init} the initialization control.
 
+\section{A Second Family of CNOT Layouts}
+\label{app:family}
+
+\input{figures/tableA_family}
+
+\Cref{tab:family} tests product order out of sample. The six layouts were chosen by their
+zero-rotation order alone, from CNOT patterns not used anywhere else in the paper, and their
+predicted probe accuracies and the pass criteria (Spearman correlation at most $-0.8$; at least
+four of six within 4 points) were recorded before any run. Every layout selected the head
+learning rate $10^{-2}$, interior to its grid. The two misses are informative. The star-shaped
+ring after the last layer gives one readout order 8 and the other seven order 1, and probes 2.4
+points above the prediction from its mean order of 1.875: one dead readout costs less than
+the mean suggests. Brickwork, which alternates its pairs between layers, probes 5.1 points
+above its prediction. Its supports are nearly uniform (every input in 3 or 4 of them), but so
+are those of the distance-2 ring after the last layer (2 to 4), which lands on its prediction,
+so support uniformity does not explain the miss; we leave it unexplained. As with the designed
+supports of \cref{tab:support}, the mean order does not capture everything about a layout. A two-layer MLP probe gives the same pattern (brickwork 70.2, open chain
+after the last layer 58.8).
+
 \section{Pretrained-Backbone Controls}
 \label{app:ptcontrols}
 

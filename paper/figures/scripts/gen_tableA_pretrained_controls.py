@@ -5,7 +5,7 @@
   ``pretrained_probe.csv``/``night_seeds_probe.csv``, ``pretrained_10k_probe.csv``) and at a
   matched number of optimizer updates (``pretrained_budget_probe.csv``), seeds 0-2;
 * lockstep: three heads trained from copied weights on identical batches
-  (``lockstep_probe.csv``), paired differences over seeds 0-4 x lr {3e-4, 1e-3}.
+  (``lockstep_probe.csv``), paired differences over seeds 0-9 x lr {3e-4, 1e-3}.
 
 From repository root::
 
@@ -47,18 +47,21 @@ def _budget_table() -> str:
         settings = [(30, _probes(files, n))]
         if n != 4000:
             settings.append((matched_ep, _probes(["pretrained_budget_probe"], n)))
+            settings.append((-matched_ep, _probes(["pretrained_budget_tuned_probe"], n)))  # negative: re-tuned
         for epochs, p in settings:
             lin = p["linear+resnet18_pt"]
             cells = [ms(lin.values())] + [paired(p[k], lin) for k, _ in HEADS[1:]]
-            tag = "" if epochs == 30 else r" (matched)"
+            tag = "" if epochs == 30 else r" (matched)" if epochs > 0 else r" (matched, re-tuned)"
+            epochs = abs(epochs)
             lines.append(f"{n:,} & {epochs}{tag} & {steps * epochs:,} & " + " & ".join(cells) + r" \\")
     return r"""\begin{table}[h]
 \centering
 \caption{Training budget on the pretrained ResNet-18 (CIFAR-10; seeds 0--2; probe accuracy, \%).
 The protocol trains 30 epochs at every size, so smaller training sets get fewer optimizer
 updates. Matched rows train 120 epochs at 1,000 images and 12 at 10,000, the update count of
-4,000 images $\times$ 30 epochs; head learning rates are those selected at 30 epochs for each
-size. Differences are paired over seeds, against the linear head.}
+4,000 images $\times$ 30 epochs, with the head learning rates selected at 30 epochs for each
+size or re-selected on validation over a half-decade step either way (re-tuned). Differences are
+paired over seeds, against the linear head.}
 \label{tab:ptbudget}
 \small
 \begin{tabular}{lccccc}
@@ -78,13 +81,16 @@ def _lockstep_table() -> str:
         p[r["source_head"]][(float(r["source_lr"]), int(r["seed"]))] = float(r["probe_test_acc"])
     q, z, c = p["quantum+resnet18_pt"], p["quantum+frozen+init0+resnet18_pt"], p["cosprod+resnet18_pt"]
 
+    seeds = sorted({s for _, s in q})
+    t975 = {5: 2.776, 10: 2.262}  # t_{0.975, n-1}
+
     def row(label, a, b, la, lb):
-        d = [a[(la, s)] - b[(lb, s)] for s in range(5)]
-        half = 2.776 * st.stdev(d) / math.sqrt(len(d))  # t_{0.975, 4}: five seeds, paired
+        d = [a[(la, s)] - b[(lb, s)] for s in seeds]
+        half = t975[len(d)] * st.stdev(d) / math.sqrt(len(d))  # paired over seeds
         m = st.mean(d)
         sign = "" if abs(m) < 0.05 else ("+" if m > 0 else "-")
         return (f"{label} & ${sign}{abs(m):.1f} \\pm {st.stdev(d):.1f}$ & [{m - half:+.1f}, {m + half:+.1f}] & "
-                f"{sum(x < 0 for x in d)}/5 \\\\")
+                f"{sum(x < 0 for x in d)}/{len(d)} \\\\")
 
     lines = []
     for lr, tag in [(3e-4, r"$3\times10^{-4}$"), (1e-3, r"$10^{-3}$")]:
@@ -92,7 +98,7 @@ def _lockstep_table() -> str:
         lines.append(row(f"frozen $-$ products, both at {tag}", z, c, lr, lr))
     lines.append(r"\midrule")
     lines.append(row(r"trained at $3\times10^{-4}$ $-$ products at $10^{-3}$ (main-grid rates)", q, c, 3e-4, 1e-3))
-    means = "; ".join(f"{tag}: " + " / ".join(f"{st.mean(v[(lr, s)] for s in range(5)):.1f}" for v in (q, z, c))
+    means = "; ".join(f"{tag}: " + " / ".join(f"{st.mean(v[(lr, s)] for s in seeds):.1f}" for v in (q, z, c))
                       for lr, tag in [(3e-4, r"$3\times10^{-4}$"), (1e-3, r"$10^{-3}$")])
     return r"""\begin{table}[h]
 \centering
@@ -100,7 +106,7 @@ def _lockstep_table() -> str:
 default circuit, the same circuit with its rotations frozen at exactly zero (forward map and
 input gradients equal to the products head's), and the classical head on the default
 circuit's zero-rotation products are trained in one process from copied initial weights on
-identical batches; paired probe differences over seeds 0--4 at each head lr, with a 95\% paired
+identical batches; paired probe differences over seeds 0--9 at each head lr, with a 95\% paired
 $t$ interval. The last row pairs the heads at the rates validation selected for them in the
 main grid. Mean probe accuracy (trained / frozen / products), """ + means + r""".}
 \label{tab:lockstep}

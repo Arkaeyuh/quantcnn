@@ -8,8 +8,8 @@ quantum classifiers, and that removing entanglement often does not hurt
 data \citep{slattery2022}. Closest to our setting, \citet{fulton2026} show that classical
 $\mathrm{SU}(2)$ models match or exceed shallow VQCs on vision benchmarks and that ring
 entanglement can degrade accuracy on fixed features. Recent hybrid-network studies reach
-related conclusions under more careful matching of width and budget
-\citep{freinberger2026,park2026}, and controlled benchmarks of quantum transfer learning find
+related conclusions with matched preprocessing and latent width \citep{freinberger2026} or
+matched width and parameter count \citep{park2026}, and controlled benchmarks of quantum transfer learning find
 the outcome strongly configuration-dependent \citep{innan2026}. Other work trains hybrid models end to end and
 studies the learned representation: \citet{bowles2024} visualize the layers of a trained
 dressed hybrid network, \citet{kashif2026} analyze expressibility and
@@ -23,17 +23,16 @@ pattern.
 A growing line of work asks what the quantum part of a hybrid model contributes.
 \citet{kolle2024} separate classical and quantum contributions in hybrid architectures,
 building on sequential training that first fits a classical surrogate and then swaps in the
-circuit \citep{altmann2023}. \citet{elhag2026} delete, freeze or corrupt the circuit in
-quantum message passing and compare it with exact classical surrogates under the same
-$\pi\tanh$-style angle encoding. Data-encoding choices in hybrid convolutional models have
+circuit \citep{altmann2023}. \citet{elhag2026} isolate the circuit's contribution in quantum
+message passing for traffic forecasting. Data-encoding choices in hybrid convolutional models have
 also been compared directly \citep{monnet2024}. These controls score predictive accuracy. We
 add a representation-level measurement, a common probe on the jointly trained bottleneck,
 and structural controls (\cref{sec:order,sec:controls}), none of which varies product order
 alone: the cancelling pairs, for example, also halve the CNOT count.
 
 \paragraph{Fourier structure, classical surrogates and head-induced feature distortion.}
-Angle-encoded circuits compute truncated Fourier series of their inputs
-\citep{schuld2021,perez2020}, which classical models can represent and emulate
+Angle-encoded circuits compute truncated Fourier series of their encoded angles
+\citep{schuld2021}, including under data re-uploading \citep{perez2020}, which classical models can represent and emulate
 \citep{schreiber2023}; sinusoidal features also appear in classical networks as periodic
 activations and Fourier feature maps \citep{sitzmann2020,tancik2020}. Our zero-rotation
 identity is an elementary instance of this structure, used as an explanatory variable: it

@@ -10,6 +10,8 @@ A run counts as finished when it has `final.json`, `meta.json` and a `metrics.cs
 | cifar_classical | 24 | 24 | cifar10 | 4000 | cos, cossin | 0, 1, 2 | DONE |
 | cifar_cosprod | 24 | 24 | cifar10 | 4000 | cosprod, cosprod_last | 0, 1, 2 | DONE |
 | cifar_entangle | 27 | 27 | cifar10 | 4000 | quantum | 0, 1, 2 | DONE |
+| cifar_family | 54 | 54 | cifar10 | 4000 | quantum | 0, 1, 2 | DONE |
+| cifar_family_seeds | 12 | 12 | cifar10 | 4000 | quantum | 3, 4 | DONE |
 | cifar_init | 18 | 18 | cifar10 | 4000 | quantum | 0, 1, 2 | DONE |
 | cifar_long | 9 | 9 | cifar10 | 4000 | quantum | 0, 1, 2 | DONE |
 | cifar_long2 | 9 | 9 | cifar10 | 4000 | linear, quantum | 0, 1, 2, 3, 4 | DONE |
@@ -20,7 +22,8 @@ A run counts as finished when it has `final.json`, `meta.json` and a `metrics.cs
 | cifar_pretrained_10k | 45 | 45 | cifar10 | 10000 | linear, quantum | 0, 1, 2 | DONE |
 | cifar_pretrained_1k | 36 | 36 | cifar10 | 1000 | linear, quantum | 0, 1, 2 | DONE |
 | cifar_pretrained_budget | 18 | 18 | cifar10 | 1000, 10000 | linear, quantum | 0, 1, 2 | DONE |
-| cifar_pretrained_lockstep | 30 | 30 | cifar10 | 4000 | cosprod, quantum | 0, 1, 2, 3, 4 | DONE |
+| cifar_pretrained_budget_lr | 36 | 36 | cifar10 | 1000, 10000 | linear, quantum | 0, 1, 2 | DONE |
+| cifar_pretrained_lockstep | 60 | 60 | cifar10 | 4000 | cosprod, quantum | 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 | DONE |
 | cifar_pretrained_zero | 12 | 12 | cifar10 | 4000 | quantum | 0, 1, 2 | DONE |
 | cifar_seeds | 22 | 22 | cifar10 | 4000 | cos, cosprod, cosprod_last, cosprod_pairs_last, linear, mlp, quantum | 3, 4 | DONE |
 | cifar_sg | 24 | 24 | cifar10 | 4000 | cosprod_last_sg, cosprod_sg | 0, 1, 2 | DONE |

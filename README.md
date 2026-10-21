@@ -36,7 +36,9 @@ an exact, noiseless simulator.
    60.1 at order 5.25. Removing the CNOTs recovers 3.8 of the 4.7 points; a circuit that
    keeps its CNOTs but has product order 1 recovers 3.1. The cost persists when the rotations
    start far from zero, and higher-order heads concentrate the gradient the CNN receives into
-   fewer directions.
+   fewer directions. On six new CNOT layouts, predicted from their order before training, the
+   ranking holds (Spearman −0.89); one layout, brickwork, probes 5 points better than
+   predicted, so order is a useful but coarse descriptor.
 4. **Without CNOTs, the quantum head is exactly a classical model**: a per-input
    combination of `cos` and `sin` of the encoded features, which classical heads match
    within about a point.
@@ -94,7 +96,8 @@ python -m scripts.run_protocol_v2 --grid <grid> --n_workers 6 --threads_per_work
 | `cifar_pretrained`, `cifar_pretrained2`, `cifar_pretrained_1k`, `cifar_pretrained_10k` (+ `_1k_lr`, `_10k_lr`, edge-step grids) | ImageNet-pretrained ResNet-18 backbone at 1k / 4k / 10k images |
 | `cifar_seeds`, `night_seeds`, `pretrained2_seeds` | extra seeds (3–4) for the headline cells |
 | `cifar_init`, `cifar_pretrained_zero` | rotations initialized in U(−π, π); ResNet-18 VQC with rotations frozen at zero |
-| `cifar_pretrained_budget`, `scripts/lockstep_pretrained.py` | ResNet-18 at a matched number of updates (1k × 120, 10k × 12 epochs); three heads trained in lockstep from copied weights |
+| `cifar_family`, `cifar_family_ext`, `cifar_family_seeds` | second family of CNOT layouts (star, chain, brickwork, …), out-of-sample test of product order |
+| `cifar_pretrained_budget`, `cifar_pretrained_budget_lr`, `scripts/lockstep_pretrained.py` | ResNet-18 at a matched number of updates (1k × 120, 10k × 12 epochs); three heads trained in lockstep from copied weights |
 
 **2. Probes and analyses** on the trained backbones:
 

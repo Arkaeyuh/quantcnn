@@ -1,7 +1,7 @@
 """Check the analytical claims the paper rests on against the simulator and heads.
 
 * zero-rotation identity: with every rotation zero, <Z_k> = prod_{j in S_k} cos(pi tanh z_j)
-  for every CNOT structure used (Eq. 1);
+  for every CNOT structure used (Eq. 1), including the second-family layouts;
 * the classical product heads use exactly those supports;
 * ring-free circuit: <Z_j> lies in span{cos a_j, sin a_j} for any rotations and depends on
   z_j only (Eq. 2);
@@ -34,6 +34,8 @@ CIRCUITS = {
     (2, True): cnot_ring_supports(N, 2),
     (4, "pairs"): cnot_ring_supports(N, 4, pattern="pairs"),
     (4, "pairs_last"): cnot_ring_supports(N, 4, last_only=True, pattern="pairs"),
+    **{(4, f"{p}{suffix}"): cnot_ring_supports(N, 4, last_only=bool(suffix), pattern=p)
+       for p in ("chain", "brick", "star", "star_in", "ladder2") for suffix in ("", "_last")},
 }
 
 
@@ -150,6 +152,15 @@ def test_pairs_circuit_can_entangle():
     rho = psi @ psi.conj().T
     purity = torch.trace(rho @ rho).real.item()
     assert abs(purity - 0.5) < 1e-12, purity
+
+
+def test_second_family_orders():
+    """Product orders of the second-family layouts, fixed before their runs."""
+    expected = {"star": 1, "chain": 1.5, "star_in_last": 1.875, "ladder2_last": 3, "brick": 3.5, "chain_last": 4.5}
+    for name, order in expected.items():
+        p, last = (name[:-5], True) if name.endswith("_last") else (name, False)
+        assert st.mean(len(s) for s in cnot_ring_supports(N, 4, last_only=last, pattern=p)) == order, name
+
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from quantcnn.data import dataset_num_classes, get_cifar10, get_mnist, get_splits
+from quantcnn.models.torch_vqc import ENTANGLE
 from quantcnn.models.hybrid_classifier import HybridClassifier
 from quantcnn.training_utils import (
     RunConfig,
@@ -112,7 +113,7 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
     p.add_argument("--no_entangle", action="store_true", help="Quantum head without CNOT rings (torch sim only).")
     p.add_argument("--entangle_last_only", action="store_true",
                    help="Quantum head with a CNOT ring after the last variational layer only (torch sim only).")
-    p.add_argument("--entangle_pattern", choices=["pairs", "pairs_last"], default=None,
+    p.add_argument("--entangle_pattern", choices=[e for e in ENTANGLE if isinstance(e, str) and e != "last"], default=None,
                    help="Quantum head with disjoint CNOT(0,1), CNOT(2,3), ... after every / the last "
                    "variational layer instead of rings (torch sim only).")
     p.add_argument("--data_root", default="./data")

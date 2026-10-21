@@ -2,14 +2,14 @@
 \label{sec:intro}
 
 A common near-term design for quantum image classification feeds a convolutional network
-into a small variational quantum circuit (VQC) that acts as the classifier head, as in
-dressed quantum transfer learning \citep{mari2020} \citep[see
-also][]{mitarai2018,havlicek2019,benedetti2019,cerezo2021}. The network is trained
-\emph{through} the circuit, so the head does more than classify: its gradients shape the
+into a small variational quantum circuit (VQC) that acts as the classifier head
+\citep{mari2020}, building on variational quantum classifiers
+\citep{mitarai2018,havlicek2019,benedetti2019,cerezo2021}. When the network is trained jointly
+\emph{through} the circuit, the head does more than classify: its gradients shape the
 features the backbone learns. A comparison between a quantum head and a classical one
 therefore compares two things at once, the heads and the representations they induce.
-Benchmarks of quantum classifiers mostly score accuracy on fixed inputs
-\citep{fulton2026,slattery2022}; \citet{bowles2024} also replace the quantum layer of a trained
+Benchmarks of quantum classifiers typically score accuracy on fixed inputs
+\citep[e.g.][]{fulton2026,slattery2022}; \citet{bowles2024} also replace the quantum layer of a trained
 dressed hybrid network with a classical one and visualize how the learned layers transform
 the data. Controls that isolate a circuit inside a hybrid model score output accuracy
 \citep{kolle2024,elhag2026}. None of these measures quantitatively what the quantum head
@@ -55,13 +55,10 @@ Our contributions are:
         small CNN the default circuit's products match the VQC ($-1.0\pm2.2$), and on the
         pretrained backbone they reproduce the ordering.
         Classical heads with designed supports favor lower order where overlap and rank are
-        held fixed, though order alone does not set the cost, and the ordering replicates on MNIST under predictions fixed before
-        the runs. A circuit that keeps its CNOTs
+        held fixed, though order alone does not set the cost, and the ordering replicates on MNIST and on six new CNOT layouts under
+        predictions fixed before the runs (Spearman $-0.89$; brickwork is a 5-point miss). A circuit that keeps its CNOTs
         but has product order 1 recovers $3.1\pm1.2$ points over the default. Without CNOTs
         the head is exactly a classical per-coordinate sinusoidal model, and classical heads
         of that form come within 0.3--0.9 probe points of it.
 \end{enumerate}
 
-The practical upshot is concrete: in this design, the entangling layout of a quantum head
-is a choice about the backbone's representation, and product order, computable from the CNOT
-pattern before training, orders the mean probe accuracy of every circuit we test.

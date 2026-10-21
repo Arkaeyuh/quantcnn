@@ -59,6 +59,7 @@ checkpoint) are copied to ``results/protocol_v2/<grid>``, which is what
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -121,6 +122,23 @@ EDGE_EXTENSION = {
 # Linear head still at the top after the first extension: a second step up.
 EDGE_EXTENSION["mnist_search"] += [("mnist", n, "linear", None, 3e-1) for n in [250, 500, 1000]]
 EDGE_EXTENSION["cifar_val"] += [("cifar10", n, "linear", None, 1e-1) for n in [2000, 4000]]
+
+
+# Second circuit family: CNOT layouts outside the ring family, by zero-rotation product order.
+FAMILY = ["star", "chain", "star_in_last", "ladder2_last", "brick", "chain_last"]
+FAMILY_LRS = [3e-3, 1e-2, 3e-2]
+
+
+def _family_selected() -> dict[str, tuple[float, list[float]]]:
+    """pattern -> (selected lr, lrs tried) from the finished cifar_family runs."""
+    from scripts.probe_backbones import _selected_runs
+
+    sel = _selected_runs(Path("runs") / "protocol_v2", ["cifar_family"])
+    tried = {}
+    for fin in (Path("runs") / "protocol_v2" / "cifar_family").glob("*/final.json"):
+        meta = json.loads((fin.parent / "meta.json").read_text())
+        tried.setdefault(meta["entangle"], set()).add(meta["lr"])
+    return {p: (sel[(4000, f"quantum+{p}")][0], sorted(tried[p])) for p in FAMILY if (4000, f"quantum+{p}") in sel}
 
 
 def _grid(name: str) -> list[dict]:
@@ -252,6 +270,33 @@ def _grid(name: str) -> list[dict]:
                                  ("noent", dict(head="quantum", no_entangle=True))]:
                 for sd in SEEDS:
                     items.append(dict(_PRETRAINED, **variant, train_subset_size=n, epochs=epochs, lr=lrs[key], seed=sd))
+    elif name == "cifar_pretrained_budget_lr":
+        # Matched-update budgets with the head lr re-tuned: one half-decade step each way.
+        for n, epochs, lrs in [(1000, 120, dict(linear=[3e-4, 3e-3], quantum=[3e-4, 3e-3], noent=[3e-4, 3e-3])),
+                               (10000, 12, dict(linear=[1e-4, 1e-3], quantum=[1e-4, 1e-3], noent=[3e-4, 3e-3]))]:
+            for key, variant in [("linear", dict(head="linear")), ("quantum", dict(head="quantum")),
+                                 ("noent", dict(head="quantum", no_entangle=True))]:
+                for lr in lrs[key]:
+                    for sd in SEEDS:
+                        items.append(dict(_PRETRAINED, **variant, train_subset_size=n, epochs=epochs, lr=lr, seed=sd))
+    elif name == "cifar_family":
+        for pattern in FAMILY:
+            for lr in FAMILY_LRS:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, head="quantum", entangle_pattern=pattern, lr=lr, seed=sd))
+    elif name == "cifar_family_ext":
+        # One step beyond the grid where the selected lr sits on its boundary.
+        ladder = [1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1]
+        for pattern, (lr, tried) in _family_selected().items():
+            i = min(range(len(ladder)), key=lambda j: abs(ladder[j] - lr))
+            step = ladder[i - 1] if lr == min(tried) else ladder[i + 1] if lr == max(tried) else None
+            if step is not None and step not in tried:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, head="quantum", entangle_pattern=pattern, lr=step, seed=sd))
+    elif name == "cifar_family_seeds":
+        for pattern, (lr, _) in _family_selected().items():
+            for sd in EXTRA_SEEDS:
+                items.append(dict(_C4000, head="quantum", entangle_pattern=pattern, lr=lr, seed=sd))
     elif name == "cifar_pretrained_10k_edge":
         # Linear, default and last-ring heads selected 3e-4 (grid bottom) at 10k images: one step down.
         for i in (0, 1, 3):
@@ -406,7 +451,9 @@ def main():
                                          "pretrained2_seeds", "cifar_pretrained_edge2",
                                          "cifar_pretrained2_edge", "cifar_pretrained_10k_lr",
                                          "cifar_pretrained_10k_edge", "cifar_init",
-                                         "cifar_pretrained_zero", "cifar_pretrained_budget"], required=True)
+                                         "cifar_pretrained_zero", "cifar_pretrained_budget",
+                                         "cifar_family", "cifar_family_ext", "cifar_family_seeds",
+                                         "cifar_pretrained_budget_lr"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

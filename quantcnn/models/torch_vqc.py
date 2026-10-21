@@ -15,7 +15,8 @@ monotone under <Z>; ``"half_sym"``: (pi/2)*tanh z, the same range width as
 ``"half"`` but even again), and ``entangle`` selects the CNOT layer (``True``: a ring
 after every variational layer; ``"last"``: a ring after the last one only; ``"pairs"``
 / ``"pairs_last"``: disjoint CNOT(0,1), CNOT(2,3), ... after every / the last layer;
-``False``: none).
+``False``: none). Further layouts, each after every layer (``"<pattern>"``) or only after the
+last one (``"<pattern>_last"``), are listed in ``cnot_gates``.
 """
 
 from __future__ import annotations
@@ -27,23 +28,51 @@ import torch.nn as nn
 
 
 ENCODINGS = ("pi_tanh", "half", "half_sym")
-ENTANGLE = (True, False, "last", "pairs", "pairs_last")
+PATTERNS = ("ring", "pairs", "chain", "brick", "star", "star_in", "ladder2")
+ENTANGLE = (True, False, "last") + tuple(p for name in PATTERNS[1:] for p in (name, f"{name}_last"))
 
 
-def cnot_gates(n_qubits: int, pattern: str = "ring") -> list[tuple[int, int]]:
-    """(control, target) pairs of one entangling layer, in application order."""
+def cnot_gates(n_qubits: int, pattern: str = "ring", layer: int = 0) -> list[tuple[int, int]]:
+    """(control, target) pairs of the entangling layer after variational layer ``layer``, in
+    application order. ``ring``: CNOT(q, q+1 mod n); ``pairs``: disjoint (0,1), (2,3), ...;
+    ``chain``: the ring without its closing gate; ``brick``: pairs (q, q+1 mod n) starting at
+    q = 0 after even layers and q = 1 after odd ones; ``star``: CNOT(0, q) for every q;
+    ``star_in``: CNOT(q, 0); ``ladder2``: CNOT(q, q+2 mod n)."""
+    n = n_qubits
     if pattern == "ring":
-        return [(q, (q + 1) % n_qubits) for q in range(n_qubits)]
+        return [(q, (q + 1) % n) for q in range(n)]
     if pattern == "pairs":
-        return [(q, q + 1) for q in range(0, n_qubits - 1, 2)]
+        return [(q, q + 1) for q in range(0, n - 1, 2)]
+    if pattern == "chain":
+        return [(q, q + 1) for q in range(n - 1)]
+    if pattern == "brick":
+        return [(q, (q + 1) % n) for q in range(layer % 2, n, 2)]
+    if pattern == "star":
+        return [(0, q) for q in range(1, n)]
+    if pattern == "star_in":
+        return [(q, 0) for q in range(1, n)]
+    if pattern == "ladder2":
+        return [(q, (q + 2) % n) for q in range(n)]
     raise ValueError(pattern)
 
 
-def _ring_cnot_permutation(n_qubits: int, pattern: str = "ring") -> torch.Tensor:
+def entangle_layout(entangle: bool | str) -> tuple[str, bool] | None:
+    """(pattern, last_only) for an ``entangle`` setting, or None for no CNOTs."""
+    if entangle is False:
+        return None
+    if entangle is True:
+        return "ring", False
+    if entangle == "last":
+        return "ring", True
+    last = entangle.endswith("_last")
+    return (entangle[: -len("_last")] if last else entangle), last
+
+
+def _ring_cnot_permutation(n_qubits: int, pattern: str = "ring", layer: int = 0) -> torch.Tensor:
     """Index map for one entangling layer (default: CNOT(0,1), CNOT(1,2), ..., CNOT(n-1,0))."""
     dim = 2**n_qubits
     perm = torch.arange(dim)
-    for c, t in cnot_gates(n_qubits, pattern):
+    for c, t in cnot_gates(n_qubits, pattern, layer):
         cbit = 1 << (n_qubits - 1 - c)
         tbit = 1 << (n_qubits - 1 - t)
         # new_state[i] = old_state[i ^ tbit] when control bit of i is set
@@ -75,7 +104,13 @@ class TorchStatevectorVQC(nn.Module):
         nn.init.uniform_(self.weights, -0.1, 0.1)
         # Plain CPU attributes, not buffers: simulation always runs on CPU in float64,
         # and MPS cannot hold float64 tensors when the model is moved there.
-        self._perm = _ring_cnot_permutation(n_qubits, "pairs" if str(entangle).startswith("pairs") else "ring")
+        layout = entangle_layout(entangle)
+        self._perms = [None] * n_var_layers
+        if layout is not None:
+            pattern, last_only = layout
+            for l in range(n_var_layers):
+                if not last_only or l == n_var_layers - 1:
+                    self._perms[l] = _ring_cnot_permutation(n_qubits, pattern, l)
         bits = (torch.arange(2**n_qubits)[:, None] >> torch.arange(n_qubits - 1, -1, -1)) & 1
         self._zsign = (1 - 2 * bits).to(torch.float64)
 
@@ -116,9 +151,8 @@ class TorchStatevectorVQC(nn.Module):
         for q in range(self.n_qubits):
             state = self._apply_1q(state, q, self._ry(w[q, 0], cdtype))
             state = self._apply_1q(state, q, self._rz(w[q, 1], cdtype))
-        last = l == self.n_var_layers - 1
-        ring = self.entangle in (True, "pairs") or (self.entangle in ("last", "pairs_last") and last)
-        return state[:, self._perm] if ring else state
+        perm = self._perms[l]
+        return state if perm is None else state[:, perm]
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out_device, out_dtype = x.device, x.dtype

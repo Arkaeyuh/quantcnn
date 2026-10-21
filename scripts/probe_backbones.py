@@ -53,7 +53,8 @@ def _head_key(meta: dict) -> str:
     head += f"+{meta['encoding']}" if meta.get("encoding", "pi_tanh") != "pi_tanh" else ""
     head += "+noent" if meta.get("entangle", True) is False else ""
     head += "+entlast" if meta.get("entangle", True) == "last" else ""
-    head += f"+{meta['entangle']}" if str(meta.get("entangle", True)).startswith("pairs") else ""
+    ent = meta.get("entangle", True)
+    head += f"+{ent}" if isinstance(ent, str) and ent != "last" else ""
     head += f"+L{meta['n_var_layers']}" if meta["head"] == "quantum" and meta.get("n_var_layers", 4) != 4 else ""
     head += f"+init{meta['vqc_init_scale']:.3g}" if meta.get("vqc_init_scale", 0.1) != 0.1 else ""
     pretrained = meta.get("backbone") not in (None, "mnist", "cifar10")
@@ -128,7 +129,7 @@ def main():
         for (n, head), (lr, runs) in cells:
             if a.heads != ["all"] and head not in a.heads:
                 continue
-            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"]), (ds, n, head, lr)
+            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"], ["cifar_family_seeds"]), (ds, n, head, lr)
             for run in runs:
                 meta = json.loads((run / "meta.json").read_text())
                 if meta["dataset"] != ds:

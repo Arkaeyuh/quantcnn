@@ -59,8 +59,8 @@ def cnot_ring_supports(n_qubits: int, n_var_layers: int, last_only: bool = False
     """
     from quantcnn.models.torch_vqc import cnot_gates
 
-    rings = 1 if last_only else n_var_layers
-    gates = cnot_gates(n_qubits, pattern) * rings
+    layers = [n_var_layers - 1] if last_only else range(n_var_layers)
+    gates = [g for l in layers for g in cnot_gates(n_qubits, pattern, l)]
     out = []
     for k in range(n_qubits):
         mask = 1 << k
