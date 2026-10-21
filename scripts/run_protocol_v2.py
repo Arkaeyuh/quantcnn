@@ -141,6 +141,31 @@ def _family_selected() -> dict[str, tuple[float, list[float]]]:
     return {p: (sel[(4000, f"quantum+{p}")][0], sorted(tried[p])) for p in FAMILY if (4000, f"quantum+{p}") in sel}
 
 
+# Encoding arm: ring-family and second-family layouts spanning orders 1-5.25 under the monotone
+# ``half`` encoding (the default ring with ``half`` is already in cifar_circuit).
+HALF = {"noent": dict(no_entangle=True), "pairs_last": dict(entangle_pattern="pairs_last"),
+        "ladder2_last": dict(entangle_pattern="ladder2_last"), "chain_last": dict(entangle_pattern="chain_last"),
+        "entlast": dict(entangle_last_only=True)}
+
+
+def _half_selected() -> dict[str, tuple[dict, float, list[float]]]:
+    """layout -> (run options, selected lr, lrs tried) from the finished cifar_half runs (and the
+    default ring with the half encoding from cifar_circuit), selection on mean val acc."""
+    root = Path("runs") / "protocol_v2"
+    by_layout = {}
+    for grid in ["cifar_half", "cifar_half_ext", "cifar_circuit"]:
+        for fin in (root / grid).glob("*/final.json"):
+            meta = json.loads((fin.parent / "meta.json").read_text())
+            if meta.get("encoding") != "half" or int(meta["train_subset_size"]) != 4000:
+                continue
+            ent = meta.get("entangle", True)
+            name = "noent" if ent is False else "entlast" if ent == "last" else "default" if ent is True else ent
+            by_layout.setdefault(name, {}).setdefault(meta["lr"], []).append(json.loads(fin.read_text())["val_acc"])
+    layouts = {**HALF, "default": {}}
+    return {name: (layouts[name], max(lrs, key=lambda lr: sum(lrs[lr]) / len(lrs[lr])), sorted(lrs))
+            for name, lrs in by_layout.items() if name in layouts}
+
+
 def _grid(name: str) -> list[dict]:
     items = []
     if name == "mnist_search":
@@ -297,6 +322,23 @@ def _grid(name: str) -> list[dict]:
         for pattern, (lr, _) in _family_selected().items():
             for sd in EXTRA_SEEDS:
                 items.append(dict(_C4000, head="quantum", entangle_pattern=pattern, lr=lr, seed=sd))
+    elif name == "cifar_half":
+        for opts in HALF.values():
+            for lr in FAMILY_LRS:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, head="quantum", encoding="half", **opts, lr=lr, seed=sd))
+    elif name == "cifar_half_ext":
+        ladder = [1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1]
+        for opts, lr, tried in _half_selected().values():
+            i = min(range(len(ladder)), key=lambda j: abs(ladder[j] - lr))
+            step = ladder[i - 1] if lr == min(tried) else ladder[i + 1] if lr == max(tried) else None
+            if step is not None and step not in tried:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, head="quantum", encoding="half", **opts, lr=step, seed=sd))
+    elif name == "cifar_half_seeds":
+        for opts, lr, _ in _half_selected().values():
+            for sd in EXTRA_SEEDS:
+                items.append(dict(_C4000, head="quantum", encoding="half", **opts, lr=lr, seed=sd))
     elif name == "cifar_pretrained_10k_edge":
         # Linear, default and last-ring heads selected 3e-4 (grid bottom) at 10k images: one step down.
         for i in (0, 1, 3):
@@ -453,7 +495,8 @@ def main():
                                          "cifar_pretrained_10k_edge", "cifar_init",
                                          "cifar_pretrained_zero", "cifar_pretrained_budget",
                                          "cifar_family", "cifar_family_ext", "cifar_family_seeds",
-                                         "cifar_pretrained_budget_lr"], required=True)
+                                         "cifar_pretrained_budget_lr", "cifar_half", "cifar_half_ext",
+                                         "cifar_half_seeds"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

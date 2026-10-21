@@ -2,8 +2,9 @@
 """Cosine-factor attenuation of the zero-rotation readout gradient on trained bottlenecks.
 
 At zero rotations, d<Z_k>/dz_j carries the factor prod_{i in S_k \\ j} cos a_i, a_i = pi tanh z_i
-(the proposition in the appendix). For the trained default and last-ring circuits (CIFAR-10,
-4,000 images, validation-selected lr, seeds 0-2), on each run's validation embeddings, this
+(the proposition in the appendix; a_i = (pi/2) tanh z_i + pi/2 for the monotone ``half`` encoding).
+For the trained default and last-ring circuits, and the default circuit with the ``half`` encoding
+(CIFAR-10, 4,000 images, validation-selected lr, seeds 0-2), on each run's validation embeddings, this
 records E[cos^2 a_j] per coordinate and, for every (readout k, input j in S_k) pair, the measured
 E[prod_{i in S_k \\ j} cos^2 a_i] next to the product of the per-coordinate means (the value under
 independence across coordinates), grouped by the number of other factors |S_k| - 1.
@@ -28,11 +29,13 @@ from scripts.frozen_heads import _embed
 from scripts.probe_backbones import _selected_runs
 from scripts.zero_angle_check import ROOT, SLUG, _load
 
-# name -> (slug suffix, grid, zero-rotation supports)
+# name -> (slug suffix, grid, zero-rotation supports, encoding)
 CASES = {
-    "quantum": ("", "cifar_val", cnot_ring_supports(8, 4)),
-    "quantum+entlast": ("_entlast", "cifar_entangle", cnot_ring_supports(8, 4, last_only=True)),
+    "quantum": ("", "cifar_val", cnot_ring_supports(8, 4), "pi_tanh"),
+    "quantum+entlast": ("_entlast", "cifar_entangle", cnot_ring_supports(8, 4, last_only=True), "pi_tanh"),
+    "quantum+half": ("_half", "cifar_circuit", cnot_ring_supports(8, 4), "half"),
 }
+ANGLE = {"pi_tanh": lambda z: math.pi * torch.tanh(z), "half": lambda z: 0.5 * math.pi * torch.tanh(z) + 0.5 * math.pi}
 
 
 def main():
@@ -41,13 +44,13 @@ def main():
     ap.add_argument("--val_size", type=int, default=2000)
     a = ap.parse_args()
     rows = []
-    for name, (suffix, grid, supports) in CASES.items():
+    for name, (suffix, grid, supports, enc) in CASES.items():
         lr = _selected_runs(ROOT, [grid])[(4000, name)][0]
         measured, independent, c2_means = defaultdict(list), defaultdict(list), []
         for seed in range(3):
             model = _load(ROOT / grid / SLUG.format(suffix, lr, seed))
             z, _ = _embed(model, get_splits("cifar10", 4000, seed, a.val_size)["val"], torch.device("cpu"))
-            c2 = torch.cos(math.pi * torch.tanh(z.double())) ** 2
+            c2 = torch.cos(ANGLE[enc](z.double())) ** 2
             c2_means.append(c2.mean(0))
             for s in supports:
                 for j in s:
