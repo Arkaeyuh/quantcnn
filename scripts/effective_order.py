@@ -17,6 +17,11 @@ At theta = 0, O_k is the Z-string on S_k, so order_eff(k) = |S_k| and the circui
 product order of Eq. (1). ``y_share`` is the fraction of non-identity weight on strings with a
 Y factor (invisible to the readout).
 
+With the ``phase`` encoding (H then RZ(a_j)) the Bloch vector is (cos a_j, sin a_j, 0): b(X) =
+cos a_j, b(Y) = sin a_j, b(Z) = 0, so strings with a Z factor are the invisible ones (reported in
+the same ``y_share`` column) and X or Y factors touch input j. At theta = 0 every readout is a Z
+string and vanishes.
+
 From repository root::
 
     # trained circuits (validation-selected lr, seeds 0-4), CIFAR-10/4,000
@@ -24,6 +29,9 @@ From repository root::
     # random rotations, theta ~ U(-s, s)
     PYTHONPATH=. python -m scripts.effective_order --source random --scale 3.14159 --samples 20 \
         --out results/effective_order_random_pi.csv
+    # at the initialization distribution U(-0.1, 0.1), for an encoding
+    PYTHONPATH=. python -m scripts.effective_order --source random --scale 0.1 --samples 200 \
+        --encoding phase --out results/effective_order_init_phase.csv
 """
 
 from __future__ import annotations
@@ -81,35 +89,43 @@ def readout_operators(vqc: TorchStatevectorVQC, weights: torch.Tensor) -> list[t
     return [u.conj().T @ torch.diag(vqc._zsign[:, k].to(torch.complex128)) @ u for k in range(vqc.n_qubits)]
 
 
-def expectation_from_paulis(coef: torch.Tensor, angles: torch.Tensor) -> float:
+# Pauli index (I, X, Y, Z) whose expectation vanishes on the encoded product state
+INVISIBLE = {"ry": 2, "phase": 3}
+
+
+def expectation_from_paulis(coef: torch.Tensor, angles: torch.Tensor, encoding: str = "ry") -> float:
     """<psi|O|psi> for the encoded product state with angles a_j, from the Pauli coefficients."""
     t = coef
     for a in angles.tolist():
-        b = torch.tensor([1.0, math.sin(a), 0.0, math.cos(a)], dtype=t.dtype)
+        b = ([1.0, math.sin(a), 0.0, math.cos(a)] if encoding == "ry" else [1.0, math.cos(a), math.sin(a), 0.0])
+        b = torch.tensor(b, dtype=t.dtype)
         t = torch.tensordot(t, b, dims=([0], [0]))
     return float(t)
 
 
-def readout_stats(coef: torch.Tensor, n: int, tol: float = 1e-12) -> dict:
-    """Effective order, Y-share and the number of inputs the readout depends on (strings with
-    |c_P| > tol; the same convention as the dependence test)."""
+def readout_stats(coef: torch.Tensor, n: int, tol: float = 1e-12, encoding: str = "ry") -> dict:
+    """Effective order, invisible share (``y_share``) and the number of inputs the readout depends
+    on (strings with |c_P| > tol; the same convention as the dependence test)."""
     idx = torch.cartesian_prod(*[torch.arange(4)] * n).reshape([4] * n + [n])
-    has_y = (idx == 2).any(-1)
-    weight_sz = ((idx == 1) | (idx == 3)).sum(-1)
+    inv = INVISIBLE[encoding]
+    has_y = (idx == inv).any(-1)
+    touch = (idx != 0) & (idx != inv)
+    weight_sz = touch.sum(-1)
     w = coef**2
     w = torch.where((idx == 0).all(-1), torch.zeros_like(w), w)  # drop the identity string only (constant)
     visible = w * (~has_y)
     total, vis = w.sum().item(), visible.sum().item()
     order = (visible * weight_sz).sum().item() / vis if vis > tol else 0.0
     shown = (coef.abs() > tol) & ~has_y
-    touched = (shown[..., None] & ((idx == 1) | (idx == 3))).reshape(-1, n).any(0)
+    touched = (shown[..., None] & touch).reshape(-1, n).any(0)
     return dict(order_eff=order, y_share=(total - vis) / total if total > tol else 0.0,
                 n_inputs=int(touched.sum()))
 
 
-def circuit_stats(vqc: TorchStatevectorVQC, weights: torch.Tensor) -> dict:
-    """Mean effective order / Y-share / input count over the circuit's readouts."""
-    stats = [readout_stats(pauli_coefficients(o, vqc.n_qubits), vqc.n_qubits) for o in readout_operators(vqc, weights)]
+def circuit_stats(vqc: TorchStatevectorVQC, weights: torch.Tensor, encoding: str = "ry") -> dict:
+    """Mean effective order / invisible share / input count over the circuit's readouts."""
+    stats = [readout_stats(pauli_coefficients(o, vqc.n_qubits), vqc.n_qubits, encoding=encoding)
+             for o in readout_operators(vqc, weights)]
     return {key: sum(s[key] for s in stats) / len(stats) for key in stats[0]}
 
 
@@ -131,14 +147,15 @@ def _trained_rows() -> list[dict]:
     return rows
 
 
-def _random_rows(scale: float, samples: int) -> list[dict]:
+def _random_rows(scale: float, samples: int, encoding: str = "ry") -> list[dict]:
     rows = []
     for name, (layers, entangle) in LAYOUTS.items():
         vqc = TorchStatevectorVQC(N, layers, "none", entangle=entangle).double()
         g = torch.Generator().manual_seed(0)
         for s in range(samples):
             w = (torch.rand(vqc.weights.shape, generator=g, dtype=torch.float64) * 2 - 1) * scale
-            rows.append(dict(head=name, source=f"random_U({scale:g})", lr="", seed=s, **circuit_stats(vqc, w)))
+            rows.append(dict(head=name, source=f"random_U({scale:g})", lr="", seed=s,
+                             **circuit_stats(vqc, w, encoding)))
     return rows
 
 
@@ -147,9 +164,11 @@ def main():
     ap.add_argument("--source", choices=["trained", "random"], required=True)
     ap.add_argument("--scale", type=float, default=math.pi, help="random: theta ~ U(-scale, scale)")
     ap.add_argument("--samples", type=int, default=20)
+    ap.add_argument("--encoding", choices=list(INVISIBLE), default="ry",
+                    help="ry: any R_y angle encoding (the paper's default); phase: H then RZ")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
-    rows = _trained_rows() if a.source == "trained" else _random_rows(a.scale, a.samples)
+    rows = _trained_rows() if a.source == "trained" else _random_rows(a.scale, a.samples, a.encoding)
     with Path(a.out).open("w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0]))
         w.writeheader()

@@ -105,10 +105,10 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
     )
     p.add_argument(
         "--encoding",
-        choices=["pi_tanh", "half", "half_sym"],
+        choices=["pi_tanh", "half", "half_sym", "phase"],
         default="pi_tanh",
         help="Quantum head angle map (torch sim only): pi*tanh z; (pi/2)*tanh z + pi/2 (monotone "
-        "under <Z>); or (pi/2)*tanh z.",
+        "under <Z>); (pi/2)*tanh z; or phase: H then RZ(pi*tanh z).",
     )
     p.add_argument("--no_entangle", action="store_true", help="Quantum head without CNOT rings (torch sim only).")
     p.add_argument("--entangle_last_only", action="store_true",

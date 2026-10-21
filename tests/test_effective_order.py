@@ -5,6 +5,8 @@
 * the inputs a readout depends on (by the Pauli expansion) are exactly those with a nonzero input
   gradient in the simulator;
 * without CNOTs every readout depends on its own input only, at any rotations;
+* with the phase encoding (H then RZ) the expansion reproduces the simulator's readouts and input
+  dependences, with Z strings invisible;
 * weight on strings made only of I and Y factors counts as invisible (Y share), and only the
   identity string is dropped as a constant.
 """
@@ -20,9 +22,9 @@ from scripts.effective_order import (LAYOUTS, N, circuit_stats, expectation_from
                                      readout_operators, readout_stats)
 
 
-def _vqc(layers, entangle, scale=0.0, seed=0):
+def _vqc(layers, entangle, scale=0.0, seed=0, encoding="pi_tanh"):
     torch.manual_seed(seed)
-    vqc = TorchStatevectorVQC(N, layers, "none", entangle=entangle).double()
+    vqc = TorchStatevectorVQC(N, layers, "none", encoding=encoding, entangle=entangle).double()
     with torch.no_grad():
         vqc.weights.uniform_(-scale, scale) if scale else vqc.weights.zero_()
     return vqc
@@ -82,6 +84,26 @@ def test_ring_free_stays_order_one():
     for op in readout_operators(vqc, vqc.weights):
         s = readout_stats(pauli_coefficients(op, N), N)
         assert abs(s["order_eff"] - 1) < 1e-9 and s["n_inputs"] == 1, s
+
+
+def test_phase_encoding_expansion():
+    idx = torch.cartesian_prod(*[torch.arange(4)] * N).reshape([4] * N + [N])
+    for name in ("quantum", "quantum+brick", "quantum+entlast", "quantum+noent"):
+        layers, ent = LAYOUTS[name]
+        vqc = _vqc(layers, ent, scale=1.0, seed=4, encoding="phase")
+        z = torch.randn(3, N, dtype=torch.float64, requires_grad=True)
+        q = vqc(z)
+        for k, op in enumerate(readout_operators(vqc, vqc.weights)):
+            c = pauli_coefficients(op, N)
+            for i in range(len(z)):
+                angles = math.pi * torch.tanh(z[i].detach())
+                assert abs(expectation_from_paulis(c, angles, "phase") - q[i, k].item()) < 1e-10, (name, i, k)
+            (g,) = torch.autograd.grad(q[:, k].sum(), z, retain_graph=True)
+            assert readout_stats(c, N, encoding="phase")["n_inputs"] == int((g.abs().amax(0) > 1e-9).sum()), (name, k)
+    vqc = _vqc(4, True, encoding="phase")  # zero rotations: every readout is a Z string, invisible
+    for op in readout_operators(vqc, vqc.weights):
+        s = readout_stats(pauli_coefficients(op, N), N, encoding="phase")
+        assert s["y_share"] > 1 - 1e-12 and s["n_inputs"] == 0, s
 
 
 def test_y_share_counts_pure_y_strings():

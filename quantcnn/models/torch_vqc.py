@@ -12,7 +12,8 @@ Two ablations exist only in this backend (defaults reproduce the circuit above):
 ``encoding`` selects the angle map (``"pi_tanh"``: pi*tanh z in (-pi, pi), which
 <Z> reads as an even function of z; ``"half"``: (pi/2)*tanh z + pi/2 in (0, pi),
 monotone under <Z>; ``"half_sym"``: (pi/2)*tanh z, the same range width as
-``"half"`` but even again), and ``entangle`` selects the CNOT layer (``True``: a ring
+``"half"`` but even again; ``"phase"``: H then RZ(pi*tanh z), Bloch vector (cos, sin, 0), so every
+zero-rotation readout vanishes and the product identity does not hold), and ``entangle`` selects the CNOT layer (``True``: a ring
 after every variational layer; ``"last"``: a ring after the last one only; ``"pairs"``
 / ``"pairs_last"``: disjoint CNOT(0,1), CNOT(2,3), ... after every / the last layer;
 ``False``: none). Further layouts, each after every layer (``"<pattern>"``) or only after the
@@ -27,7 +28,7 @@ import torch
 import torch.nn as nn
 
 
-ENCODINGS = ("pi_tanh", "half", "half_sym")
+ENCODINGS = ("pi_tanh", "half", "half_sym", "phase")
 PATTERNS = ("ring", "pairs", "chain", "brick", "star", "star_in", "ladder2")
 ENTANGLE = (True, False, "last") + tuple(p for name in PATTERNS[1:] for p in (name, f"{name}_last"))
 
@@ -137,6 +138,14 @@ class TorchStatevectorVQC(nn.Module):
         return torch.stack([torch.stack([e, z]), torch.stack([z, e.conj()])])
 
     def _encode(self, state, x, cdtype):
+        if self.encoding == "phase":
+            h = torch.tensor([[1, 1], [1, -1]], dtype=cdtype) / math.sqrt(2)
+            phi = math.pi * torch.tanh(x)
+            for q in range(self.n_qubits):
+                e = torch.exp(-0.5j * phi[:, q].to(cdtype))
+                rz = torch.diag_embed(torch.stack([e, e.conj()], -1))  # batched RZ(phi)
+                state = self._apply_1q(self._apply_1q(state, q, h), q, rz)
+            return state
         if self.encoding == "pi_tanh":
             phi = math.pi * torch.tanh(x)
         elif self.encoding == "half":

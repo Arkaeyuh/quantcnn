@@ -5,7 +5,7 @@ replication and the predictions and pass criteria for the second circuit family 
 before those runs. They were written in the project's working log (`findings.md`), which is not
 under version control. This file copies those entries **verbatim and unedited** so they have a
 verifiable record; its commit date is the first verifiable timestamp, not the date of writing.
-Outcomes are deliberately left out (they are in the paper). Later entries (the encoding arm) were
+Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms) were
 committed and pushed before their runs started, so their commit date is itself the record.
 
 Corroborating, not conclusive: the earliest file in `results/protocol_v2/cifar_family/` was
@@ -81,3 +81,26 @@ Context: auto-review-loop run_20261018_8a770126, round 1 (5/10). Overlap = mean 
 - **Exploratory (weak, stated in advance):** the fitted probe-on-order slope over the six layouts is closer to −2.45 than to −3.22. The two differ by less than the likely slope uncertainty, so this can support but not establish the attenuation account.
 - **Kill:** ρ > −0.5. Then the paper says the order ranking is specific to the π·tanh map.
 - **Risks I expect:** ladder-2-last (3) vs default (2.5) are close in order and may swap; chain-last (4.5) vs ring-last (5.25) likewise. The `half` factor vanishes at z = 0, so high-order heads may train poorly early (worse than predicted) if the backbone starts near the origin.
+
+---
+
+## Phase-encoding arm (H then RZ(π tanh z)), predictions written 2026-10-21 18:55 before any run
+**Design:** each qubit is encoded as H then RZ(φ), φ = π·tanh z, Bloch vector (cos φ, sin φ, 0). Every zero-rotation readout is a Z string and vanishes, so Eq. (1) and the R_y product order do not apply. The simulator matches an independent PennyLane circuit (tests/test_torch_vqc.py::test_phase_encoding_matches_pennylane, 1e-10), and the Pauli expansion generalizes with Z strings invisible and X or Y factors touching an input (tests/test_effective_order.py::test_phase_encoding_expansion). Same protocol as the half arm: CIFAR-10/4,000, small CNN, 80 epochs, head lr {3e-3, 1e-2, 3e-2} × seeds 0–2 (`cifar_phase`), one edge step if a boundary lr is selected (`cifar_phase_ext`), seeds 3–4 at the selected lr (`cifar_phase_seeds`). Linear and MLP probes.
+
+**Pre-run quantity:** the effective order at the initialization distribution θ ~ U(−0.1, 0.1) (50 draws; results/effective_order_init_phase.csv; R_y control results/effective_order_init_ry.csv, where it reproduces the product order). The six layouts were chosen so that it disagrees with the R_y product order (Spearman between the two −0.23 over these layouts):
+
+| layout | effective order at init, phase (mean, SD over draws) | R_y product order | point prediction from init order (76.69 − 3.22 × order) | point prediction from R_y order |
+|---|---|---|---|---|
+| no CNOT | 1.00 (0.00) | 1 | 73.5 | 73.5 |
+| ring, last | 1.51 (0.50) | 5.25 | 71.8 | 59.8 |
+| chain, last | 1.64 (0.50) | 4.5 | 71.4 | 62.2 |
+| chain | 2.98 (0.39) | 1.5 | 67.1 | 71.9 |
+| ring (default) | 4.44 (0.17) | 2.5 | 62.4 | 68.6 |
+| star | 4.47 (1.78) | 1 | 62.3 | 73.5 |
+
+- **H_eff (effective order computed for the actual encoding predicts the cost):** Spearman ρ(init effective order, mean probe over 5 seeds) ≤ −0.8.
+- **H_layout (the cost is a property of the CNOT layout, as ranked by the R_y order):** ρ(R_y order, mean probe) ≤ −0.8.
+- At most one can pass. If neither does (both ρ > −0.8), the effective order at initialization does not carry over to an encoding whose initial readouts vanish, and the paper says so.
+- **Secondary:** (a) the no-CNOT head is a per-coordinate sinusoid under any single-qubit encoding, so its probe lands in [72, 75] (point 73.5). (b) Count of layouts within ±4 points of each column's point predictions (reported for both; no threshold).
+- **My expectation, stated in advance:** about 99% of the readout weight is invisible at initialization, so training must move the rotations far from the initial regime. I expect the init effective order to be at best a moderate predictor (ρ between −0.5 and −0.8) and H_layout to fail.
+- **Planned post hoc analysis (labelled as such):** effective order at the trained rotations under the phase encoding, against probe accuracy.
