@@ -8,6 +8,6 @@ the drop tracks the order of the cosine products each readout computes at zero r
 also on new layouts predicted before training. Lowering that order, by removing the rings or by
 entangling only in pairs that cancel at zero rotations, recovers most of the gap, and
 classical heads on the same products follow it. On a pretrained ResNet-18 the default head
-costs 6--8 points at every training size when updates are matched. Without CNOTs the head is
+costs 6--8 points at every training size when updates are approximately matched. Without CNOTs the head is
 a classical sinusoidal model. In practice: tune each head separately,
 probe the backbone, and count a circuit's product order before training through it.

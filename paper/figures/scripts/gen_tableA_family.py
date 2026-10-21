@@ -88,7 +88,7 @@ def main():
 \caption{Out-of-sample test of product order on a second family of CNOT layouts (CIFAR-10,
 4,000 images, small CNN, protocol of \cref{sec:setup}). The layouts were chosen by their
 zero-rotation product order alone, and their probe accuracy was predicted, before training,
-from a linear fit over the seven ring-family VQC circuits (probe $=76.7-3.22\times$ order).
+from a linear fit over the seven ring-family VQC circuits, seeds 0--2 (probe $=76.7-3.22\times$ order).
 Spearman correlation between order and mean probe accuracy over the six layouts: """ + f"{rho:.2f}" + r"""; """ + \
         f"{hits} of {len(orders)}" + r""" within 4 points of the prediction. $R^2$: held-out fraction of the trained readouts'
 variance recovered by an affine map of the same circuit's zero-rotation readouts

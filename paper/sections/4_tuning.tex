@@ -6,7 +6,7 @@
 Before turning to representations, we check how much a head comparison depends on the
 training recipe. In an exploratory sweep with one shared recipe (head learning rate
 $10^{-3}$ for every head, 25 MNIST epochs; \cref{app:sweep}), the VQC beat MLP-8 on MNIST by
-17.8, 18.1 and 6.9 points at 250, 500 and 1,000 images and lost to it on CIFAR-10 by 14.1,
+17.8, 18.1 and 6.9 points at 250, 500 and 1,000 images and lost to it on CIFAR-10 by 14.2,
 13.8 and 8.3 points. Under the protocol of \cref{sec:setup} (50 MNIST epochs,
 validation-based selection, per-head learning rates), these differences change in both size
 and sign (\cref{tab:matched}). On MNIST, VQC $-$ MLP-8 becomes $-2.1\pm9.7$, $+3.3\pm2.6$

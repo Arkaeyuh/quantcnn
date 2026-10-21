@@ -12,7 +12,7 @@ Benchmarks of quantum classifiers typically score accuracy on fixed inputs
 \citep[e.g.][]{fulton2026,slattery2022}; \citet{bowles2024} also replace the quantum layer of a trained
 dressed hybrid network with a classical one and visualize how the learned layers transform
 the data. Controls that isolate a circuit inside a hybrid model score output accuracy
-\citep{kolle2024,elhag2026}. None of these measures quantitatively what the quantum head
+\citep{kolle2024,elhag2026}. To our knowledge, none of these measures quantitatively what the quantum head
 does to the representation trained through it, or which part of the circuit is
 responsible.
 
@@ -45,7 +45,7 @@ Our contributions are:
         accuracy by $4.7\pm0.9$ points relative to a linear head (5 seeds), and a two-layer
         MLP probe finds the same gap, so the loss is not just one of linear readability. Removing the CNOT
         rings recovers $3.8\pm1.2$ points. On a pretrained ResNet-18 the default head costs
-        6--8 points at 1,000 to 10,000 images at a matched number of updates (22.3 at 1,000
+        6--8 points at 1,000 to 10,000 images at an approximately matched number of updates (22.3 at 1,000
         with a fixed 30 epochs); the ring-free head stays within 1.4 points of linear
         (\cref{sec:pretrained}). Five controls leave a substantial gap
         (\cref{sec:controls}).

@@ -54,7 +54,7 @@ the products of the default circuit give $68.8\pm1.6$ probe and $67.1\pm1.3$ tes
 differences to the default VQC of $-1.0\pm2.2$ and $-0.7\pm1.7$ with mixed signs across
 seeds. Second, the
 \emph{pairs} circuit keeps a CNOT after every layer but has order 1, because its pair CNOTs
-cancel at zero rotations. It recovers $3.1\pm1.2$ probe and $4.3\pm1.2$ test points over the
+cancel at zero rotations. It recovers $3.1\pm1.2$ probe and $4.4\pm1.2$ test points over the
 default, positive for every seed, and sits $0.7\pm1.0$ probe points below the ring-free
 circuit. Pairs after the
 last layer only (order 1.5) probe at $71.2\pm0.7$, between orders 1 and 2.5, as does the
@@ -79,9 +79,9 @@ accuracy 84.8\% for the order-3 star vs 73.6\% for the full-rank order-4 layout,
 their contrasts mix structure with optimization. Within the tested family and protocols, higher
 order tracks lower mean probe accuracy, but order is not sufficient to determine it.
 
-The pattern also replicates on MNIST with 1,000 images, where we fixed the layouts and wrote
-down the predicted ordering before running them. Probe accuracy is 96.5 without CNOTs, 95.5
-for pairs after the last layer, 95.1 for the default circuit and 91.5 for a ring after the
+The pattern also replicates on MNIST with 1,000 images, where we fixed the layouts and recorded
+the predicted ordering before running them (an internal record). Probe accuracy is 96.5 without CNOTs, 95.5
+for pairs after the last layer, 95.1 for the default circuit and 91.6 for a ring after the
 last layer; the small pairs-last advantage over the default is $+0.4\pm0.5$ (5 seeds, 4
 positive), and the classical head on the default products probes $0.1\pm0.5$ below the default
 VQC, and the one on the last-ring products falls below that circuit (90.4).

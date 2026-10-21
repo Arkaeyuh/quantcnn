@@ -58,8 +58,8 @@ def _budget_table() -> str:
 \centering
 \caption{Training budget on the pretrained ResNet-18 (CIFAR-10; seeds 0--2; probe accuracy, \%).
 The protocol trains 30 epochs at every size, so smaller training sets get fewer optimizer
-updates. Matched rows train 120 epochs at 1,000 images and 12 at 10,000, the update count of
-4,000 images $\times$ 30 epochs, with the head learning rates selected at 30 epochs for each
+updates. Matched rows train 120 epochs at 1,000 images and 12 at 10,000, approximately the
+update count of 4,000 images $\times$ 30 epochs (see the updates column), with the head learning rates selected at 30 epochs for each
 size or re-selected on validation over a half-decade step either way (re-tuned). Differences are
 paired over seeds, against the linear head.}
 \label{tab:ptbudget}
