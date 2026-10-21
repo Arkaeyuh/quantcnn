@@ -1,0 +1,28 @@
+\begin{table}[h]
+\centering
+\caption{Product order under the monotone encoding $\enc{j}=\tfrac{\pi}{2}\tanh z_j+\tfrac{\pi}{2}$
+(CIFAR-10, 4,000 images, small CNN, protocol of \cref{sec:setup}; every layout selected the head
+learning rate $10^{-2}$). Each zero-rotation factor becomes $\cos\enc{j}=-\sin(\tfrac{\pi}{2}\tanh
+z_j)$, which vanishes at $z_j=0$ where $\cos(\pi\tanh z_j)$ is 1; product orders are unchanged.
+Predictions were committed before the new runs: the default ring's observed probe (3 existing seeds) plus a
+slope of $-2.45$ per unit of order, the ring-family slope scaled by the ratio of
+$\ln\mathbb{E}[\cos^2\enc{j}]$ under the two encodings measured on the trained default ring (0.71
+vs 0.63, \cref{app:attenuation}). Spearman correlation between order and mean probe accuracy: $-0.94$ (criterion $\le-0.8$; MLP probe $-0.94$); 6 of 6 within 4 points (including the anchor); no CNOT $-$ default $+3.0 \pm 0.5$ (criterion $\ge2$). Post hoc, the
+probe-on-order slope is $-2.41$ here and $-3.59$ for the same layouts under
+$\pi\tanh$ (last column), a difference of $+1.18$ (seed bootstrap 95\% interval
+$[+0.56,+1.82]$).}
+\label{tab:encoding}
+\small
+\begin{tabular}{lccccccc}
+\toprule
+Layout & Order & Predicted & Probe & Obs.\ $-$ pred. & MLP probe & Probe, $\pi\tanh$ & $n$ \\
+\midrule
+no CNOT & 1 & 73.9 & $73.2 \pm 0.6$ & -0.7 & $73.2 \pm 0.7$ & $73.6 \pm 0.5$ & 5 \\
+pairs, last & 1.5 & 72.6 & $71.8 \pm 0.8$ & -0.8 & $71.5 \pm 1.1$ & $71.2 \pm 0.7$ & 5 \\
+ring (default) & 2.5 & 70.2 & $70.2 \pm 0.7$ & +0.0 & $70.0 \pm 0.6$ & $69.8 \pm 1.0$ & 5 \\
+ladder-2, last & 3 & 69.0 & $67.7 \pm 1.1$ & -1.3 & $67.7 \pm 0.7$ & $66.6 \pm 0.5$ & 5 \\
+chain, last & 4.5 & 65.3 & $62.8 \pm 2.7$ & -2.5 & $63.2 \pm 2.5$ & $58.2 \pm 3.1$ & 5 \\
+ring, last & 5.25 & 63.5 & $64.3 \pm 2.3$ & +0.9 & $64.9 \pm 2.2$ & $60.1 \pm 3.1$ & 5 \\
+\bottomrule
+\end{tabular}
+\end{table}

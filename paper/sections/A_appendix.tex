@@ -154,6 +154,27 @@ probe accuracy does, including both reversals, but captures little of brickwork'
 its rank exceeds the distance-2 ring's by only $0.1\pm0.6$, against a 4-point probe gap. A two-layer MLP probe gives the same pattern (brickwork 70.2, open chain
 after the last layer 58.8).
 
+\section{Product Order under a Second Encoding}
+\label{app:encoding}
+
+Every $R_y$ angle encoding satisfies \cref{eq:identity}, so a change of angle map keeps each
+circuit's product order but changes the factors. Under $\enc{j}=\tfrac{\pi}{2}\tanh z_j+\tfrac{\pi}{2}$
+(the monotone encoding of \cref{tab:controls}) each factor is $-\sin(\tfrac{\pi}{2}\tanh z_j)$: it
+vanishes at $z_j=0$, where $\cos(\pi\tanh z_j)$ is 1, so attenuation is strongest exactly where the
+default encoding has none. We trained six layouts of orders 1 to 5.25 with it, four from the ring
+family and two from the second family, committing predictions and pass criteria to the repository
+before the new runs; the default ring's three existing seeds supply the anchor (\cref{tab:encoding}).
+All criteria are met: the rank correlation with order is $-0.94$ under both probes, each of the five
+predicted layouts lands within 4 points, and removing the CNOTs recovers $3.0\pm0.5$ points over
+the default ring, positive for every seed. The one rank reversal, chain-last (order 4.5) below
+ring-last (5.25), was named as a risk in advance and appears in the same direction under
+$\pi\tanh$. The predicted slope, scaled down from the ring family's by the measured attenuation
+factor, matches the observed one ($-2.41$); post hoc, the same layouts under $\pi\tanh$ give a
+steeper slope, consistent with the attenuation account of \cref{prop:atten} but resting on six
+layouts. Encodings for which \cref{eq:identity} does not hold, such as phase encodings, are untested.
+
+\input{figures/tableA_encoding}
+
 \section{Effective Order Beyond Zero Rotations}
 \label{app:efforder}
 

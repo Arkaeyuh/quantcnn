@@ -129,7 +129,7 @@ def main():
         for (n, head), (lr, runs) in cells:
             if a.heads != ["all"] and head not in a.heads:
                 continue
-            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"], ["cifar_family_seeds"]), (ds, n, head, lr)
+            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"], ["cifar_family_seeds"], ["cifar_half_seeds"]), (ds, n, head, lr)
             for run in runs:
                 meta = json.loads((run / "meta.json").read_text())
                 if meta["dataset"] != ds:

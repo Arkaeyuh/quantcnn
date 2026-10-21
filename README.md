@@ -99,6 +99,7 @@ python -m scripts.run_protocol_v2 --grid <grid> --n_workers 6 --threads_per_work
 | `cifar_seeds`, `night_seeds`, `pretrained2_seeds` | extra seeds (3–4) for the headline cells |
 | `cifar_init`, `cifar_pretrained_zero` | rotations initialized in U(−π, π); ResNet-18 VQC with rotations frozen at zero |
 | `cifar_family`, `cifar_family_ext`, `cifar_family_seeds` | second family of CNOT layouts (star, chain, brickwork, …), out-of-sample test of product order |
+| `cifar_half`, `cifar_half_ext`, `cifar_half_seeds` | encoding arm: six layouts (orders 1–5.25) under the monotone `half` encoding, pre-registered in `predictions/` |
 | `cifar_pretrained_budget`, `cifar_pretrained_budget_lr`, `scripts/lockstep_pretrained.py` | ResNet-18 at a matched number of updates (1k × 120, 10k × 12 epochs); three heads trained in lockstep from copied weights |
 
 **2. Probes and analyses** on the trained backbones:

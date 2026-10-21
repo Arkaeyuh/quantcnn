@@ -5,7 +5,7 @@ A quantum classifier head trained jointly with a CNN changes the representation 
 learns. With every head tuned on validation data and every selected backbone read by the same linear
 probe, the default ring-entangled VQC head lowers CIFAR-10 probe accuracy by 4.7 points, and
 the drop tracks the order of the cosine products each readout computes at zero rotations,
-also on new layouts predicted before training. Lowering that order, by removing the rings or by
+also on new layouts and under a second encoding, with predictions recorded in advance. Lowering that order, by removing the rings or by
 entangling only in pairs that cancel at zero rotations, recovers most of the gap, and
 classical heads on the same products follow it. On a pretrained ResNet-18 the default head
 costs 6--8 points at every training size when updates are approximately matched. Without CNOTs the head is

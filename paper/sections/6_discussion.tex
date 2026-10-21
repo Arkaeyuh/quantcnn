@@ -26,16 +26,14 @@ through its own factor, broke optimization (55.7\% vs 84.0\% clean training accu
 
 \paragraph{Implications for hybrid design.}
 For CNN-fed quantum heads trained end to end, the CNOT layout is a choice about the
-backbone: product order, computable before training, ranks the ring-family circuits on both
-datasets and is strongly associated with the cost of new layouts out of sample, with two rank
-reversals. The best quantum heads are
-low-order, and the best, the ring-free head, is exactly classical (\cref{eq:ringfree}). Head
+backbone: product order, computable before training, ranks the ring family on both datasets,
+new layouts and a second encoding, with a few rank reversals. The best quantum heads are low-order, and the best, the ring-free head, is exactly classical (\cref{eq:ringfree}). Head
 comparisons should tune each head separately and measure the backbone, not only accuracy.
 
 \paragraph{Limitations.}
-We study two families of CNOT layouts (8 qubits, $R_yR_z$ layers, $\pi\tanh$ angle encoding with two
-variants) on an 8-dimensional bottleneck, one qubit per coordinate, in noiseless simulation, with small CNNs and one pretrained ResNet-18 on subsets
-of MNIST and CIFAR-10 of at most 10,000 images; the size of the effect with other encodings,
+We study two families of CNOT layouts (8 qubits, $R_yR_z$ layers, $R_y$ angle encodings, mainly
+$\pi\tanh$) on an 8-dimensional bottleneck, one qubit per coordinate, in noiseless simulation, with small CNNs and one pretrained ResNet-18 on subsets
+of MNIST and CIFAR-10 of at most 10,000 images; the size of the effect with non-$R_y$ encodings,
 other pretrained models or on hardware is untested. Most cells use 3 seeds (5 or 10 where stated), enough
 for consistent signs in paired comparisons but not for equivalence claims. Product order is a
 coarse scalar: it misses brickwork by 5 points, and at fixed order the distribution of
