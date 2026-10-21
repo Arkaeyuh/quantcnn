@@ -20,15 +20,10 @@ per-sample loss gradients $\partial\mathcal{L}/\partial z$ is 7.2 for the ring-f
 the default circuit and 3.7 for the last-ring circuit after training (7.3 for the linear head;
 ring-free above default in every seed), and the mean ordering already holds at initialization
 (4.0, 2.8, 1.7; \cref{tab:gradrank}). This is a correlate of the probe cost, not a proof of
-cause. Two further results constrain the account. The MLP probe argues against
-the alternative that the information is present but only nonlinearly readable (\cref{app:mechanism}), consistent with
-the high-order circuits' weaker training fit. An attempt to remove the coupling directly, by
-keeping the forward products and passing each input's gradient only through its own factor,
-was inconclusive: the decoupled heads fit the training set far worse than the coupled ones
-(55.7\% vs 84.0\% clean training accuracy for the default supports), so the mismatched
-gradient, not the absence of coupling, dominates their result (\cref{tab:decoupled}). A test
-that preserves the true gradient, for example a reparameterization that changes the coupling
-while keeping the head's function, would isolate the mechanism.
+cause. The MLP probe argues against the signal being present but only nonlinearly readable
+(\cref{app:mechanism}). Removing the coupling directly, by passing each input's gradient only
+through its own factor, broke optimization (55.7\% vs 84.0\% clean training accuracy;
+\cref{tab:decoupled}) and is inconclusive, so the coupling account remains a hypothesis.
 
 \paragraph{Implications for hybrid design.}
 For CNN-fed quantum heads trained end to end, the CNOT layout is a choice about the
@@ -46,7 +41,8 @@ variants) on an 8-dimensional bottleneck, one qubit per coordinate, in noiseless
 of MNIST and CIFAR-10 of at most 10,000 images; the size of the effect with other encodings,
 other pretrained models or on hardware is untested. Results use 3 seeds per cell and 5 for the CIFAR-10/4,000 headline cells, enough
 for consistent signs in paired comparisons but not for equivalence claims. Product order is a
-single scalar: it orders the cost at fixed overlap and full rank, but at fixed order the
+single scalar: in the one comparison at equal overlap and full rank lower order probes
+higher, but at fixed order the
 distribution of coupling across inputs also matters by an amount we do not pin down
 (\cref{tab:support}), and the designed supports were tested with classical heads only. The identity is exact only at zero rotations; the
 trained default and last-ring circuits sit at $R^2=0.87$--$0.90$ of it, and low-order circuits

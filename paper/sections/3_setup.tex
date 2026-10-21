@@ -12,15 +12,14 @@ layers of trainable $R_y R_z$ rotations on every qubit, each followed by a ring 
 $(q,q{+}1 \bmod 8)$ applied in order $q=0,\dots,7$, measures $\ZZ{k}$ on every qubit, and
 maps the eight expectations to ten logits with a linear layer (154 stored parameters, 146
 of which can affect the output). Rotations are initialized in $\mathcal{U}(-0.1,0.1)$. We
-simulate the circuit exactly with a batched PyTorch statevector simulator that matches
-PennyLane \citep{bergholm2018} to $10^{-6}$ in outputs and input gradients and $10^{-5}$ in
-rotation gradients (our test suite). Circuit variants change CNOT placement or rotation
+simulate the circuit exactly with a batched PyTorch statevector simulator checked against
+PennyLane \citep{bergholm2018}. Circuit variants change CNOT placement or rotation
 depth: \emph{no CNOT}; a ring after the \emph{last} layer only; $L\in\{1,2\}$
 layers; and disjoint \emph{pairs} $(0,1),(2,3),(4,5),(6,7)$ after every layer or after the
 last layer only.
 
 \paragraph{Protocol.}
-Training subsets are class-stratified samples of 250, 500 or 1,000 MNIST images and 1,000,
+For the small CNNs (the pretrained runs are specified in \cref{sec:pretrained}), training subsets are class-stratified samples of 250, 500 or 1,000 MNIST images and 1,000,
 2,000 or 4,000 CIFAR-10 images; a disjoint stratified 2,000-image validation set selects
 the checkpoint epoch. Every run uses AdamW (weight decay $10^{-4}$), a cosine schedule,
 batch size 32 and gradient clipping, for 50 epochs on MNIST and 80 on CIFAR-10 with
@@ -29,14 +28,13 @@ dataset, size and head we select the head learning rate with the best mean valid
 accuracy over seeds 0--2 from a grid of half-decade steps, and report test accuracy once.
 Headline CIFAR-10/4,000 cells add seeds 3 and 4 at that selected rate. Heads in a cell share
 seeds, hence training subsets and validation splits, so we report paired differences
-(mean $\pm$ SD over seeds, in percentage points). Every table states its number of seeds.
+(mean $\pm$ SD over seeds, in percentage points).
 
 \paragraph{Common linear probe.}
 To compare representations, we freeze each selected run's backbone, extract $\vz$ on clean
 images, and fit a fresh linear layer $\R^8\to\R^{10}$ (AdamW, cosine schedule, probe
-learning rate and epoch selected on validation). Because the probe is the same for every
-backbone, differences in its test accuracy compare the bottlenecks that different heads
-induced in joint training. We call this \emph{probe accuracy}.
+learning rate and epoch selected on validation). Its test accuracy, \emph{probe accuracy},
+compares the bottlenecks that the heads induced in joint training.
 
 \paragraph{Zero-rotation identity.}
 With every trainable rotation set to zero, the variational block reduces to its CNOTs. The
@@ -61,8 +59,7 @@ CNOTs the identity extends to all rotation angles: each qubit evolves alone, so
   \label{eq:ringfree}
 \end{equation}
 with $\alpha_j,\beta_j$ set by qubit $j$'s trained rotations. With its readout layer, the
-ring-free head is thus a classical per-coordinate sinusoidal model (we checked the formula
-against the simulator to $10^{-7}$). To test whether the products themselves carry the effect, we train classical
+ring-free head is thus a classical per-coordinate sinusoidal model. To test whether the products themselves carry the effect, we train classical
 heads on them with no circuit: \emph{cos} uses $\cos\enc{j}$ (order 1), \emph{cos+sin} adds
 $\sin\enc{j}$, and \emph{cos-prod.} uses the products of \cref{eq:identity} for a given
 circuit's supports, each followed by a linear layer and tuned like every other head.

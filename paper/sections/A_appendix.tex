@@ -11,9 +11,11 @@ odd number of propagation paths land. Since $\ket{\psi}$ is a product state with
 $\bra{\psi}Z_j\ket{\psi}=\cos\enc{j}$, the expectation factorizes into
 \cref{eq:identity}. \Cref{tab:supports} lists the supports. Pairs after every layer apply
 each pair CNOT four times, which is the identity, so their supports equal the no-CNOT ones;
-with trained rotations between the layers the gates no longer cancel, and the circuit
-produces entangled states (we checked numerically that its outputs differ from the
-ring-free circuit's at random rotation angles).
+with trained rotations between the layers the gates no longer cancel (its outputs differ
+from the ring-free circuit's at random rotation angles), and the circuit can entangle: with
+every input at zero and every rotation zero except $R_y(\pi/2)$ on qubit 0 in the last layer,
+the final pair CNOT turns qubits 0 and 1 into a Bell pair, whose single-qubit reduced state
+has purity $1/2$ (a test in the released code).
 
 For the ring-free circuit and any rotation angles, qubit $j$ starts from Bloch vector
 $(\sin\enc{j},0,\cos\enc{j})$ after encoding and then undergoes a fixed rotation $M_j\in
@@ -60,8 +62,8 @@ order is $\frac18\sum_j d_j$ and overlap is $\frac1{56}\sum_j d_j(d_j-1)$, so fo
 where every $d_j$ equals the order, the two rise together. Stars hold the order while
 concentrating the $d_j$ on one or two inputs. Windows of width 2 and 4 have rank-deficient
 support matrices; the gapped window of width 4 restores full rank at the same order and
-overlap and probes like the rank-5 window ($-0.7$ on average, mixed in sign), so rank does not
-account for the order-4 deficit. \Cref{tab:budget} gives the training-budget check
+overlap and probes $0.2\pm4.1$ points above the rank-5 window (mixed signs), so restoring full
+rank does not remove the order-4 deficit. \Cref{tab:budget} gives the training-budget check
 of \cref{sec:controls}, with the linear head also rerun at 160 epochs.
 
 \section{Nonlinear Probe, Gradient Rank, Initialization and Gradient Decoupling}
@@ -89,7 +91,11 @@ effective rank of the backbone's loss gradient, and \cref{tab:init} the initiali
 \Cref{tab:ptbudget} separates training size from the number of optimizer updates on the
 pretrained ResNet-18, and \cref{tab:lockstep} gives the lockstep comparison of the trained
 circuit, the circuit frozen at zero rotations and the products head discussed in
-\cref{sec:pretrained}.
+\cref{sec:pretrained}. A step-by-step check (seed 0, head lr $10^{-3}$) shows why the lockstep
+pairs still differ: two copies of the products head trained on the same batches stay
+bit-identical, while the frozen circuit and the products head, whose outputs agree to about
+$10^{-7}$, reach a backbone parameter distance of $2\times10^{-5}$ after one update, $0.14$ after
+21 and $3.7$ after 125 (one epoch), with the backbone's parameter norm at 85.
 
 \input{figures/tableA_pretrained_controls}
 

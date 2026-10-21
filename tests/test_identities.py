@@ -9,7 +9,9 @@
 * designed supports have the order / overlap / rank stated in the paper;
 * gradient-decoupled product heads keep the forward value and pass the stated gradient;
 * a VQC head with rotations frozen at zero equals the classical product head in output and
-  input gradient (same readout weights).
+  input gradient (same readout weights);
+* the pairs-every-layer circuit, whose CNOTs cancel at zero rotations, can still entangle: one
+  final-layer R_y(pi/2) on qubit 0 makes a Bell pair (reduced purity 1/2).
 """
 
 import itertools
@@ -131,6 +133,23 @@ def test_zero_rotation_vqc_head_equals_product_head():
         torch.nn.functional.cross_entropy(o2, y).backward()
         assert torch.allclose(o1, o2, atol=1e-5), entangle
         assert torch.allclose(x1.grad, x2.grad, atol=1e-6), entangle
+
+
+def test_pairs_circuit_can_entangle():
+    vqc = _vqc(4, "pairs")
+    with torch.no_grad():
+        vqc.weights[-1, 0, 0] = math.pi / 2  # R_y(pi/2) on qubit 0 in the last layer
+    cd = torch.complex128
+    state = torch.zeros(1, 2**N, dtype=cd)
+    state[:, 0] = 1.0
+    state = vqc._encode(state, torch.zeros(1, N, dtype=torch.float64), cd)  # z = 0: product state |0...0>
+    w = vqc.weights.detach().double()
+    for layer in range(4):
+        state = vqc._var_layer(state, w[layer], cd, layer)
+    psi = state.reshape(2, 2 ** (N - 1))  # qubit 0 is the most significant bit
+    rho = psi @ psi.conj().T
+    purity = torch.trace(rho @ rho).real.item()
+    assert abs(purity - 0.5) < 1e-12, purity
 
 
 if __name__ == "__main__":

@@ -106,6 +106,7 @@ python -m scripts.sign_symmetry --circuit_lrs quantum+half=0.01 quantum+half_sym
 python -m scripts.zero_angle_check --cases pretrained --out results/zero_angle_check_pretrained.csv
 python -m scripts.grad_rank           # effective rank of the backbone's loss gradient by head
 python -m scripts.lockstep_pretrained --n_workers 5
+python -m scripts.lockstep_divergence  # step-by-step divergence of two implementations of one head
 python -m scripts.probe_backbones --all_lrs --heads all --datasets cifar10 --grids cifar_pretrained_lockstep --out results/lockstep_probe.csv
 ```
 

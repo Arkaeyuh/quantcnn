@@ -62,9 +62,9 @@ so we also trained classical product heads on designed supports that separate th
 a window of three consecutive inputs (0.82 vs 0.86). In each of these comparisons the
 lower-order head probes higher: by $5.4\pm2.7$ points against an order-4 layout whose support
 matrix, like every CNOT-derived one, has full rank, $5.6\pm2.2$ against a rank-5 window, and
-$3.9\pm1.9$ for the order-2 star against the order-3 window (5 seeds, all positive): in these
-matched comparisons the lower-order layout probes higher at fixed overlap and full rank. At equal order, the stars, which put most
-inputs in a single product, probe $3.0\pm0.2$ (3 seeds) and $1.8\pm2.8$ (5 seeds, mixed signs)
+$3.9\pm1.9$ for the order-2 star against the order-3 window (5 seeds, all positive; only the
+first holds overlap and rank fixed exactly). At equal order, the stars, which reuse one or two inputs
+across most products, probe $3.0\pm0.2$ (3 seeds) and $1.8\pm2.8$ (5 seeds, mixed signs)
 points above the windows; the
 first of these also differs in rank, so how the coupling is distributed across inputs matters
 in addition to order, by an amount these controls do not pin down. Order alone therefore does
@@ -86,15 +86,16 @@ from it (\cref{app:zeroangle}), fitting an affine map from each circuit's zero-r
 readouts to its trained readouts on half of the validation set and evaluating it on the other
 half. A circuit frozen at its initialization is reproduced almost exactly ($R^2=0.997$). For
 the trained default and last-ring circuits the map recovers 87\% and 90\% of the held-out
-readout variance, and the backbone's cross-entropy gradient through the remapped products
-aligns with the trained one at median cosine 0.86 and 0.87. The products do not carry all
+readout variance, and the cross-entropy gradient at the bottleneck, $\partial\mathcal{L}/\partial z$,
+through the remapped products aligns with the trained one (mean per-run median cosine 0.86
+and 0.87). The products do not carry all
 task-relevant detail: the trained readout applied to the remapped products scores 7 and 6
 points below the trained circuit, and without the remapping the gradient alignment is weaker
 (median 0.59 for the default circuit, and negative for one seed). Low-order circuits move
 further ($R^2$ 0.73--0.83); for the ring-free circuit this is the $\sin\enc{j}$ term of
-\cref{eq:ringfree}, which its trained rotations use. At order 5.25 the trained rotations
-recover part of the cost: the last-ring circuit beats the classical head on its products by
-$6.4\pm5.8$ test points. The products thus reproduce the accuracy trend and most of the
+\cref{eq:ringfree}, which its trained rotations use. At order 5.25 the trained rotations may
+recover part of the cost: the last-ring circuit tests $6.4\pm5.8$ points above the classical
+head on its products, higher in four of five seeds (95\% interval $[-0.8,13.6]$). The products thus reproduce the accuracy trend and most of the
 trained ring circuits' readouts and gradient directions, and the trained rotations add task
 detail on top of them. The cost does not depend on starting in the product regime: with the
 rotations initialized in $\mathcal{U}(-\pi,\pi)$, where the identity does not hold at the start,
@@ -120,6 +121,7 @@ cosine 0.41 against the cos-only model; \cref{tab:zeroangle}).
 \label{sec:controls}
 
 \input{figures/table2_controls}
+\input{figures/table4_pretrained}
 
 \Cref{tab:controls} tests alternative explanations on CIFAR-10/4,000. Lowering or raising the
 backbone learning rate with the head learning rate fixed leaves a gap of 4.9--8.6 points at
@@ -144,42 +146,32 @@ optimization.
 \subsection{A pretrained backbone, data size and training budget}
 \label{sec:pretrained}
 
-\input{figures/table4_pretrained}
 
-Hybrid image classifiers are often built on a pretrained network rather than a small CNN
-trained from scratch. We repeat the key heads on an ImageNet-pretrained ResNet-18 fine-tuned
-through each head, with its classifier replaced by the 8-dimensional bottleneck
-(\cref{tab:pretrained}). The ordering carries over unchanged. At 4,000 images the ring-free
-and pairs circuits probe within 0.2 points of the linear head, while the default circuit sits
-$7.2\pm2.3$ points below it and the last-ring circuit $18.0\pm4.7$ below (5 seeds, every seed
-negative); on the three seeds probed with both, a two-layer MLP probe gives the same gaps to
-within a point (default circuit: $-5.8$ vs $-5.7$). At a fixed 30 epochs the cost falls with
-training size, from $22.3\pm2.9$ points at 1,000 images to $1.9\pm0.4$ at 10,000, but a fixed
-epoch count also gives smaller sets fewer optimizer updates. At a matched number of updates
-(about 3,800, as for 4,000 images $\times$ 30 epochs) the default circuit costs $6.6\pm1.7$,
-$5.7\pm0.7$ and $7.2\pm2.1$ points at 1,000, 4,000 and 10,000 images (seeds 0--2; learning rates
-kept from the 30-epoch selection), and the ring-free head stays within 0.5 points of linear
-(\cref{tab:ptbudget}). Training budget therefore accounts for much of the size dependence at
-fixed epochs; we test one matched budget, and changing the epoch count also changes the
-cosine schedule, so data size and budget are not fully separated. The dependence matters in
-practice because small data and short training often go together.
+Hybrid image classifiers are often built on a pretrained network. We repeat the key heads on
+an ImageNet-pretrained ResNet-18 fine-tuned through each head, its classifier replaced by the
+8-dimensional bottleneck (\cref{tab:pretrained}). The ordering carries over: at 4,000 images
+the ring-free and pairs circuits probe within 0.2 points of the linear head, the default
+circuit $7.2\pm2.3$ below it and the last-ring circuit $18.0\pm4.7$ below (5 seeds, every seed
+negative); on the three seeds probed with both, an MLP probe gives the same default gap
+($-5.8$ vs $-5.7$). At a fixed 30
+epochs the cost falls with training size, from $22.3\pm2.9$ points at 1,000 images to
+$1.9\pm0.4$ at 10,000, but smaller sets then also get fewer optimizer updates. At an
+approximately matched number of updates (about 3,800) the default circuit costs $6.6\pm1.7$,
+$5.7\pm0.7$ and $7.2\pm2.1$ points at 1,000, 4,000 and 10,000 images, and the ring-free head
+stays within 0.5 points of linear (seeds 0--2; \cref{tab:ptbudget}). Training budget therefore
+accounts for much of the size dependence at fixed epochs; with one matched budget and a
+schedule that changes with the epoch count, data size and budget are not fully separated.
 
-On this backbone the high-order heads are also unstable across runs: at a fixed learning
-rate, the default circuit's test accuracy spans up to 16 points over three seeds. In the main
-grid the classical head on its products probes above the trained circuit ($-4.0\pm1.6$ vs
-$-7.2\pm2.3$ against linear, every seed), at the rates validation selected for them ($10^{-3}$
-for the products head, $3\times10^{-4}$ for the circuit). We train the circuit, the same circuit
-with its rotations frozen at exactly zero (forward map and input gradients equal to the products
-head's; a numerical test in the released code) and the products head in lockstep, from copied
-initial weights on identical batches (\cref{tab:lockstep}). At a shared learning rate the
-three heads do not differ detectably (trained circuit $-$ products $-0.9\pm2.6$ at
-$3\times10^{-4}$ and $+0.5\pm5.3$ at $10^{-3}$, 5 seeds each), although the intervals allow
-effects of several points. At the main-grid rates the products head stays ahead
-($+3.0\pm2.0$, every seed). The products head's advantage therefore comes from the learning
-rates the two heads are selected at, not from the trainable rotations: at $10^{-3}$ the
-circuit matches the products head, but its validation selection over three seeds picks
-$3\times10^{-4}$. Two implementations of the same function also decorrelate within an epoch,
-as rounding differences of order $10^{-7}$ grow under Adam, so run-to-run variation here is
-several points. The trained circuits also stay close to their
-zero-rotation model on this backbone (mean held-out $R^2\geq0.99$ per circuit and $\geq0.988$
-for every run, \cref{app:zeroangle}).
+Here the high-order heads are also unstable across runs (the default circuit's test accuracy
+spans up to 16 points over three seeds at one learning rate), and an affine map of each circuit's
+zero-rotation readouts reproduces its trained readouts (held-out $R^2\geq0.988$ in every run;
+\cref{app:zeroangle}). In the
+main grid the classical head on the default circuit's products probes above the circuit
+($-4.0\pm1.6$ vs $-7.2\pm2.3$ against linear, every seed), each at its validation-selected
+rate. Trained in lockstep with the circuit and with the circuit frozen at zero rotations, from
+copied weights on identical batches (\cref{app:ptcontrols}), the three heads do not differ
+detectably at a shared learning rate (circuit $-$ products $-0.9\pm2.6$ and $+0.5\pm5.3$ at
+$3\times10^{-4}$ and $10^{-3}$; the intervals allow effects of several points), while at the
+main-grid rates the products head stays ahead ($+3.0\pm2.0$, every seed). Learning-rate
+selection is consistent with its advantage; the shared-rate comparisons cannot resolve the
+trainable rotations' contribution.

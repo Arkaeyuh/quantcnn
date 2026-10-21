@@ -9,8 +9,10 @@ data \citep{slattery2022}. Closest to our setting, \citet{fulton2026} show that 
 $\mathrm{SU}(2)$ models match or exceed shallow VQCs on vision benchmarks and that ring
 entanglement can degrade accuracy on fixed features. Recent hybrid-network studies reach
 related conclusions under more careful matching of width and budget
-\citep{freinberger2026,innan2026,park2026}. Other work trains hybrid models end to end and
-studies the learned representation: \citet{kashif2026} analyze expressibility and
+\citep{freinberger2026,park2026}, and controlled benchmarks of quantum transfer learning find
+the outcome strongly configuration-dependent \citep{innan2026}. Other work trains hybrid models end to end and
+studies the learned representation: \citet{bowles2024} visualize the layers of a trained
+dressed hybrid network, \citet{kashif2026} analyze expressibility and
 trainability under joint training, and quantum self-supervised learning evaluates frozen
 hybrid encoders with linear probes \citep{jaderberg2021,edwards2026}. We probe the
 supervised bottleneck \emph{before} the circuit, the representation the circuit's
@@ -26,7 +28,8 @@ quantum message passing and compare it with exact classical surrogates under the
 $\pi\tanh$-style angle encoding. Data-encoding choices in hybrid convolutional models have
 also been compared directly \citep{monnet2024}. These controls score predictive accuracy. We
 add a representation-level measurement, a common probe on the jointly trained bottleneck,
-and controls that change one structural property of the circuit at a time.
+and structural controls (\cref{sec:order,sec:controls}), none of which varies product order
+alone: the cancelling pairs, for example, also halve the CNOT count.
 
 \paragraph{Fourier structure, classical surrogates and head-induced feature distortion.}
 Angle-encoded circuits compute truncated Fourier series of their inputs
@@ -47,4 +50,4 @@ quantum classifier head induces under supervised joint training, with a probe sh
 quantum and classical heads, and (ii) a
 structural variable, the order of the zero-rotation cosine products, that orders the
 representation cost across circuit and classical heads and survives an intervention that
-keeps entanglement while lowering order.
+retains entangling gates while lowering order.
