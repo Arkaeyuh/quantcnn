@@ -39,7 +39,8 @@ an exact, noiseless simulator.
    fewer directions. On six new CNOT layouts, predicted from their order before training,
    a strong inverse association holds (Spearman −0.89) with two rank reversals; one layout,
    brickwork, probes 5 points better than predicted, and the layouts that beat their prediction are those whose training moves them
-   furthest from the zero-rotation product model. Order is a useful but coarse descriptor.
+   furthest from the zero-rotation product model (computed from its trained rotations,
+   brickwork's effective order is 2.6 rather than 3.5). Order is a useful but coarse descriptor.
 4. **Without CNOTs, the quantum head is exactly a classical model**: a per-input
    combination of `cos` and `sin` of the encoded features, which classical heads match
    within about a point.
@@ -111,6 +112,8 @@ python -m scripts.zero_angle_check --cases pretrained --out results/zero_angle_c
 python -m scripts.grad_rank           # effective rank of the backbone's loss gradient by head
 python -m scripts.zero_angle_check --cases family --out results/zero_angle_check_family.csv
 python -m scripts.grad_rank --cases family --out results/grad_rank_family.csv
+python -m scripts.effective_order --source trained --out results/effective_order_trained.csv
+python -m scripts.effective_order --source random --scale 3.141592653589793 --out results/effective_order_random_pi.csv
 python -m scripts.lockstep_pretrained --n_workers 5
 python -m scripts.lockstep_divergence  # step-by-step divergence of two implementations of one head
 python -m scripts.probe_backbones --all_lrs --heads all --datasets cifar10 --grids cifar_pretrained_lockstep --out results/lockstep_probe.csv
@@ -129,6 +132,8 @@ cd paper && latexmk -pdf main.tex
 
 ```bash
 python tests/test_torch_vqc.py      # PyTorch simulator vs PennyLane, outputs and gradients
+python tests/test_effective_order.py  # effective order: exact at zero rotations, Pauli expansion
+                                    # reproduces the readouts and input dependences
 python tests/test_identities.py     # zero-rotation product identity, ring-free sinusoid,
                                     # designed-support statistics, gradient-decoupled heads
 ```

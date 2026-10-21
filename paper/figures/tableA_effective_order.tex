@@ -1,0 +1,35 @@
+\begin{table}[h]
+\centering
+\caption{Effective order beyond zero rotations (CIFAR-10, 4,000 images, small CNN; $^\ast$: second
+family). For rotations $\theta$, readout $k$ is $\langle\psi(z)|O_k|\psi(z)\rangle$ with
+$O_k=U(\theta)^\dagger Z_kU(\theta)=\sum_P c_PP$ over Pauli strings; strings with a $Y$ factor
+vanish on the encoded state, and an $X$ or $Z$ factor on qubit $j$ makes the readout depend on
+input $j$. The effective order is the $c_P^2$-weighted mean number of inputs a visible string
+touches, averaged over readouts; at $\theta=0$ it is the product order of \cref{eq:identity}.
+Trained: the trained rotations (5 seeds; 3 for the 1- and 2-layer rings). Random: $\theta\sim
+\mathcal{U}(-\pi,\pi)$ (20 draws), with the share of weight on invisible ($Y$) strings. Spearman
+correlation with probe accuracy over the 13 layouts: -0.91 at $\theta=0$, -0.94 trained (post hoc), -0.71 random.}
+\label{tab:efforder}
+\small
+\begin{tabular}{lccccc}
+\toprule
+& \multicolumn{3}{c}{Effective order} & & \\
+\cmidrule(lr){2-4}
+Layout & $\theta=0$ & trained & random & $Y$ share (random) & Probe \\
+\midrule
+no CNOT & 1.00 & 1.00 & 1.00 & 0.00 & 73.6 \\
+pairs & 1.00 & 1.06 & 1.46 & 0.32 & 72.9 \\
+pairs, last & 1.50 & 1.50 & 1.50 & 0.26 & 71.2 \\
+ring (default) & 2.50 & 2.65 & 5.44 & 0.90 & 69.8 \\
+ring, 2 layers & 5.25 & 5.12 & 5.39 & 0.79 & 61.2 \\
+ring, 1 layer & 5.25 & 5.25 & 5.25 & 0.00 & 56.8 \\
+ring, last & 5.25 & 5.25 & 5.25 & 0.84 & 60.1 \\
+star$^\ast$ & 1.00 & 1.01 & 3.41 & 0.74 & 73.1 \\
+chain$^\ast$ & 1.50 & 1.55 & 4.16 & 0.83 & 71.4 \\
+star-in, last$^\ast$ & 1.88 & 1.88 & 1.88 & 0.12 & 73.0 \\
+ladder-2, last$^\ast$ & 3.00 & 3.00 & 3.00 & 0.71 & 66.6 \\
+brickwork$^\ast$ & 3.50 & 2.62 & 2.88 & 0.66 & 70.5 \\
+chain, last$^\ast$ & 4.50 & 4.50 & 4.50 & 0.73 & 58.2 \\
+\bottomrule
+\end{tabular}
+\end{table}

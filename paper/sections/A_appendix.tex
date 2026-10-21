@@ -111,12 +111,37 @@ products), it has the largest trained $R_y$ rotations (mean $|\theta|$ 0.44), an
 star-shaped ring has the next-lowest $R^2$ (0.70). Across the six layouts the prediction
 residual and $R^2$ have rank correlation $-0.94$. Order describes a circuit at its zero-rotation
 start, and layouts whose trained rotations carry them furthest from it escape part of the
-predicted cost; with six layouts this is an association, not a mechanism. The gradient
+predicted cost; with six layouts this is an association, not a mechanism. Measured directly,
+brickwork's effective order at its trained rotations is 2.6 rather than 3.5 (\cref{app:efforder}). The gradient
 effective rank of \cref{tab:gradrank} (star 7.1, chain 5.7, star-shaped ring 6.5, distance-2
 ring 4.6, brickwork 4.7, chain after the last layer 3.5) ranks the six layouts exactly as their
 probe accuracy does, including both reversals, but captures little of brickwork's advantage:
 its rank exceeds the distance-2 ring's by only $0.1\pm0.6$, against a 4-point probe gap. A two-layer MLP probe gives the same pattern (brickwork 70.2, open chain
 after the last layer 58.8).
+
+\section{Effective Order Beyond Zero Rotations}
+\label{app:efforder}
+
+\input{figures/tableA_effective_order}
+
+Product order is defined at zero rotations. \Cref{tab:efforder} extends it to any rotations by
+expanding each readout operator in Pauli strings and counting, with weight $c_P^2$, the inputs
+that each string visible on the encoded state touches; the test suite checks that the expansion
+reproduces the simulator's readouts and input dependences exactly, and that it equals
+\cref{eq:identity} at $\theta=0$. Three observations follow. First, layouts with a single
+CNOT layer after the last rotations cannot change their effective order at any rotations,
+because single-qubit rotations do not change which qubits a string acts on; only every-layer
+layouts can move, and of these brickwork moves most, from 3.5 to 2.6 at its trained rotations,
+below the distance-2 ring's 3.0, which restores that pair's probe ranking and shrinks its
+residual from the fit from $+5.1$ to $+2.3$ points. Second, at random rotations
+$\theta\sim\mathcal{U}(-\pi,\pi)$ the default ring's readouts depend on all eight inputs
+(effective order 5.4) while the ring-free ones stay at one, consistent with the gap at large
+initialization (\cref{tab:init}). Third, random-rotation order predicts probe accuracy worse than
+order at $\theta=0$ (Spearman $-0.71$ vs $-0.91$): the star and the open chain reach 3.4 and 4.2
+at random rotations yet probe near order-1 circuits, because trained circuits stay close to their
+zero-rotation regime. Order computed at the trained rotations ranks the circuits slightly better
+($-0.94$), but it uses the trained weights and is therefore a post hoc description, not a
+prediction.
 
 \section{Pretrained-Backbone Controls}
 \label{app:ptcontrols}

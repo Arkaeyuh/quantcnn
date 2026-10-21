@@ -39,13 +39,14 @@ Which property of the rings matters? \Cref{fig:hero}b places every head at the p
 of \cref{eq:identity}. Across these eleven ring-family heads at four orders, the mean probe
 accuracy of every head is below that of every head of lower order. A ring after the last layer only keeps the default's parameter count and
 number of rotation layers but raises the order to 5.25; it lowers probe accuracy by
-$9.7\pm2.2$ points relative to the default (test $-12.5\pm2.3$; 5 seeds), and the 1- and
+$9.7\pm2.2$ points relative to the default (5 seeds), and the 1- and
 2-layer circuits at the same order probe at 56.8 and 61.2 (3 seeds). Across these
 circuits, depth and parameter count do not order the cost; product order does. Six CNOT
 layouts outside the ring family, chosen by order alone and predicted from the ring-family fit
 before training, show a strong inverse association with it (Spearman $-0.89$, threshold $-0.8$
 recorded in advance; two rank reversals); five land within 4 points, brickwork 5 above, and the layouts above their prediction
-are those trained furthest from their product model (\cref{fig:hero}b, \cref{app:family}).
+are those trained furthest from their product model, brickwork to an effective order of 2.6
+(\cref{fig:hero}b, \cref{app:family,app:efforder}).
 Order is a useful but coarse descriptor.
 
 Two interventions test the products directly. First, classical heads trained end to end on a
@@ -104,7 +105,8 @@ detail on top of them. The cost does not depend on starting in the product regim
 rotations initialized in $\mathcal{U}(-\pi,\pi)$, where the identity does not hold at the start,
 the default circuit still probes $4.6\pm1.7$ points below the ring-free one ($3.8\pm1.6$ on the
 same three seeds at the default initialization), and neither circuit's probe moves by more
-than a point on average (\cref{tab:init}).
+than a point on average (\cref{tab:init}); there each default readout still depends on all
+eight inputs (\cref{app:efforder}).
 
 \subsection{Without CNOTs the head is a classical sinusoidal model}
 \label{sec:sinusoid}
@@ -167,9 +169,8 @@ below linear. Training budget therefore
 accounts for much of the size dependence at fixed epochs; with one matched budget and a
 schedule that changes with the epoch count, data size and budget are not fully separated.
 
-Here the high-order heads are also unstable across runs (the default circuit's test accuracy
-spans up to 16 points over three seeds at one learning rate; \cref{app:zeroangle} shows they stay
-at their product model). In the
+Here the high-order heads are also unstable across runs (test accuracy spans up to 16 points
+over three seeds at one learning rate). In the
 main grid the classical head on the default circuit's products probes above the circuit
 ($-4.0\pm1.6$ vs $-7.2\pm2.3$ against linear, every seed), each at its validation-selected
 rate. Trained in lockstep with the circuit and with the circuit frozen at zero rotations, from
