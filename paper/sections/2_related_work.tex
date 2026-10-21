@@ -20,15 +20,15 @@ gradients shape, and relate its accuracy to a quantity, product order, read off 
 pattern.
 
 \paragraph{Isolating the circuit inside hybrid models.}
-A growing line of work asks what the quantum part of a hybrid model contributes.
 \citet{kolle2024} separate classical and quantum contributions in hybrid architectures,
 building on sequential training that first fits a classical surrogate and then swaps in the
-circuit \citep{altmann2023}. \citet{elhag2026} isolate the circuit's contribution in quantum
-message passing for traffic forecasting. Data-encoding choices in hybrid convolutional models have
-also been compared directly \citep{monnet2024}. These controls score predictive accuracy. We
-add a representation-level measurement, a common probe on the jointly trained bottleneck,
-and structural controls (\cref{sec:order,sec:controls}), none of which varies product order
-alone: the cancelling pairs, for example, also halve the CNOT count.
+circuit \citep{altmann2023}. \citet{elhag2026} delete, freeze or corrupt the circuit in
+quantum message passing and compare it with parameter-matched classical baselines and an exact
+classical surrogate for its bare $R_y$ measurement, under a $\pi\tanh$ encoding. Encodings in
+hybrid convolutional models have also been compared \citep{monnet2024}. These controls score
+predictive performance. We add a common probe on the jointly trained bottleneck and structural
+controls (\cref{sec:order,sec:controls}), none of which varies product order alone (the
+cancelling pairs also halve the CNOT count).
 
 \paragraph{Fourier structure, classical surrogates and head-induced feature distortion.}
 Angle-encoded circuits compute truncated Fourier series of their encoded angles
