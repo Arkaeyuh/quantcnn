@@ -45,9 +45,9 @@ Our contributions are:
         accuracy by $4.7\pm0.9$ points relative to a linear head (5 seeds), and a two-layer
         MLP probe finds the same gap, so the loss is not just one of linear readability. Removing the CNOT
         rings recovers $3.8\pm1.2$ points. On a pretrained ResNet-18 the default head costs
-        6--7 points at 1,000 to 10,000 images when the number of optimizer updates is matched
-        (22.3 at 1,000 images with a fixed 30 epochs), while the ring-free head matches the
-        linear one (\cref{sec:pretrained}). Five controls leave a substantial gap
+        6--8 points at 1,000 to 10,000 images at a matched number of updates (22.3 at 1,000
+        with a fixed 30 epochs); the ring-free head stays within 1.4 points of linear
+        (\cref{sec:pretrained}). Five controls leave a substantial gap
         (\cref{sec:controls}).
   \item \textbf{A structural account} (\cref{sec:order,sec:sinusoid}). Probe accuracy falls
         with product order across eleven heads (\cref{fig:hero}b). Classical heads trained
@@ -55,8 +55,8 @@ Our contributions are:
         small CNN the default circuit's products match the VQC ($-1.0\pm2.2$), and on the
         pretrained backbone they reproduce the ordering.
         Classical heads with designed supports favor lower order where overlap and rank are
-        held fixed, though order alone does not set the cost, and the ordering replicates on MNIST and on six new CNOT layouts under
-        predictions fixed before the runs (Spearman $-0.89$; brickwork is a 5-point miss). A circuit that keeps its CNOTs
+        held fixed, though order alone does not set the cost, and the ordering replicates on MNIST and, under predictions recorded
+        before the runs, on six new layouts (Spearman $-0.89$, two rank reversals). A circuit that keeps its CNOTs
         but has product order 1 recovers $3.1\pm1.2$ points over the default. Without CNOTs
         the head is exactly a classical per-coordinate sinusoidal model, and classical heads
         of that form come within 0.3--0.9 probe points of it.

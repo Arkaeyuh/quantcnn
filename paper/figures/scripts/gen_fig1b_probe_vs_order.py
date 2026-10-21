@@ -75,7 +75,7 @@ def main():
     fam = {}
     for r in csv.DictReader(Path("results/family_probe.csv").open()):
         fam.setdefault(r["source_head"].split("+", 1)[1], []).append(float(r["probe_test_acc"]))
-    xs = [0.9, 6.0]
+    xs = [0.9 + i * (6.0 - 0.9) / 400 for i in range(401)]  # dense: the fit is linear in order, the axis is log
     ax.plot(xs, [FIT[0] + FIT[1] * x for x in xs], ls=":", lw=0.8, color=CIRCUIT, alpha=0.6, zorder=1)
     for key, structure in FAMILY.items():
         v = fam[key]

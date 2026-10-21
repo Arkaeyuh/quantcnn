@@ -93,11 +93,14 @@ effective rank of the backbone's loss gradient, and \cref{tab:init} the initiali
 \Cref{tab:family} tests product order out of sample. The six layouts were chosen by their
 zero-rotation order alone, from CNOT patterns not used anywhere else in the paper, and their
 predicted probe accuracies and the pass criteria (Spearman correlation at most $-0.8$; at least
-four of six within 4 points) were recorded before any run. Every layout selected the head
-learning rate $10^{-2}$, interior to its grid. The two misses are informative. The star-shaped
-ring after the last layer gives one readout order 8 and the other seven order 1, and probes 2.4
-points above the prediction from its mean order of 1.875: one dead readout costs less than
-the mean suggests. Brickwork, which alternates its pairs between layers, probes 5.1 points
+four of six within 4 points) were recorded in our run log before any run (an internal record,
+not independently timestamped). Every layout selected the head learning rate $10^{-2}$,
+interior to its grid. Both criteria pass, but the order ranking is not fully preserved: two pairs
+reverse it in every seed (brickwork $-$ distance-2 ring after the last layer $+4.0\pm0.7$;
+star-shaped ring after the last layer $-$ open chain $+1.7\pm1.3$). The star-shaped ring gives one
+readout order 8 and the other seven order 1, and probes 2.4 points above the prediction from
+its mean order of 1.875; a single high-order readout may cost less than the mean suggests, a
+hypothesis we have not tested. Brickwork, which alternates its pairs between layers, probes 5.1 points
 above its prediction. Its supports are nearly uniform (every input in 3 or 4 of them), but so
 are those of the distance-2 ring after the last layer (2 to 4), which lands on its prediction,
 so support uniformity does not explain the miss. What does separate the two misses is how far
@@ -260,7 +263,9 @@ $\{3\times10^{-4},\dots,3\times10^{-2}\}$ and CIFAR-10 $\{10^{-3},3\times10^{-3}
 half-decade steps, each extended by one step whenever the selected rate was at the top; circuit
 variants $\{3\times10^{-3},10^{-2},3\times10^{-2}\}$; classical product heads
 $\{10^{-3},\dots,3\times10^{-2}\}$. All selected rates of circuit and classical product heads
-are interior to their grids. The probe uses AdamW (weight decay $10^{-4}$), batch size 128,
+are interior to their grids, except in the re-tuned matched-budget search on the pretrained
+backbone (one half-decade step either way), where the 10,000-image default head and the linear
+head at both sizes select a boundary rate; that search is local. The probe uses AdamW (weight decay $10^{-4}$), batch size 128,
 60 epochs with a cosine schedule, and probe learning rates
 $\{3\times10^{-3},10^{-2},3\times10^{-2},10^{-1},3\times10^{-1},1\}$, all selected on
 validation.

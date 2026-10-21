@@ -36,17 +36,17 @@ an exact, noiseless simulator.
    60.1 at order 5.25. Removing the CNOTs recovers 3.8 of the 4.7 points; a circuit that
    keeps its CNOTs but has product order 1 recovers 3.1. The cost persists when the rotations
    start far from zero, and higher-order heads concentrate the gradient the CNN receives into
-   fewer directions. On six new CNOT layouts, predicted from their order before training, the
-   ranking holds (Spearman −0.89); one layout, brickwork, probes 5 points better than
-   predicted, and the layouts that beat their prediction are those whose training moves them
+   fewer directions. On six new CNOT layouts, predicted from their order before training,
+   a strong inverse association holds (Spearman −0.89) with two rank reversals; one layout,
+   brickwork, probes 5 points better than predicted, and the layouts that beat their prediction are those whose training moves them
    furthest from the zero-rotation product model. Order is a useful but coarse descriptor.
 4. **Without CNOTs, the quantum head is exactly a classical model**: a per-input
    combination of `cos` and `sin` of the encoded features, which classical heads match
    within about a point.
 5. **It holds on a pretrained network.** On an ImageNet-pretrained ResNet-18 the same
    ordering holds. With the number of optimizer updates matched, the default quantum head
-   costs 6–7 points with 1,000 to 10,000 training images, while the CNOT-free head stays
-   within 0.5 points of a linear head. At a fixed 30 epochs the cost looks much larger
+   costs 6–8 points with 1,000 to 10,000 training images (with or without re-selecting
+   learning rates), while the CNOT-free head stays within 1.4 points of a linear head. At a fixed 30 epochs the cost looks much larger
    with little data (22.3 points at 1,000 images), largely because small sets get fewer
    updates.
 

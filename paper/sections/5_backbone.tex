@@ -43,8 +43,8 @@ $9.7\pm2.2$ points relative to the default (test $-12.5\pm2.3$; 5 seeds), and th
 2-layer circuits at the same order probe at 56.8 and 61.2 (3 seeds). Across these
 circuits, depth and parameter count do not order the cost; product order does. Six CNOT
 layouts outside the ring family, chosen by order alone and predicted from the ring-family fit
-before training, follow the predicted ranking (Spearman $-0.89$, threshold $-0.8$ fixed in
-advance); five land within 4 points, brickwork 5 above, and the layouts above their prediction
+before training, show a strong inverse association with it (Spearman $-0.89$, threshold $-0.8$
+recorded in advance; two rank reversals); five land within 4 points, brickwork 5 above, and the layouts above their prediction
 are those trained furthest from their product model (\cref{fig:hero}b, \cref{app:family}).
 Order is a useful but coarse descriptor.
 
@@ -87,16 +87,14 @@ positive), and the classical head on the default products probes $0.1\pm0.5$ bel
 VQC, and the one on the last-ring products falls below that circuit (90.4).
 
 The identity is exact only at zero rotations, so we check how far the trained circuits move
-from it (\cref{app:zeroangle}), fitting an affine map from each circuit's zero-rotation
-readouts to its trained readouts on half of the validation set and evaluating it on the other
-half. A circuit frozen at its initialization is reproduced almost exactly ($R^2=0.997$). For
-the trained default and last-ring circuits the map recovers 87\% and 90\% of the held-out
-readout variance, and the cross-entropy gradient at the bottleneck, $\partial\mathcal{L}/\partial z$,
+from it with an affine map from each circuit's zero-rotation readouts to its trained ones, fit
+and evaluated on disjoint halves of the validation set (\cref{app:zeroangle}; a frozen circuit
+gives $R^2=0.997$). For the trained default and last-ring circuits the map recovers 87\% and
+90\% of the held-out readout variance, and the cross-entropy gradient at the bottleneck, $\partial\mathcal{L}/\partial z$,
 through the remapped products aligns with the trained one (mean per-run median cosine 0.86
 and 0.87). The products do not carry all
 task-relevant detail: the trained readout applied to the remapped products scores 7 and 6
-points below the trained circuit, and without the remapping the gradient alignment is weaker
-(median 0.59 for the default circuit, and negative for one seed). Low-order circuits move
+points below the trained circuit, and without the remapping the alignment is weaker (0.59). Low-order circuits move
 further ($R^2$ 0.73--0.83); for the ring-free circuit this is the $\sin\enc{j}$ term of
 \cref{eq:ringfree}, which its trained rotations use. At order 5.25 the trained rotations may
 recover part of the cost: the last-ring circuit tests $6.4\pm5.8$ points above the classical
@@ -164,14 +162,14 @@ $1.9\pm0.4$ at 10,000, but smaller sets then also get fewer optimizer updates. A
 approximately matched number of updates (about 3,800) the default circuit costs $6.6\pm1.7$,
 $5.7\pm0.7$ and $7.2\pm2.1$ points at 1,000, 4,000 and 10,000 images, and the ring-free head
 stays within 0.5 points of linear (seeds 0--2; \cref{tab:ptbudget}); re-selecting the learning
-rates gives $8.3\pm2.1$ and $7.7\pm1.9$. Training budget therefore
+rates gives $8.3\pm2.1$ and $7.7\pm1.9$, with the ring-free head $1.4\pm1.2$ and $0.7\pm0.2$
+below linear. Training budget therefore
 accounts for much of the size dependence at fixed epochs; with one matched budget and a
 schedule that changes with the epoch count, data size and budget are not fully separated.
 
 Here the high-order heads are also unstable across runs (the default circuit's test accuracy
-spans up to 16 points over three seeds at one learning rate), and an affine map of each circuit's
-zero-rotation readouts reproduces its trained readouts (held-out $R^2\geq0.988$ in every run;
-\cref{app:zeroangle}). In the
+spans up to 16 points over three seeds at one learning rate; \cref{app:zeroangle} shows they stay
+at their product model). In the
 main grid the classical head on the default circuit's products probes above the circuit
 ($-4.0\pm1.6$ vs $-7.2\pm2.3$ against linear, every seed), each at its validation-selected
 rate. Trained in lockstep with the circuit and with the circuit frozen at zero rotations, from

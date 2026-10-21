@@ -27,7 +27,8 @@ through its own factor, broke optimization (55.7\% vs 84.0\% clean training accu
 \paragraph{Implications for hybrid design.}
 For CNN-fed quantum heads trained end to end, the CNOT layout is a choice about the
 backbone: product order, computable before training, ranks the ring-family circuits on both
-datasets and new layouts out of sample, with one 5-point miss. The best quantum heads are
+datasets and is strongly associated with the cost of new layouts out of sample, with two rank
+reversals. The best quantum heads are
 low-order, and the best, the ring-free head, is exactly classical (\cref{eq:ringfree}). Head
 comparisons should tune each head separately and measure the backbone, not only accuracy.
 
@@ -39,7 +40,6 @@ other pretrained models or on hardware is untested. Results use 3 seeds per cell
 for consistent signs in paired comparisons but not for equivalence claims. Product order is a
 coarse scalar: it misses brickwork by 5 points, and at fixed order the distribution of
 coupling matters by an amount we do not pin down (\cref{tab:support}); the designed supports
-were tested with classical heads only. The identity is exact only at zero rotations; the
-trained default and last-ring circuits sit at $R^2=0.87$--$0.90$ of it, and low-order circuits
-move further. Finally, our probes are linear and a two-layer MLP; information recoverable only
+were tested with classical heads only. The identity is exact only at zero rotations, and trained
+circuits move away from it (held-out $R^2$ 0.51--0.90). Finally, our probes are linear and a two-layer MLP; information recoverable only
 by stronger decoders is not measured.
