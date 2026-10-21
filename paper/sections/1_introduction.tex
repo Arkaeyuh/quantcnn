@@ -8,6 +8,9 @@ into a small variational quantum circuit (VQC) that acts as the classifier head
 \emph{through} the circuit, the head does more than classify: its gradients shape the
 features the backbone learns. A comparison between a quantum head and a classical one
 therefore compares two things at once, the heads and the representations they induce.
+The question reaches beyond quantum machine learning: a head that distorts the features
+trained through it is a known failure mode of fine-tuning \citep{kumar2022}, and here the
+distortion turns out to track a structural quantity that can be computed before training.
 Benchmarks of quantum classifiers typically score accuracy on fixed inputs
 \citep[e.g.][]{fulton2026,slattery2022}; \citet{bowles2024} also replace the quantum layer of a trained
 dressed hybrid network with a classical one and visualize how the learned layers transform

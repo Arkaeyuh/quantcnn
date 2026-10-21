@@ -76,8 +76,8 @@ def support_table():
                 probe[key][int(r["seed"])] = float(r["probe_test_acc"])
     lines = [f"{label} & {st.mean(len(s) for s in sup):g} & {_overlap(sup):.2f} & {_rank(sup)} & {len(probe[k])} & {ms(test[k].values())} & "
              f"{ms(probe[k].values())} \\\\" for k, (label, sup, _) in SUPPORT_CELLS.items()]
-    contrasts = "; ".join(f"{SUPPORT_CELLS[a][0]} $-$ {SUPPORT_CELLS[b][0]} ({why}): {_shared(probe[a], probe[b])}"
-                          for a, b, why in CONTRASTS)
+    contrasts = "\n".join(f"{SUPPORT_CELLS[a][0]} $-$ {SUPPORT_CELLS[b][0]} & {why} & {_shared(probe[a], probe[b])} \\\\"
+                           for a, b, why in CONTRASTS)
     body = r"""\begin{table}[h]
 \centering
 \caption{Classical product heads whose supports separate product order from overlap (mean
@@ -86,7 +86,8 @@ images; $n$ seeds, each at its validation-selected learning rate; differences pa
 support matrix, which bounds the number of independent input directions the products can
 respond to. Window $w$: $S_k=\{k,\dots,k{+}w{-}1\}$; gapped window 4: $\{k,k{+}1,k{+}2,k{+}4\}$
 (mod 8). Star 2: $\{1,2\},\{0,1\},\{0,2\},\dots,\{0,7\}$. Star 3: $\{1,2,3\},
-\{0,1,2\},\{0,1,3\},\dots,\{0,1,7\},\{0,2,3\}$. Paired probe differences: """ + contrasts + r""".}
+\{0,1,2\},\{0,1,3\},\dots,\{0,1,7\},\{0,2,3\}$. Bottom: paired probe differences and what each
+comparison holds fixed.}
 \label{tab:support}
 \small
 \begin{tabular}{lcccccc}
@@ -94,6 +95,15 @@ respond to. Window $w$: $S_k=\{k,\dots,k{+}w{-}1\}$; gapped window 4: $\{k,k{+}1
 Supports & Order & Overlap & Rank & $n$ & Test & Probe \\
 \midrule
 """ + "\n".join(lines) + r"""
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+\begin{tabular}{llc}
+\toprule
+Comparison & Held fixed & Probe difference \\
+\midrule
+""" + contrasts + r"""
 \bottomrule
 \end{tabular}
 \end{table}

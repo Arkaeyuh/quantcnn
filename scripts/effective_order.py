@@ -91,16 +91,18 @@ def expectation_from_paulis(coef: torch.Tensor, angles: torch.Tensor) -> float:
 
 
 def readout_stats(coef: torch.Tensor, n: int, tol: float = 1e-12) -> dict:
-    """Effective order, Y-share and the set of inputs the readout depends on."""
+    """Effective order, Y-share and the number of inputs the readout depends on (strings with
+    |c_P| > tol; the same convention as the dependence test)."""
     idx = torch.cartesian_prod(*[torch.arange(4)] * n).reshape([4] * n + [n])
     has_y = (idx == 2).any(-1)
     weight_sz = ((idx == 1) | (idx == 3)).sum(-1)
     w = coef**2
-    w = torch.where(weight_sz == 0, torch.zeros_like(w), w)  # drop identity (constant)
+    w = torch.where((idx == 0).all(-1), torch.zeros_like(w), w)  # drop the identity string only (constant)
     visible = w * (~has_y)
     total, vis = w.sum().item(), visible.sum().item()
     order = (visible * weight_sz).sum().item() / vis if vis > tol else 0.0
-    touched = ((visible > tol)[..., None] & ((idx == 1) | (idx == 3))).reshape(-1, n).any(0)
+    shown = (coef.abs() > tol) & ~has_y
+    touched = (shown[..., None] & ((idx == 1) | (idx == 3))).reshape(-1, n).any(0)
     return dict(order_eff=order, y_share=(total - vis) / total if total > tol else 0.0,
                 n_inputs=int(touched.sum()))
 

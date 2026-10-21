@@ -36,24 +36,27 @@ test accuracy (94.5, 96.4) equals the linear head's (94.3, 96.4) to within 0.2 p
 \label{sec:order}
 
 Which property of the rings matters? \Cref{fig:hero}b places every head at the product order
-of \cref{eq:identity}. Across these eleven ring-family heads at four orders, the mean probe
-accuracy of every head is below that of every head of lower order. A ring after the last layer only keeps the default's parameter count and
-number of rotation layers but raises the order to 5.25; it lowers probe accuracy by
-$9.7\pm2.2$ points relative to the default (5 seeds), and the 1- and
-2-layer circuits at the same order probe at 56.8 and 61.2 (3 seeds). Across these
-circuits, depth and parameter count do not order the cost; product order does. Six CNOT
-layouts outside the ring family, chosen by order alone and predicted from the ring-family fit
-before training, show a strong inverse association with it (Spearman $-0.89$, threshold $-0.8$
-recorded in advance; two rank reversals); five land within 4 points, brickwork 5 above, and the layouts above their prediction
-are those trained furthest from their product model, brickwork to an effective order of 2.6
-(\cref{fig:hero}b, \cref{app:family,app:efforder}).
-Order is a useful but coarse descriptor.
+of \cref{eq:identity}. Across the eleven ring-family heads, at four orders, every head's mean
+probe accuracy is below that of every lower-order head. Depth and parameter count do not explain
+this: a ring after the last layer keeps the default's parameter count and rotation layers but
+raises the order to 5.25 and lowers the probe by $9.7\pm2.2$ points (5 seeds), and the 1- and
+2-layer circuits at that order probe at 56.8 and 61.2 (3 seeds).
+
+Order also carries over to layouts it was not fit on. For six CNOT layouts outside the ring
+family, chosen by order alone, we predicted probe accuracy from the ring-family fit before
+training. The association holds (Spearman $-0.89$, against a threshold of $-0.8$ set in advance;
+five of six within 4 points), with two rank reversals. The largest miss, brickwork at 5 points
+above its prediction, is the layout trained furthest from its product model; at its trained
+rotations its effective order is 2.6 rather than 3.5 (\cref{fig:hero}b,
+\cref{app:family,app:efforder}). Order is a useful but coarse descriptor.
 
 Two interventions test the products directly. First, classical heads trained end to end on a
 circuit's zero-rotation products, with no circuit, land at the circuit's order on the trend:
 the products of the default circuit give $68.8\pm1.6$ probe and $67.1\pm1.3$ test, paired
 differences to the default VQC of $-1.0\pm2.2$ and $-0.7\pm1.7$ with mixed signs across
-seeds. Second, the
+seeds. Summing instead of multiplying the same cosines would give the order-1 cos head's function
+class (73.3 probe), as every CNOT-derived support matrix has full rank, though such a head would
+train differently. Second, the
 \emph{pairs} circuit keeps a CNOT after every layer but has order 1, because its pair CNOTs
 cancel at zero rotations. It recovers $3.1\pm1.2$ probe and $4.4\pm1.2$ test points over the
 default, positive for every seed, and sits $0.7\pm1.0$ probe points below the ring-free
@@ -61,47 +64,35 @@ circuit. Pairs after the
 last layer only (order 1.5) probe at $71.2\pm0.7$, between orders 1 and 2.5, as does the
 classical head on their products ($71.2\pm1.3$).
 
-In CNOT-derived supports, order rises together with how many inputs different readouts share,
-so we also trained classical product heads on designed supports that separate the two
-(\cref{tab:support}). Overlap, the mean number of inputs two readouts share, is equal for a
-``star'' layout of order 3 and two order-4 layouts, and nearly equal for a star of order 2 and
-a window of three consecutive inputs (0.82 vs 0.86). In each of these comparisons the
-lower-order head probes higher: by $5.4\pm2.7$ points against an order-4 layout whose support
-matrix, like every CNOT-derived one, has full rank, $5.6\pm2.2$ against a rank-5 window, and
-$3.9\pm1.9$ for the order-2 star against the order-3 window (5 seeds, all positive; only the
-first holds overlap and rank fixed exactly). At equal order, the stars, which reuse one or two inputs
-across most products, probe $3.0\pm0.2$ (3 seeds) and $1.8\pm2.8$ (5 seeds, mixed signs)
-points above the windows; the
-first of these also differs in rank, so how the coupling is distributed across inputs matters
-in addition to order, by an amount these controls do not pin down. Order alone therefore does
-not set the cost: an order-3 star probes as high as the default ring's order-2.5 products (68.9
-vs 68.8, 5 shared seeds), and the designed heads also differ in how well they fit the training set (clean training
-accuracy 84.8\% for the order-3 star vs 73.6\% for the full-rank order-4 layout, seeds 0--2), so
-their contrasts mix structure with optimization. Within the tested family and protocols, higher
-order tracks lower mean probe accuracy, but order is not sufficient to determine it.
+In CNOT-derived supports, order rises with overlap, the number of inputs two readouts share, so
+classical product heads on designed supports separate the two (\cref{tab:support}). At equal
+overlap and full rank, the order-3 star probes $5.4\pm2.7$ points above an order-4 layout (5 seeds,
+all positive); the other matched comparisons point the same way but also change rank or match
+overlap only approximately. At equal order the stars, which reuse one or two inputs across most
+products, probe 3.0 and 1.8 points above the windows (the latter with mixed signs), so how the coupling is distributed also
+matters, and an order-3 star probes as high as the default ring's order-2.5 products (68.9 vs
+68.8). The designed heads also differ in training fit (85.6\% vs 74.1\% clean training accuracy
+for the order-3 star and the order-4 layout), so their contrasts mix structure with
+optimization. Within the tested family and protocols, higher order tracks lower mean probe
+accuracy, but order is not sufficient to determine it.
 
 The pattern also replicates on MNIST with 1,000 images, where we fixed the layouts and recorded
-the predicted ordering before running them (an internal record). Probe accuracy is 96.5 without CNOTs, 95.5
+the predicted ordering before running them. Probe accuracy is 96.5 without CNOTs, 95.5
 for pairs after the last layer, 95.1 for the default circuit and 91.6 for a ring after the
 last layer; the small pairs-last advantage over the default is $+0.4\pm0.5$ (5 seeds, 4
-positive), and the classical head on the default products probes $0.1\pm0.5$ below the default
+positive); the classical head on the default products probes $0.1\pm0.5$ below the default
 VQC, and the one on the last-ring products falls below that circuit (90.4).
 
-The identity is exact only at zero rotations, so we check how far the trained circuits move
-from it with an affine map from each circuit's zero-rotation readouts to its trained ones, fit
-and evaluated on disjoint halves of the validation set (\cref{app:zeroangle}; a frozen circuit
-gives $R^2=0.997$). For the trained default and last-ring circuits the map recovers 87\% and
-90\% of the held-out readout variance, and the cross-entropy gradient at the bottleneck, $\partial\mathcal{L}/\partial z$,
-through the remapped products aligns with the trained one (mean per-run median cosine 0.86
-and 0.87). The products do not carry all
-task-relevant detail: the trained readout applied to the remapped products scores 7 and 6
-points below the trained circuit, and without the remapping the alignment is weaker (0.59). Low-order circuits move
-further ($R^2$ 0.73--0.83); for the ring-free circuit this is the $\sin\enc{j}$ term of
-\cref{eq:ringfree}, which its trained rotations use. At order 5.25 the trained rotations may
-recover part of the cost: the last-ring circuit tests $6.4\pm5.8$ points above the classical
-head on its products, higher in four of five seeds (95\% interval $[-0.8,13.6]$). The products thus reproduce the accuracy trend and most of the
-trained ring circuits' readouts and gradient directions, and the trained rotations add task
-detail on top of them. The cost does not depend on starting in the product regime: with the
+The identity is exact only at zero rotations, so we fit an affine map from each trained circuit's
+zero-rotation readouts to its trained readouts on half of the validation set and evaluate it on
+the other half (\cref{app:zeroangle}; a frozen circuit gives $R^2=0.997$). For the default and
+last-ring circuits it recovers 87\% and 90\% of the held-out readout variance, and the bottleneck
+gradient through the remapped products aligns with the trained one (median cosine 0.86 and
+0.87). The products miss some task detail: the trained readout on the remapped products scores
+7 and 6 points lower. Low-order circuits move further ($R^2$ 0.73--0.83; for the ring-free
+circuit through the $\sin\enc{j}$ term of \cref{eq:ringfree}). At order 5.25 the trained rotations
+may recover part of the cost: the last-ring circuit tests $6.4\pm5.8$ points above the classical
+head on its products (four of five seeds; 95\% interval $[-0.8,13.6]$). The cost does not depend on starting in the product regime: with the
 rotations initialized in $\mathcal{U}(-\pi,\pi)$, where the identity does not hold at the start,
 the default circuit still probes $4.6\pm1.7$ points below the ring-free one ($3.8\pm1.6$ on the
 same three seeds at the default initialization), and neither circuit's probe moves by more
@@ -164,18 +155,18 @@ $1.9\pm0.4$ at 10,000, but smaller sets then also get fewer optimizer updates. A
 approximately matched number of updates (about 3,800) the default circuit costs $6.6\pm1.7$,
 $5.7\pm0.7$ and $7.2\pm2.1$ points at 1,000, 4,000 and 10,000 images, and the ring-free head
 stays within 0.5 points of linear (seeds 0--2; \cref{tab:ptbudget}); re-selecting the learning
-rates gives $8.3\pm2.1$ and $7.7\pm1.9$, with the ring-free head $1.4\pm1.2$ and $0.7\pm0.2$
+rates gives $8.3\pm2.1$ and $7.7\pm1.9$ at 1,000 and 10,000 images, with the ring-free head $1.4\pm1.2$ and $0.7\pm0.2$
 below linear. Training budget therefore
 accounts for much of the size dependence at fixed epochs; with one matched budget and a
 schedule that changes with the epoch count, data size and budget are not fully separated.
 
-Here the high-order heads are also unstable across runs (test accuracy spans up to 16 points
+Here the high-order heads are also unstable across runs (test accuracy spans up to 27 points
 over three seeds at one learning rate). In the
 main grid the classical head on the default circuit's products probes above the circuit
 ($-4.0\pm1.6$ vs $-7.2\pm2.3$ against linear, every seed), each at its validation-selected
-rate. Trained in lockstep with the circuit and with the circuit frozen at zero rotations, from
-copied weights on identical batches (\cref{app:ptcontrols}), the three heads do not differ
-detectably at a shared learning rate (circuit $-$ products $-0.6\pm2.0$ and $+0.6\pm3.9$ at
+rate. When the circuit, the same circuit frozen at zero rotations and the products head are
+trained in lockstep, from copied weights on identical batches (\cref{app:ptcontrols}), they
+do not differ detectably at a shared learning rate (circuit $-$ products $-0.6\pm2.0$ and $+0.6\pm3.9$ at
 $3\times10^{-4}$ and $10^{-3}$, 10 seeds; 95\% intervals $[-2.0,0.8]$ and $[-2.1,3.4]$), while at
 the main-grid rates the products head stays ahead ($+2.9\pm3.0$, 8 of 10 seeds). Learning-rate
 selection is thus the more likely source of the products head's advantage, without excluding

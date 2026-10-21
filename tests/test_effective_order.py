@@ -4,7 +4,9 @@
 * the Pauli coefficients reproduce the simulator's readouts exactly at random rotations and inputs;
 * the inputs a readout depends on (by the Pauli expansion) are exactly those with a nonzero input
   gradient in the simulator;
-* without CNOTs every readout depends on its own input only, at any rotations.
+* without CNOTs every readout depends on its own input only, at any rotations;
+* weight on strings made only of I and Y factors counts as invisible (Y share), and only the
+  identity string is dropped as a constant.
 """
 
 import math
@@ -72,6 +74,7 @@ def test_dependence_set_matches_input_gradients():
             (g,) = torch.autograd.grad(q[:, k].sum(), z, retain_graph=True)
             moved = g.abs().amax(0) > 1e-9
             assert torch.equal(dep, moved), (name, k, dep.tolist(), moved.tolist())
+            assert readout_stats(c, N)["n_inputs"] == int(moved.sum()), (name, k)
 
 
 def test_ring_free_stays_order_one():
@@ -79,6 +82,18 @@ def test_ring_free_stays_order_one():
     for op in readout_operators(vqc, vqc.weights):
         s = readout_stats(pauli_coefficients(op, N), N)
         assert abs(s["order_eff"] - 1) < 1e-9 and s["n_inputs"] == 1, s
+
+
+def test_y_share_counts_pure_y_strings():
+    coef = torch.zeros(4, 4, dtype=torch.float64)  # qubits (0, 1); index order I, X, Y, Z
+    coef[0, 0] = 0.5  # identity: constant, ignored
+    coef[3, 0] = 0.6  # Z on qubit 0: visible, order 1
+    coef[2, 0] = 0.8  # Y on qubit 0 only: invisible
+    s = readout_stats(coef, 2)
+    assert abs(s["y_share"] - 0.64) < 1e-12 and abs(s["order_eff"] - 1) < 1e-12 and s["n_inputs"] == 1, s
+    coef[2, 2] = 0.6  # Y on both qubits: invisible
+    s = readout_stats(coef, 2)
+    assert abs(s["y_share"] - 1.0 / 1.36) < 1e-12 and s["n_inputs"] == 1, s
 
 
 if __name__ == "__main__":

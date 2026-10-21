@@ -112,6 +112,7 @@ python -m scripts.zero_angle_check --cases pretrained --out results/zero_angle_c
 python -m scripts.grad_rank           # effective rank of the backbone's loss gradient by head
 python -m scripts.zero_angle_check --cases family --out results/zero_angle_check_family.csv
 python -m scripts.grad_rank --cases family --out results/grad_rank_family.csv
+python -m scripts.attenuation           # cosine-factor attenuation of the readout gradient
 python -m scripts.effective_order --source trained --out results/effective_order_trained.csv
 python -m scripts.effective_order --source random --scale 3.141592653589793 --out results/effective_order_random_pi.csv
 python -m scripts.lockstep_pretrained --n_workers 5

@@ -10,11 +10,11 @@ rotations gives, for $j\in\Sk$,
 \end{equation}
 The gradient a bottleneck coordinate receives through readout $k$ is scaled by the cosines of
 every other coordinate in $\Sk$, and it approaches zero when any of them nears
-$\enc{i}=\pm\pi/2$. With order 1 each coordinate learns from its own readout; at order 5.25
-the readouts couple 5.25 coordinates on average, multiplicatively. We hypothesize that this
-coupling makes the class signal each coordinate receives depend on the state of the others,
-so that higher-order heads train backbones whose bottlenecks carry less class signal
-that our probes can recover. Consistent with this, the effective rank (of 8) of the per-sample
+$\enc{i}=\pm\pi/2$. For independent coordinates its mean square has an upper bound that falls
+geometrically with the support size when $\mathbb{E}[\cos^2\enc{i}]<1$ (\cref{prop:atten};
+measured factor 0.6--0.8 per input). We hypothesize that this multiplicative coupling, absent at order 1,
+makes the class signal each coordinate receives depend on the others, so that higher-order
+heads train bottlenecks with less probe-recoverable class signal. Consistent with this, the effective rank (of 8) of the per-sample
 bottleneck gradients $\partial\mathcal{L}/\partial z$ falls from 7.2 for the ring-free head (7.3
 for linear) to 4.5 for the default and 3.7 for the last-ring circuit, ring-free above default in
 every seed, with the same mean ordering at initialization (\cref{tab:gradrank}); this is a
@@ -36,7 +36,7 @@ comparisons should tune each head separately and measure the backbone, not only 
 We study two families of CNOT layouts (8 qubits, $R_yR_z$ layers, $\pi\tanh$ angle encoding with two
 variants) on an 8-dimensional bottleneck, one qubit per coordinate, in noiseless simulation, with small CNNs and one pretrained ResNet-18 on subsets
 of MNIST and CIFAR-10 of at most 10,000 images; the size of the effect with other encodings,
-other pretrained models or on hardware is untested. Results use 3 seeds per cell and 5 for the CIFAR-10/4,000 headline cells, enough
+other pretrained models or on hardware is untested. Most cells use 3 seeds (5 or 10 where stated), enough
 for consistent signs in paired comparisons but not for equivalence claims. Product order is a
 coarse scalar: it misses brickwork by 5 points, and at fixed order the distribution of
 coupling matters by an amount we do not pin down (\cref{tab:support}); the designed supports
