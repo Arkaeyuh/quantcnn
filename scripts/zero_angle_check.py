@@ -33,6 +33,7 @@ From repository root::
 
     PYTHONPATH=. python -m scripts.zero_angle_check --out results/zero_angle_check.csv
     PYTHONPATH=. python -m scripts.zero_angle_check --cases pretrained --out results/zero_angle_check_pretrained.csv
+    PYTHONPATH=. python -m scripts.zero_angle_check --cases family --out results/zero_angle_check_family.csv
 """
 
 from __future__ import annotations
@@ -68,7 +69,10 @@ CASES_PRETRAINED = {
     "quantum+entlast+resnet18_pt": ("_entlast" + PT, "cifar_pretrained", range(5)),
     "quantum+noent+resnet18_pt": ("_noent" + PT, "cifar_pretrained", range(5)),
 }
-EXTRA_SEED_GRID = {"cases": "cifar_seeds", "pretrained": "night_seeds"}
+# Second family of CNOT layouts (--cases family)
+FAMILY_KEYS = ["star", "chain", "star_in_last", "ladder2_last", "brick", "chain_last"]
+CASES_FAMILY = {f"quantum+{k}": (f"_{k}", "cifar_family", range(5)) for k in FAMILY_KEYS}
+EXTRA_SEED_GRID = {"cases": "cifar_seeds", "pretrained": "night_seeds", "family": "cifar_family_seeds"}
 
 
 def _load(run: Path) -> HybridClassifier:
@@ -128,11 +132,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="results/zero_angle_check.csv")
     ap.add_argument("--val_size", type=int, default=2000)
-    ap.add_argument("--cases", choices=["cases", "pretrained"], default="cases",
-                    help="'pretrained': the ResNet-18 heads instead of the small-CNN ones.")
+    ap.add_argument("--cases", choices=["cases", "pretrained", "family"], default="cases",
+                    help="'pretrained': the ResNet-18 heads; 'family': the second family of CNOT layouts.")
     a = ap.parse_args()
     rows = []
-    for name, (suffix, grid, seeds) in (CASES if a.cases == "cases" else CASES_PRETRAINED).items():
+    cases = {"cases": CASES, "pretrained": CASES_PRETRAINED, "family": CASES_FAMILY}[a.cases]
+    for name, (suffix, grid, seeds) in cases.items():
         lr = _selected_runs(ROOT, [grid])[(4000, name)][0]  # validation-selected on seeds 0-2
         for seed in seeds:
             run = ROOT / (grid if seed < 3 else EXTRA_SEED_GRID[a.cases]) / SLUG.format(suffix, lr, seed)

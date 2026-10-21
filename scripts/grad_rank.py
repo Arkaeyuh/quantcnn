@@ -17,6 +17,7 @@ per-sample gradient norm.
 From repository root::
 
     PYTHONPATH=. python -m scripts.grad_rank --out results/grad_rank.csv
+    PYTHONPATH=. python -m scripts.grad_rank --cases family --out results/grad_rank_family.csv
 """
 
 from __future__ import annotations
@@ -44,6 +45,13 @@ CASES = {
 }
 
 
+# Second family of CNOT layouts (--cases family): pattern -> product order
+FAMILY = {"star": 1.0, "chain": 1.5, "star_in_last": 1.875, "ladder2_last": 3.0, "brick": 3.5, "chain_last": 4.5}
+CASES_FAMILY = {f"quantum+{k}": (f"quantum_{k}", "cifar_family", o, dict(head="quantum", entangle=k))
+                for k, o in FAMILY.items()}
+EXTRA_SEED_GRID = {"cases": "cifar_seeds", "family": "cifar_family_seeds"}
+
+
 def _grads(model: HybridClassifier, z: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     z = z.clone().requires_grad_(True)
     torch.nn.functional.cross_entropy(model.head(model.pre_norm(z)), y, reduction="sum").backward()
@@ -62,12 +70,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="results/grad_rank.csv")
     ap.add_argument("--val_size", type=int, default=2000)
+    ap.add_argument("--cases", choices=["cases", "family"], default="cases",
+                    help="'family': the second family of CNOT layouts.")
     a = ap.parse_args()
     rows = []
-    for name, (slug_head, grid, order, init_kw) in CASES.items():
+    for name, (slug_head, grid, order, init_kw) in (CASES if a.cases == "cases" else CASES_FAMILY).items():
         lr = _selected_runs(ROOT, [grid])[(4000, name)][0]
         for seed in range(5):
-            run = ROOT / (grid if seed < 3 else "cifar_seeds") / SLUG.format(slug_head, lr, seed)
+            run = ROOT / (grid if seed < 3 else EXTRA_SEED_GRID[a.cases]) / SLUG.format(slug_head, lr, seed)
             if not (run / "best_model.pt").exists():
                 continue
             val = get_splits("cifar10", 4000, seed, a.val_size)["val"]

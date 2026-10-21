@@ -4,19 +4,22 @@
 4,000 images, small CNN, protocol of \cref{sec:setup}). The layouts were chosen by their
 zero-rotation product order alone, and their probe accuracy was predicted, before training,
 from a linear fit over the seven ring-family VQC circuits (probe $=76.7-3.22\times$ order).
-Spearman correlation between order and mean probe accuracy over the six layouts: -0.89; 5 of 6 within 4 points of the prediction.}
+Spearman correlation between order and mean probe accuracy over the six layouts: -0.89; 5 of 6 within 4 points of the prediction. $R^2$: held-out fraction of the trained readouts'
+variance recovered by an affine map of the same circuit's zero-rotation readouts
+(\cref{app:zeroangle}); its rank correlation with the prediction residual (observed $-$
+predicted, post hoc) is -0.94.}
 \label{tab:family}
 \small
-\begin{tabular}{llccccc}
+\begin{tabular}{llcccccc}
 \toprule
-Layout & CNOTs & Order & Predicted & Probe & Obs.\ $-$ pred. & $n$ \\
+Layout & CNOTs & Order & Predicted & Probe & Obs.\ $-$ pred. & $R^2$ & $n$ \\
 \midrule
-star & $\mathrm{CNOT}(0,q)$, every layer & 1 & 73.5 & $73.1 \pm 1.2$ & -0.4 & 5 \\
-chain & $\mathrm{CNOT}(q,q{+}1)$, $q<7$, every layer & 1.5 & 71.9 & $71.4 \pm 1.1$ & -0.5 & 5 \\
-star-in, last & $\mathrm{CNOT}(q,0)$, last layer & 1.875 & 70.7 & $73.0 \pm 0.5$ & +2.4 & 5 \\
-ladder-2, last & $\mathrm{CNOT}(q,q{+}2)$, last layer & 3 & 67.0 & $66.6 \pm 0.5$ & -0.5 & 5 \\
-brickwork & alternating pairs, every layer & 3.5 & 65.4 & $70.5 \pm 0.6$ & +5.1 & 5 \\
-chain, last & open chain, last layer & 4.5 & 62.2 & $58.2 \pm 3.1$ & -4.0 & 5 \\
+star & $\mathrm{CNOT}(0,q)$, every layer & 1 & 73.5 & $73.1 \pm 1.2$ & -0.4 & 0.82 & 5 \\
+chain & $\mathrm{CNOT}(q,q{+}1)$, $q<7$, every layer & 1.5 & 71.9 & $71.4 \pm 1.1$ & -0.5 & 0.84 & 5 \\
+star-in, last & $\mathrm{CNOT}(q,0)$, last layer & 1.875 & 70.7 & $73.0 \pm 0.5$ & +2.4 & 0.70 & 5 \\
+ladder-2, last & $\mathrm{CNOT}(q,q{+}2)$, last layer & 3 & 67.0 & $66.6 \pm 0.5$ & -0.5 & 0.81 & 5 \\
+brickwork & alternating pairs, every layer & 3.5 & 65.4 & $70.5 \pm 0.6$ & +5.1 & 0.51 & 5 \\
+chain, last & open chain, last layer & 4.5 & 62.2 & $58.2 \pm 3.1$ & -4.0 & 0.89 & 5 \\
 \bottomrule
 \end{tabular}
 \end{table}

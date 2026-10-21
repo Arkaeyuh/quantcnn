@@ -18,7 +18,8 @@ that our probes can recover. Consistent with this, the effective rank (of 8) of 
 bottleneck gradients $\partial\mathcal{L}/\partial z$ falls from 7.2 for the ring-free head (7.3
 for linear) to 4.5 for the default and 3.7 for the last-ring circuit, ring-free above default in
 every seed, with the same mean ordering at initialization (\cref{tab:gradrank}); this is a
-correlate, not a proof of cause. The MLP probe argues against the signal being present but only nonlinearly readable
+correlate, not a proof of cause, and on the second family it follows order rather than probe
+accuracy (\cref{app:family}). The MLP probe argues against the signal being present but only nonlinearly readable
 (\cref{app:mechanism}). Removing the coupling directly, by passing each input's gradient only
 through its own factor, broke optimization (55.7\% vs 84.0\% clean training accuracy;
 \cref{tab:decoupled}) and is inconclusive, so the coupling account remains a hypothesis.

@@ -38,7 +38,8 @@ an exact, noiseless simulator.
    start far from zero, and higher-order heads concentrate the gradient the CNN receives into
    fewer directions. On six new CNOT layouts, predicted from their order before training, the
    ranking holds (Spearman −0.89); one layout, brickwork, probes 5 points better than
-   predicted, so order is a useful but coarse descriptor.
+   predicted, and the layouts that beat their prediction are those whose training moves them
+   furthest from the zero-rotation product model. Order is a useful but coarse descriptor.
 4. **Without CNOTs, the quantum head is exactly a classical model**: a per-input
    combination of `cos` and `sin` of the encoded features, which classical heads match
    within about a point.
@@ -108,6 +109,8 @@ python -m scripts.zero_angle_check      # trained circuits vs their zero-rotatio
 python -m scripts.sign_symmetry --circuit_lrs quantum+half=0.01 quantum+half_sym=0.01 quantum+noent=0.01
 python -m scripts.zero_angle_check --cases pretrained --out results/zero_angle_check_pretrained.csv
 python -m scripts.grad_rank           # effective rank of the backbone's loss gradient by head
+python -m scripts.zero_angle_check --cases family --out results/zero_angle_check_family.csv
+python -m scripts.grad_rank --cases family --out results/grad_rank_family.csv
 python -m scripts.lockstep_pretrained --n_workers 5
 python -m scripts.lockstep_divergence  # step-by-step divergence of two implementations of one head
 python -m scripts.probe_backbones --all_lrs --heads all --datasets cifar10 --grids cifar_pretrained_lockstep --out results/lockstep_probe.csv

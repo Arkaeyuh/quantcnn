@@ -62,10 +62,12 @@ def _spearman(x: list[float], y: list[float]) -> float:
 
 
 def main():
-    probe = defaultdict(dict)
+    probe, r2 = defaultdict(dict), defaultdict(list)
     for r in csv.DictReader(Path("results/family_probe.csv").open()):
         probe[r["source_head"]][int(r["seed"])] = float(r["probe_test_acc"])
-    lines, orders, means, hits = [], [], [], 0
+    for r in csv.DictReader(Path("results/zero_angle_check_family.csv").open()):
+        r2[r["head"]].append(float(r["r2_heldout"]))
+    lines, orders, means, hits, resid, fit_r2 = [], [], [], 0, [], []
     for key, (label, gates) in FAMILY.items():
         vals = probe[f"quantum+{key}"]
         o, pred = _order(key), FIT[0] + FIT[1] * _order(key)
@@ -73,9 +75,14 @@ def main():
         hits += abs(m - pred) <= MARGIN
         orders.append(o)
         means.append(m)
-        lines.append(f"{label} & {gates} & {o:g} & {pred:.1f} & {ms(vals.values())} & {m - pred:+.1f} & {len(vals)} \\\\")
+        lines.append(f"{label} & {gates} & {o:g} & {pred:.1f} & {ms(vals.values())} & {m - pred:+.1f} & "
+                     f"{st.mean(r2[f'quantum+{key}']):.2f} & {len(vals)} \\\\")
+        resid.append(m - pred)
+        fit_r2.append(st.mean(r2[f"quantum+{key}"]))
     rho = _spearman(orders, means)
-    print(f"Spearman(order, probe) over {len(orders)} layouts: {rho:.3f}; within {MARGIN:g} points: {hits}/{len(orders)}")
+    rho_r2 = _spearman(resid, fit_r2)
+    print(f"Spearman(order, probe) over {len(orders)} layouts: {rho:.3f}; within {MARGIN:g} points: {hits}/{len(orders)}; "
+          f"Spearman(residual, R2) {rho_r2:.3f}")
     body = r"""\begin{table}[h]
 \centering
 \caption{Out-of-sample test of product order on a second family of CNOT layouts (CIFAR-10,
@@ -83,12 +90,15 @@ def main():
 zero-rotation product order alone, and their probe accuracy was predicted, before training,
 from a linear fit over the seven ring-family VQC circuits (probe $=76.7-3.22\times$ order).
 Spearman correlation between order and mean probe accuracy over the six layouts: """ + f"{rho:.2f}" + r"""; """ + \
-        f"{hits} of {len(orders)}" + r""" within 4 points of the prediction.}
+        f"{hits} of {len(orders)}" + r""" within 4 points of the prediction. $R^2$: held-out fraction of the trained readouts'
+variance recovered by an affine map of the same circuit's zero-rotation readouts
+(\cref{app:zeroangle}); its rank correlation with the prediction residual (observed $-$
+predicted, post hoc) is """ + f"{rho_r2:.2f}" + r""".}
 \label{tab:family}
 \small
-\begin{tabular}{llccccc}
+\begin{tabular}{llcccccc}
 \toprule
-Layout & CNOTs & Order & Predicted & Probe & Obs.\ $-$ pred. & $n$ \\
+Layout & CNOTs & Order & Predicted & Probe & Obs.\ $-$ pred. & $R^2$ & $n$ \\
 \midrule
 """ + "\n".join(lines) + r"""
 \bottomrule

@@ -100,8 +100,18 @@ points above the prediction from its mean order of 1.875: one dead readout costs
 the mean suggests. Brickwork, which alternates its pairs between layers, probes 5.1 points
 above its prediction. Its supports are nearly uniform (every input in 3 or 4 of them), but so
 are those of the distance-2 ring after the last layer (2 to 4), which lands on its prediction,
-so support uniformity does not explain the miss; we leave it unexplained. As with the designed
-supports of \cref{tab:support}, the mean order does not capture everything about a layout. A two-layer MLP probe gives the same pattern (brickwork 70.2, open chain
+so support uniformity does not explain the miss. What does separate the two misses is how far
+training moves each circuit from its zero-rotation model (post hoc, \cref{tab:family}):
+brickwork's trained readouts are the least well reproduced by its products (held-out $R^2$
+0.51, against 0.70--0.89 for the others; trained accuracy 70.2 vs 45.0 with the remapped
+products), it has the largest trained $R_y$ rotations (mean $|\theta|$ 0.44), and the
+star-shaped ring has the next-lowest $R^2$ (0.70). Across the six layouts the prediction
+residual and $R^2$ have rank correlation $-0.94$. Order describes a circuit at its zero-rotation
+start, and layouts whose trained rotations carry them furthest from it escape part of the
+predicted cost; with six layouts this is an association, not a mechanism. The gradient
+effective rank of \cref{tab:gradrank} does not show the brickwork advantage: it follows order
+(star 7.1, chain 5.7, star-shaped ring 6.5, distance-2 ring 4.6, brickwork 4.7, chain after the
+last layer 3.5) rather than probe accuracy. A two-layer MLP probe gives the same pattern (brickwork 70.2, open chain
 after the last layer 58.8).
 
 \section{Pretrained-Backbone Controls}
