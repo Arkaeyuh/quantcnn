@@ -117,9 +117,33 @@ default-head backbones. Extending the grid down to $10^{-4}$ for the five headli
 default, ring-free, last ring, pairs; 5 seeds) changes every contrast against the default
 circuit by less than 0.1 points (VQC $-$ linear $-4.8\pm0.7$, every seed negative); one
 default-head probe still selects the new lowest rate. A stronger nonlinear decoder could still
-recover more; we claim only that the gap persists under these probes. \Cref{tab:decoupled}
-gives the decoupling attempt discussed in \cref{sec:discussion}. \Cref{tab:gradrank} gives the
+recover more; we claim only that the gap persists under these probes. \Cref{tab:gradrank} gives the
 effective rank of the backbone's loss gradient, and \cref{tab:init} the initialization control.
+
+\Cref{tab:decoupled,tab:floor} test whether the attenuation of \cref{prop:atten} causes the cost.
+The first decoupling attempt passed each input's gradient only through its own factor, which
+discards the sign of the other factors' product as well as its magnitude, and training collapsed.
+The gradient-floor test keeps the forward products and each path's sign and floors only the
+magnitude, $\mathrm{sign}(P)\max(|P|,\tau)$ with the sign taken as $+1$ at $P=0$ ($\tau=0$ is the
+true gradient, tested to match it within numerical tolerance). Measured before the runs on the
+coupled heads, the floor barely changes the bottleneck gradient at initialization, where the
+bottleneck is near zero and every factor is close to 1 (mean cosine with the true gradient 1.000,
+norm ratio at most 1.06), and changes its direction little at the end of training (mean cosine
+0.97 for the default and 0.91 for the last-ring supports at $\tau=1$, with norm ratios up to 1.7);
+these endpoint measurements do not show how strongly it acts along training. We predicted that
+$\tau=1$ would recover at least 2 probe points on the default supports and 4 on the last-ring
+supports if attenuation drives the cost, and committed a training guard and a refutation
+criterion. On the default supports training stays within the guard and the probe shows no
+improvement ($-0.4\pm2.0$ at $\tau=1$), which meets that support's part of the refutation
+criterion; on the last-ring supports $\tau=1$ lowers clean training accuracy by 11 points, beyond
+the guard, so that support is inconclusive and the joint criterion is not met; $\tau=0.3$ has no
+reliable effect. We expected a partial recovery and found none. The attenuation hypothesis is
+therefore not supported: in this test, removing the attenuation of the other factors did not
+recover the representation. The test does not exclude attenuation acting otherwise, for instance
+inside trained circuits or through each input's own derivative; \cref{prop:atten} remains a
+correct bound on gradient size, not a demonstrated mechanism.
+
+\input{figures/tableA_floor}
 
 \section{A Second Family of CNOT Layouts}
 \label{app:family}
@@ -171,7 +195,8 @@ ring-last (5.25), was named as a risk in advance and appears in the same directi
 $\pi\tanh$. The predicted slope, scaled down from the ring family's by the measured attenuation
 factor, matches the observed one ($-2.41$); post hoc, the same layouts under $\pi\tanh$ give a
 steeper slope, consistent with the attenuation account of \cref{prop:atten} but resting on six
-layouts. \Cref{app:phase} turns to an encoding for which \cref{eq:identity} does not hold.
+layouts; the direct test of that account on the $\pi\tanh$ product heads (\cref{tab:floor}) finds
+no recovery on the default supports and is inconclusive on the last-ring supports. \Cref{app:phase} turns to an encoding for which \cref{eq:identity} does not hold.
 
 \input{figures/tableA_encoding}
 
@@ -396,4 +421,6 @@ The predicted orderings for the MNIST replication and the predictions and pass c
 second family of layouts were written in the project's log before those runs; the log entries are
 copied verbatim into the repository, whose first timestamp for them postdates the runs. The
 predictions for the two encoding arms (\cref{app:encoding,app:phase}) were committed before their runs. Seeds control
-data subsets, initialization and data order. Experiments ran on one Apple M3 Max.
+data subsets, initialization and data order. Experiments ran on one Apple M3 Max. The reviews
+and the claim and citation audits of this paper were run with the ARIS workflow
+\citep{yang2026aris}.

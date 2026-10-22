@@ -1,0 +1,26 @@
+\begin{table}[h]
+\centering
+\caption{Gradient-floor test of the attenuation hypothesis (CIFAR-10, 4,000 images, small CNN,
+5 seeds, head learning rate $10^{-2}$ selected for every head). Classical product heads keep the
+forward products; in the backward pass each path's derivative, the product $P$ of the other
+factors in the readout's support, is replaced by $\mathrm{sign}(P)\max(|P|,\tau)$ (sign $+1$ at $P=0$): $\tau=0$ is the
+true gradient, $\tau=1$ removes all magnitude attenuation but keeps each path's sign. Predictions,
+a training guard (clean training accuracy within 10 points of $\tau=0$) and a refutation criterion
+were committed before the runs. $\Delta$: paired probe difference to $\tau=0$. Train: clean
+training accuracy (\%).}
+\label{tab:floor}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Supports & $\tau$ & Probe & $\Delta$ & MLP probe & Train \\
+\midrule
+default (order 2.5) & 0 & $68.8 \pm 1.6$ & --- & $69.0 \pm 1.5$ & 86.0 \\
+ & 0.3 & $68.3 \pm 2.0$ & $-0.5 \pm 2.5$ & $68.8 \pm 2.0$ & 85.2 \\
+ & 1 & $68.4 \pm 2.2$ & $-0.4 \pm 2.0$ & $68.2 \pm 2.3$ & 84.1 \\
+\addlinespace
+last ring (order 5.25) & 0 & $54.8 \pm 3.4$ & --- & $55.2 \pm 3.3$ & 56.1 \\
+ & 0.3 & $56.6 \pm 6.2$ & $+1.7 \pm 7.3$ & $57.3 \pm 5.7$ & 58.8 \\
+ & 1 & $47.4 \pm 3.1$ & $-7.4 \pm 4.7$ & $48.2 \pm 3.1$ & 44.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
