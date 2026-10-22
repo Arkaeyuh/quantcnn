@@ -5,7 +5,9 @@ probe in ``results/circuit_probe.csv``; CIFAR-10, 4,000 images, small CNN). Pred
 criteria were committed before the runs (``predictions/prospective_predictions.md``): the default
 ring's observed probe as anchor and the ring-family slope scaled by the attenuation ratio
 ln E[cos^2 phi] (half) / ln E[cos^2 phi] (pi tanh). Prints the pre-registered statistics and the
-post hoc slope comparison with the pi tanh encoding over the same layouts (seed bootstrap).
+post hoc slope comparison with the pi tanh encoding over the same layouts (bootstrap over shared
+seeds: the runs share seeds, training subsets and validation splits, so each resample draws
+seed indices once and applies them to every cell).
 From repository root::
 
     PYTHONPATH=. .venv/bin/python paper/figures/scripts/gen_tableA_encoding.py
@@ -62,16 +64,22 @@ def main():
         pred = ANCHOR + SLOPE * (o - 2.5)
         m = st.mean(v.values())
         hits += abs(m - pred) <= MARGIN
-        orders.append(o), means.append(m), half_vals.append(list(v.values())), pi_vals.append(list(p.values()))
+        orders.append(o), means.append(m), half_vals.append(v), pi_vals.append(p)
         lines.append(f"{label} & {o:g} & {pred:.1f} & {ms(v.values())} & {m - pred:+.1f} & {ms(w.values())} & "
                      f"{ms(p.values())} & {len(v)} \\\\")
     rho = _spearman(orders, means)
     rho_mlp = _spearman(orders, [st.mean(mlp[key("quantum+half", k)].values()) for k in LAYOUTS])
     gap = paired(lin["quantum+half+noent"], lin["quantum+half"])
-    s_half, s_pi = _slope(orders, means), _slope(orders, [st.mean(v) for v in pi_vals])
+    s_half, s_pi = _slope(orders, means), _slope(orders, [st.mean(v.values()) for v in pi_vals])
+    seeds = sorted(half_vals[0])
+    assert all(sorted(v) == seeds for v in half_vals + pi_vals), "every cell must cover the same seeds"
     rng = random.Random(0)
-    boot = sorted(_slope(orders, [st.mean(rng.choices(v, k=len(v))) for v in half_vals])
-                  - _slope(orders, [st.mean(rng.choices(v, k=len(v))) for v in pi_vals]) for _ in range(5000))
+    boot = []
+    for _ in range(5000):
+        draw = rng.choices(seeds, k=len(seeds))
+        boot.append(_slope(orders, [st.mean(v[s] for s in draw) for v in half_vals])
+                    - _slope(orders, [st.mean(v[s] for s in draw) for v in pi_vals]))
+    boot.sort()
     lo, hi = boot[124], boot[4874]
     print(f"Spearman(order, probe): linear {rho:.3f}, MLP {rho_mlp:.3f}; within {MARGIN:g}: {hits}/{len(orders)}; "
           f"no CNOT - default {gap}; slope half {s_half:.2f}, pi tanh {s_pi:.2f}, difference {s_half - s_pi:+.2f} "
@@ -89,7 +97,7 @@ vs 0.63, \cref{app:attenuation}). Spearman correlation between order and mean pr
         f"${rho:.2f}$" + r""" (criterion $\le-0.8$; MLP probe """ + f"${rho_mlp:.2f}$" + r"""); """ + \
         f"{hits} of {len(orders)}" + r""" within 4 points (including the anchor); no CNOT $-$ default """ + gap + r""" (criterion $\ge2$). Post hoc, the
 probe-on-order slope is """ + f"${s_half:.2f}$" + r""" here and """ + f"${s_pi:.2f}$" + r""" for the same layouts under
-$\pi\tanh$ (last column), a difference of """ + f"${s_half - s_pi:+.2f}$" + r""" (seed bootstrap 95\% interval
+$\pi\tanh$ (last column), a difference of """ + f"${s_half - s_pi:+.2f}$" + r""" (95\% interval over seeds for these layouts, resampling shared seeds
 """ + f"$[{lo:+.2f},{hi:+.2f}]$" + r""").}
 \label{tab:encoding}
 \small
