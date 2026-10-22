@@ -5,7 +5,7 @@ replication and the predictions and pass criteria for the second circuit family 
 before those runs. They were written in the project's working log (`findings.md`), which is not
 under version control. This file copies those entries **verbatim and unedited** so they have a
 verifiable record; its commit date is the first verifiable timestamp, not the date of writing.
-Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms) were
+Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms and the gradient-floor test) were
 committed and pushed before their runs started, so their commit date is itself the record.
 
 Corroborating, not conclusive: the earliest file in `results/protocol_v2/cifar_family/` was
@@ -104,3 +104,15 @@ Context: auto-review-loop run_20261018_8a770126, round 1 (5/10). Overlap = mean 
 - **Secondary:** (a) the no-CNOT head is a per-coordinate sinusoid under any single-qubit encoding, so its probe lands in [72, 75] (point 73.5). (b) Count of layouts within ±4 points of each column's point predictions (reported for both; no threshold).
 - **My expectation, stated in advance:** about 99% of the readout weight is invisible at initialization, so training must move the rotations far from the initial regime. I expect the init effective order to be at best a moderate predictor (ρ between −0.5 and −0.8) and H_layout to fail.
 - **Planned post hoc analysis (labelled as such):** effective order at the trained rotations under the phase encoding, against probe accuracy.
+
+---
+
+## Gradient-floor test of the attenuation mechanism, predictions written 2026-10-21 23:41 before any run
+**Design:** classical product heads (forward = the zero-rotation circuit's cosine products, then Linear) on the default supports (order 2.5) and the last-ring supports (order 5.25). The backward pass replaces each path's derivative d feat_k / d c_j = P_kj (product of the other factors in S_k) by sign(P_kj) · max(|P_kj|, τ): τ = 0 is the true gradient (the existing coupled heads: default 68.8 ± 1.6 probe, 86.0 clean train; last-ring 54.8 ± 3.4, 56.1; 5 seeds, lr 1e-2), τ = 1 removes all magnitude attenuation while keeping each path's sign, τ = 0.3 changes only paths attenuated below 0.3. Unlike the earlier decoupling test (which set P_kj = 1 and lost its sign; training collapsed), the sign is kept. Forward values are unchanged and τ = 0 reproduces the true gradient exactly (tests/test_identities.py::test_grad_floor_head). Heads cosprod_fl03, cosprod_fl1, cosprod_last_fl03, cosprod_last_fl1; CIFAR-10/4,000, small CNN, 80 epochs, head lr {1e-3, 3e-3, 1e-2, 3e-2} × seeds 0–2 (`cifar_floor`), one edge step if a boundary lr is selected (`cifar_floor_ext`), seeds 3–4 at the selected lr (`cifar_floor_seeds`). Linear probe (primary) and MLP probe. Order-1 reference: the cos head, 73.3 probe.
+
+**Intervention strength measured before any run** (results/grad_floor_stats.csv; coupled checkpoints, validation embeddings, per-sample dL/dz): at initialization the floors change nothing (bottleneck near 0, every cosine ≈ 1; mean cosine with the true gradient 1.000). At the end of coupled training, τ = 1 gives mean cosine 0.974 (default) and 0.914 (last-ring), median norm ratio 1.10 and 1.28; τ = 0.3 changes 16% (default) and 34% (last-ring) of paths, mean cosine 0.998 and 0.975. So the manipulation is mild at both ends of the coupled trajectory and can act only in between.
+
+- **H_att (gradient-magnitude attenuation causes the representation cost):** τ = 1 raises the probe over the coupled head, by ≥ 2 points on the default supports and ≥ 4 points on the last-ring supports (paired by seed, 5 seeds; mean difference positive in ≥ 4 of 5 seeds), with τ = 0.3 between τ = 0 and τ = 1.
+- **Training guard:** a support's result counts only if τ = 1 keeps clean training accuracy within 10 points of the coupled head (86.0 / 56.1); otherwise it is inconclusive, as the earlier decoupling test was.
+- **Refutation:** training intact and τ = 1 − τ = 0 below +1 point on both supports. Then gradient-magnitude attenuation is not the main cause, and the paper says so (with the caveat that the manipulation is mild at the measured states).
+- **My expectation, stated in advance:** given the mild measured manipulation, I expect at most a small recovery on the default supports (< 2 points) and a larger but partial one on the last-ring supports, i.e. H_att partly supported at most. I would not be surprised by a null.

@@ -85,19 +85,46 @@ DESIGNED_SUPPORTS = {
 }
 
 
+class _FlooredProduct(torch.autograd.Function):
+    """feat_k = prod_{j in S_k} c_j. Backward replaces d feat_k / d c_j = P_kj (the product of the
+    other factors) by sign(P_kj) * max(|P_kj|, floor): floor = 0 is the true gradient; floor = 1
+    keeps only its sign, removing all magnitude attenuation; values between change only the paths
+    attenuated below the floor."""
+
+    @staticmethod
+    def forward(ctx, c, mask, floor):
+        ctx.save_for_backward(c, mask)
+        ctx.floor = floor
+        return torch.where(mask.bool(), c[:, None, :], torch.ones_like(c)[:, None, :]).prod(-1)
+
+    @staticmethod
+    def backward(ctx, grad_out):
+        c, mask = ctx.saved_tensors
+        n = c.shape[1]
+        eye = torch.eye(n, dtype=torch.bool, device=c.device)
+        # others[b, k, j, i] = c_i for i in S_k, i != j; else 1
+        keep = mask.bool()[:, None, :] & ~eye[None, :, :]
+        others = torch.where(keep[None], c[:, None, None, :], torch.ones_like(c)[:, None, None, :]).prod(-1)
+        sign = torch.where(others < 0, -torch.ones_like(others), torch.ones_like(others))
+        d = sign * others.abs().clamp_min(ctx.floor) * mask[None]  # (B, k, j)
+        return (grad_out[:, :, None] * d).sum(1), None, None
+
+
 class CosProductHead(nn.Module):
     """Classical control for the entangled VQC: products of cos(pi*tanh z_j) over each
     readout's support from ``cnot_ring_supports``, then Linear. This is the default
     circuit (``last_only=False``), the last-ring-only circuit, or (``pattern="pairs"``)
     the disjoint-pairs circuits at zero rotation angles; or explicit ``supports``.
     ``decouple_grad`` keeps the forward products but removes the multiplicative coupling
-    from the backward pass (mechanism test)."""
+    from the backward pass (mechanism test). ``grad_floor`` keeps the forward products and the
+    sign of each path's gradient but floors its magnitude (``_FlooredProduct``)."""
 
     def __init__(self, in_dim: int, num_classes: int, n_var_layers: int = 4, last_only: bool = False,
                  pattern: str = "ring", supports: list[list[int]] | None = None,
-                 decouple_grad: bool = False) -> None:
+                 decouple_grad: bool = False, grad_floor: float | None = None) -> None:
         super().__init__()
         self.decouple_grad = decouple_grad
+        self.grad_floor = grad_floor
         if supports is None:
             supports = cnot_ring_supports(in_dim, n_var_layers, last_only, pattern)
         mask = torch.zeros(in_dim, in_dim)
@@ -109,6 +136,8 @@ class CosProductHead(nn.Module):
     def forward(self, x):
         c = torch.cos(math.pi * torch.tanh(x))  # (B, n)
         # prod_j c_j^{mask_kj}: take the product over masked entries, others replaced by 1.
+        if self.grad_floor is not None:
+            return self.fc(_FlooredProduct.apply(c, self.mask, self.grad_floor))
         feats = torch.where(self.mask.bool(), c[:, None, :], torch.ones_like(c)[:, None, :]).prod(-1)
         if self.decouple_grad:
             # Same forward value; backward passes d feat_k / d c_j = 1 for j in S_k, i.e. each

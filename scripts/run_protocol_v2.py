@@ -175,6 +175,26 @@ def _half_selected() -> dict[str, tuple[dict, float, list[float]]]:
     return _enc_selected("half")
 
 
+# Attenuation test: product heads whose backward floors |product of the other factors| (forward
+# unchanged), on the default and last-ring supports; the coupled heads (floor 0) are in cifar_cosprod.
+FLOOR_HEADS = ["cosprod_fl03", "cosprod_fl1", "cosprod_last_fl03", "cosprod_last_fl1"]
+FLOOR_LRS = [1e-3, 3e-3, 1e-2, 3e-2]
+
+
+def _floor_selected() -> dict[str, tuple[float, list[float]]]:
+    """head -> (selected lr, lrs tried) from the finished cifar_floor(_ext) runs."""
+    from scripts.probe_backbones import _selected_runs
+
+    root = Path("runs") / "protocol_v2"
+    sel = _selected_runs(root, ["cifar_floor", "cifar_floor_ext"])
+    tried = {}
+    for g in ["cifar_floor", "cifar_floor_ext"]:
+        for fin in (root / g).glob("*/final.json"):
+            meta = json.loads((fin.parent / "meta.json").read_text())
+            tried.setdefault(meta["head"], set()).add(meta["lr"])
+    return {h: (sel[(4000, h)][0], sorted(tried[h])) for h in FLOOR_HEADS if (4000, h) in sel}
+
+
 def _grid(name: str) -> list[dict]:
     items = []
     if name == "mnist_search":
@@ -351,6 +371,23 @@ def _grid(name: str) -> list[dict]:
         for opts, lr, _ in _enc_selected(enc).values():
             for sd in EXTRA_SEEDS:
                 items.append(dict(_C4000, head="quantum", encoding=enc, **opts, lr=lr, seed=sd))
+    elif name == "cifar_floor":
+        for head in FLOOR_HEADS:
+            for lr in FLOOR_LRS:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, head=head, lr=lr, seed=sd))
+    elif name == "cifar_floor_ext":
+        ladder = [1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1]
+        for head, (lr, tried) in _floor_selected().items():
+            i = ladder.index(min(ladder, key=lambda v: abs(v - lr)))
+            step = ladder[i - 1] if lr == min(tried) else ladder[i + 1] if lr == max(tried) else None
+            if step is not None and step not in tried:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, head=head, lr=step, seed=sd))
+    elif name == "cifar_floor_seeds":
+        for head, (lr, _) in _floor_selected().items():
+            for sd in EXTRA_SEEDS:
+                items.append(dict(_C4000, head=head, lr=lr, seed=sd))
     elif name == "cifar_pretrained_10k_edge":
         # Linear, default and last-ring heads selected 3e-4 (grid bottom) at 10k images: one step down.
         for i in (0, 1, 3):
@@ -509,7 +546,8 @@ def main():
                                          "cifar_family", "cifar_family_ext", "cifar_family_seeds",
                                          "cifar_pretrained_budget_lr", "cifar_half", "cifar_half_ext",
                                          "cifar_half_seeds", "cifar_phase", "cifar_phase_ext",
-                                         "cifar_phase_seeds"], required=True)
+                                         "cifar_phase_seeds", "cifar_floor", "cifar_floor_ext",
+                                         "cifar_floor_seeds"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

@@ -8,6 +8,8 @@
 * pairs after every layer cancel only at zero rotations;
 * designed supports have the order / overlap / rank stated in the paper;
 * gradient-decoupled product heads keep the forward value and pass the stated gradient;
+* gradient-floor product heads keep the forward value; floor 0 is the true gradient, otherwise
+  each path keeps the sign of the other factors' product with its magnitude floored;
 * a VQC head with rotations frozen at zero equals the classical product head in output and
   input gradient (same readout weights);
 * the pairs-every-layer circuit, whose CNOTs cancel at zero rotations, can still entangle: one
@@ -20,7 +22,7 @@ import statistics as st
 
 import torch
 
-from quantcnn.models.classical_heads import DESIGNED_SUPPORTS, CosProductHead, cnot_ring_supports
+from quantcnn.models.classical_heads import DESIGNED_SUPPORTS, CosProductHead, _FlooredProduct, cnot_ring_supports
 from quantcnn.models.quantum_head import QuantumClassifierHead
 from quantcnn.models.torch_vqc import TorchStatevectorVQC
 
@@ -161,6 +163,31 @@ def test_second_family_orders():
         p, last = (name[:-5], True) if name.endswith("_last") else (name, False)
         assert st.mean(len(s) for s in cnot_ring_supports(N, 4, last_only=last, pattern=p)) == order, name
 
+
+
+def test_grad_floor_head():
+    """Gradient-floor heads: same forward as the product head; floor 0 is the true gradient;
+    each path's gradient keeps the sign of the other factors' product, with magnitude floored."""
+    torch.manual_seed(0)
+    x = torch.randn(12, 8, dtype=torch.float64)
+    for last in (False, True):
+        ref = CosProductHead(8, 10, last_only=last).double()
+        for floor in (0.0, 0.3, 1.0):
+            head = CosProductHead(8, 10, last_only=last, grad_floor=floor).double()
+            head.load_state_dict(ref.state_dict())
+            assert torch.equal(head(x), ref(x))
+            z = x.clone().requires_grad_(True)
+            c = torch.cos(math.pi * torch.tanh(z))
+            k, sup = 3, cnot_ring_supports(8, 4, last_only=last)[3]
+            out = _FlooredProduct.apply(c, head.mask, floor)[:, k].sum()
+            (g,) = torch.autograd.grad(out, c)
+            for j in range(8):
+                others = torch.ones(12, dtype=torch.float64)
+                for i in sup:
+                    if i != j:
+                        others = others * c[:, i].detach()
+                want = torch.sign(others) * others.abs().clamp_min(floor) if j in sup else torch.zeros(12, dtype=torch.float64)
+                assert torch.allclose(g[:, j], want, atol=1e-12), (last, floor, j)
 
 
 if __name__ == "__main__":

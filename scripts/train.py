@@ -55,7 +55,8 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
     p.add_argument("--backbone", default=None)
     p.add_argument("--head", choices=["linear", "mlp", "quantum", "cos", "cossin", "cosprod", "cosprod_last", "cosprod_pairs_last",
                                        "cosprod_win2", "cosprod_win3", "cosprod_win4", "cosprod_star2", "cosprod_star3",
-                                       "cosprod_gap4", "cosprod_sg", "cosprod_last_sg"],
+                                       "cosprod_gap4", "cosprod_sg", "cosprod_last_sg", "cosprod_fl03", "cosprod_fl1",
+                                       "cosprod_last_fl03", "cosprod_last_fl1"],
                    default="quantum")
     p.add_argument("--reupload_mode", choices=["none", "light", "strong"], default="none")
     p.add_argument("--bottleneck_dim", type=int, default=8)
