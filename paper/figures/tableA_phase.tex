@@ -1,0 +1,36 @@
+\begin{table}[h]
+\centering
+\caption{The phase encoding, $H$ then $R_z(\pi\tanh z_j)$ (CIFAR-10, 4,000 images, small CNN, protocol of
+\cref{sec:setup}; every layout selected the head learning rate $10^{-2}$). Every zero-rotation readout
+vanishes, so \cref{eq:identity} does not apply. Two competing predictions were committed before the
+runs: the effective order (\cref{app:efforder}) at the initialization distribution
+$\theta\sim\mathcal{U}(-0.1,0.1)$, and the $R_y$ product order. As committed (first column), the
+initialization order correlated $-0.23$ with the $R_y$ order and $+0.09$ with probe accuracy (criterion
+$\le-0.8$; failed; MLP probe $+0.09$), and its point predictions put 2 of 6 layouts within 4 points;
+the $R_y$ order correlated $-0.99$ (passed; MLP probe $-0.99$) with 4 of 6 within 4 points.
+After the runs we found that the committed values came from code that set a readout's order to 0
+when its total visible weight was below $10^{-12}$, which happens for the last-layer layouts at
+small rotations; with the definition applied (second column, a retrospective correction) the
+initialization order equals the $R_y$ order for those layouts and correlates $-0.83$ with probe
+accuracy. Post hoc: the effective order at the trained rotations, and the share of weight on strings
+invisible to the encoded state (about 0.99 at initialization, averaged over readouts), with a
+rank correlation of $-1.00$ between trained order and probe accuracy. Train: clean training accuracy (\%).}
+\label{tab:phase}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lccccccccc}
+\toprule
+& \multicolumn{3}{c}{Predictors} & \multicolumn{2}{c}{Trained (post hoc)} & & & & \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}
+& \multicolumn{2}{c}{Init.\ order} & & & & & & & \\
+Layout & committed & corrected & $R_y$ order & Order & Invisible & Probe & MLP probe & Train & $n$ \\
+\midrule
+no CNOT & 1.00 & 1.00 & 1 & 1.00 & 0.00 & $71.8 \pm 1.0$ & $71.7 \pm 1.1$ & 92.6 & 5 \\
+star & 4.47 & 4.47 & 1 & 1.09 & 0.00 & $71.5 \pm 1.5$ & $71.6 \pm 1.3$ & 91.6 & 5 \\
+chain & 2.98 & 2.98 & 1.5 & 2.51 & 0.30 & $68.7 \pm 1.7$ & $68.8 \pm 1.6$ & 85.3 & 5 \\
+ring (default) & 4.44 & 4.44 & 2.5 & 3.64 & 0.48 & $67.5 \pm 0.8$ & $67.6 \pm 0.8$ & 81.9 & 5 \\
+chain, last & 1.64 & 4.50 & 4.5 & 4.50 & 0.00 & $55.3 \pm 9.6$ & $56.1 \pm 9.0$ & 57.1 & 5 \\
+ring, last & 1.51 & 5.25 & 5.25 & 5.25 & 0.00 & $52.9 \pm 11.1$ & $53.6 \pm 11.2$ & 54.2 & 5 \\
+\bottomrule
+\end{tabular}
+\end{table}

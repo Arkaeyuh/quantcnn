@@ -100,6 +100,13 @@ def test_phase_encoding_expansion():
                 assert abs(expectation_from_paulis(c, angles, "phase") - q[i, k].item()) < 1e-10, (name, i, k)
             (g,) = torch.autograd.grad(q[:, k].sum(), z, retain_graph=True)
             assert readout_stats(c, N, encoding="phase")["n_inputs"] == int((g.abs().amax(0) > 1e-9).sum()), (name, k)
+    # near-zero rotations: last-layer layouts factorize over their supports at any rotations, so
+    # their effective order is the R_y product order even when the visible weight is tiny
+    for name in ("quantum+entlast", "quantum+chain_last"):
+        layers, ent = LAYOUTS[name]
+        vqc = _vqc(layers, ent, scale=0.1, seed=5, encoding="phase")
+        expect = st.mean(len(x) for x in _supports(layers, ent))
+        assert abs(circuit_stats(vqc, vqc.weights, "phase")["order_eff"] - expect) < 1e-9, name
     vqc = _vqc(4, True, encoding="phase")  # zero rotations: every readout is a Z string, invisible
     for op in readout_operators(vqc, vqc.weights):
         s = readout_stats(pauli_coefficients(op, N), N, encoding="phase")

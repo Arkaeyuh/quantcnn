@@ -171,9 +171,39 @@ ring-last (5.25), was named as a risk in advance and appears in the same directi
 $\pi\tanh$. The predicted slope, scaled down from the ring family's by the measured attenuation
 factor, matches the observed one ($-2.41$); post hoc, the same layouts under $\pi\tanh$ give a
 steeper slope, consistent with the attenuation account of \cref{prop:atten} but resting on six
-layouts. Encodings for which \cref{eq:identity} does not hold, such as phase encodings, are untested.
+layouts. \Cref{app:phase} turns to an encoding for which \cref{eq:identity} does not hold.
 
 \input{figures/tableA_encoding}
+
+\section{An Encoding Whose Zero-Rotation Readouts Vanish}
+\label{app:phase}
+
+With the phase encoding, $H$ then $R_z(\pi\tanh z_j)$, each qubit's Bloch vector is
+$(\cos\enc{j},\sin\enc{j},0)$, so every readout is zero at zero rotations and the product order of
+\cref{eq:identity} is undefined. The effective order of \cref{app:efforder} still applies, with
+$Z$ instead of $Y$ strings invisible (the expansion and the simulator are tested against an
+independent PennyLane circuit). We committed two competing predictions before the runs: the
+effective order at the initialization distribution, and the $R_y$ product order. As computed then,
+the initialization order disagreed with the $R_y$ order on most layouts (the ring after the last
+layer at 1.5 instead of 5.25, the star at 4.5 instead of 1), and we expected it to predict
+moderately and the $R_y$ order to fail. The $R_y$ order passed and the initialization order, as
+committed, failed (\cref{tab:phase}); the no-CNOT head also landed just below its predicted range
+(71.8 against $[72,75]$). An audit after the runs found that the committed initialization orders
+were wrong for the last-layer layouts: the code set a readout's order to 0 when its total visible
+weight was below $10^{-12}$, which is the case at small rotations because those readouts are
+products of small factors. A last-layer circuit's readouts factorize over its supports at any
+rotations, so its effective order equals its $R_y$ order whenever the readout is nonzero; with
+that correction, which is retrospective and not a prediction, the initialization order also meets
+the criterion. The two predictors therefore differ only on the three layouts with CNOTs after
+every layer, and there probe accuracy follows the $R_y$ order: the star, at initialization order
+4.5 but $R_y$ order 1, probes like the no-CNOT head. Post hoc, the trained rotations agree: on
+average over readouts about 99\% of the weight is invisible at initialization, after training it
+is near zero for every layout except the chain and the default ring (0.30 and 0.48), and the
+trained effective order ranks the layouts as probe accuracy does. The two highest-order heads also
+fit their training data poorly under this encoding (54--57\%) and vary widely across seeds, and
+probe about 7 points below their $R_y$-order predictions.
+
+\input{figures/tableA_phase}
 
 \section{Effective Order Beyond Zero Rotations}
 \label{app:efforder}
@@ -363,5 +393,7 @@ gradients); the test suite also checks the zero-rotation identity, the ring-free
 entangling example of \cref{app:identity}, the equality of the zero-rotation circuit and the
 products head, and the effective-order expansion of \cref{app:efforder} against the simulator.
 The predicted orderings for the MNIST replication and the predictions and pass criteria for the
-second family of layouts were written in the project's log before those runs. Seeds control
+second family of layouts were written in the project's log before those runs; the log entries are
+copied verbatim into the repository, whose first timestamp for them postdates the runs. The
+predictions for the two encoding arms (\cref{app:encoding,app:phase}) were committed before their runs. Seeds control
 data subsets, initialization and data order. Experiments ran on one Apple M3 Max.

@@ -29,6 +29,8 @@ From repository root::
     # random rotations, theta ~ U(-s, s)
     PYTHONPATH=. python -m scripts.effective_order --source random --scale 3.14159 --samples 20 \
         --out results/effective_order_random_pi.csv
+    # phase-encoding arm at its trained rotations
+    PYTHONPATH=. python -m scripts.effective_order --source trained_phase --out results/effective_order_trained_phase.csv
     # at the initialization distribution U(-0.1, 0.1), for an encoding
     PYTHONPATH=. python -m scripts.effective_order --source random --scale 0.1 --samples 200 \
         --encoding phase --out results/effective_order_init_phase.csv
@@ -103,6 +105,12 @@ def expectation_from_paulis(coef: torch.Tensor, angles: torch.Tensor, encoding: 
     return float(t)
 
 
+# |c_P| below this is float64 round-off of a unit-norm operator; the effective order is the
+# conditional mean over the visible strings above it, however small their total weight
+# (a cutoff on the total weight would zero tiny but genuine readouts, e.g. near-zero rotations).
+NOISE = 1e-15
+
+
 def readout_stats(coef: torch.Tensor, n: int, tol: float = 1e-12, encoding: str = "ry") -> dict:
     """Effective order, invisible share (``y_share``) and the number of inputs the readout depends
     on (strings with |c_P| > tol; the same convention as the dependence test)."""
@@ -115,7 +123,8 @@ def readout_stats(coef: torch.Tensor, n: int, tol: float = 1e-12, encoding: str 
     w = torch.where((idx == 0).all(-1), torch.zeros_like(w), w)  # drop the identity string only (constant)
     visible = w * (~has_y)
     total, vis = w.sum().item(), visible.sum().item()
-    order = (visible * weight_sz).sum().item() / vis if vis > tol else 0.0
+    kept = visible * (coef.abs() > NOISE)
+    order = (kept * weight_sz).sum().item() / kept.sum().item() if kept.sum() > 0 else 0.0
     shown = (coef.abs() > tol) & ~has_y
     touched = (shown[..., None] & touch).reshape(-1, n).any(0)
     return dict(order_eff=order, y_share=(total - vis) / total if total > tol else 0.0,
@@ -147,6 +156,25 @@ def _trained_rows() -> list[dict]:
     return rows
 
 
+def _trained_phase_rows() -> list[dict]:
+    """Phase-encoding arm (validation-selected lr, seeds 0-4), with the first layer's R_y angles:
+    RY(+-pi/2) turns the phase-encoded Bloch vector (cos a, sin a, 0) into one with <Z> = -+cos a."""
+    from scripts.run_protocol_v2 import _C4000, _enc_selected, _slug
+    from scripts.zero_angle_check import ROOT, _load
+
+    rows = []
+    for name, (opts, lr, _) in _enc_selected("phase").items():
+        for seed in range(5):
+            it = dict(_C4000, head="quantum", encoding="phase", **opts, lr=lr, seed=seed)
+            run = ROOT / ("cifar_phase" if seed < 3 else "cifar_phase_seeds") / _slug(it)
+            vqc = _load(run).head.vqc.qlayer
+            ry0 = vqc.weights.detach()[0, :, 0].double()
+            rows.append(dict(head="quantum+phase" + ("" if name == "default" else f"+{name}"), source="trained_phase",
+                             lr=lr, seed=seed, **circuit_stats(vqc, vqc.weights, "phase"),
+                             first_ry_abs_sin=ry0.sin().abs().mean().item()))
+    return rows
+
+
 def _random_rows(scale: float, samples: int, encoding: str = "ry") -> list[dict]:
     rows = []
     for name, (layers, entangle) in LAYOUTS.items():
@@ -161,14 +189,15 @@ def _random_rows(scale: float, samples: int, encoding: str = "ry") -> list[dict]
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--source", choices=["trained", "random"], required=True)
+    ap.add_argument("--source", choices=["trained", "trained_phase", "random"], required=True)
     ap.add_argument("--scale", type=float, default=math.pi, help="random: theta ~ U(-scale, scale)")
     ap.add_argument("--samples", type=int, default=20)
     ap.add_argument("--encoding", choices=list(INVISIBLE), default="ry",
                     help="ry: any R_y angle encoding (the paper's default); phase: H then RZ")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
-    rows = _trained_rows() if a.source == "trained" else _random_rows(a.scale, a.samples, a.encoding)
+    rows = (_trained_rows() if a.source == "trained" else _trained_phase_rows() if a.source == "trained_phase"
+            else _random_rows(a.scale, a.samples, a.encoding))
     with Path(a.out).open("w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0]))
         w.writeheader()

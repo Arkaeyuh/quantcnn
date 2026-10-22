@@ -48,8 +48,9 @@ training. The association holds (Spearman $-0.89$, against a threshold of $-0.8$
 five of six within 4 points), with two rank reversals. The largest miss, brickwork at 5 points
 above its prediction, is the layout trained furthest from its product model; at its trained
 rotations its effective order is 2.6 rather than 3.5 (\cref{fig:hero}b,
-\cref{app:family,app:efforder}). Under a second encoding, $\tfrac{\pi}{2}\tanh z+\tfrac{\pi}{2}$, six
-layouts again follow order as predicted (Spearman $-0.94$, \cref{app:encoding}). Order is a useful
+\cref{app:family,app:efforder}). Under $\tfrac{\pi}{2}\tanh z+\tfrac{\pi}{2}$ six layouts follow order
+as predicted ($-0.94$); under a phase encoding, whose zero-rotation readouts vanish, probe accuracy
+follows the circuits' $R_y$ order ($-0.99$, \cref{app:encoding,app:phase}). Order is a useful
 but coarse descriptor.
 
 Two interventions test the products directly. First, classical heads trained end to end on a
@@ -98,8 +99,8 @@ head on its products (four of five seeds; 95\% interval $[-0.8,13.6]$). The cost
 rotations initialized in $\mathcal{U}(-\pi,\pi)$, where the identity does not hold at the start,
 the default circuit still probes $4.6\pm1.7$ points below the ring-free one ($3.8\pm1.6$ on the
 same three seeds at the default initialization), and neither circuit's probe moves by more
-than a point on average (\cref{tab:init}); there each default readout still depends on all
-eight inputs (\cref{app:efforder}).
+than a point on average (\cref{tab:init}); each default readout then depends on all eight
+inputs (\cref{app:efforder}).
 
 \subsection{Without CNOTs the head is a classical sinusoidal model}
 \label{sec:sinusoid}
