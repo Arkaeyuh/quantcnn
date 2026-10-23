@@ -8,7 +8,10 @@ loss gradient dL/dz through the true product (floor 0) and through the floored b
 the median norm ratio, and the fraction of (readout, input) paths whose other-factor product is
 below the floor in magnitude. ``stage=init`` repeats this for a freshly initialized model with the
 same seed (backbone and readout at initialization). Measured before the gradient-floor runs, to
-size the intervention.
+size the intervention. Embeddings are taken in evaluation mode, which at initialization uses
+BatchNorm's uncalibrated running statistics; ``--init_train_mode`` (added after the runs) instead
+takes the initialization embeddings in training mode with batches of 32, as training computes
+them, and records only the init stage.
 
 From repository root::
 
@@ -27,6 +30,7 @@ import torch.nn.functional as F
 from quantcnn.data import get_splits
 from quantcnn.models.classical_heads import _FlooredProduct
 from quantcnn.models.hybrid_classifier import HybridClassifier
+from torch.utils.data import DataLoader
 from scripts.frozen_heads import _embed
 from scripts.zero_angle_check import ROOT, _load
 
@@ -39,16 +43,26 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="results/grad_floor_stats.csv")
     ap.add_argument("--val_size", type=int, default=2000)
+    ap.add_argument("--init_train_mode", action="store_true",
+                    help="init stage only, embeddings in training mode (BatchNorm batch statistics, batch 32)")
     a = ap.parse_args()
     rows = []
     for head, grid in CASES.items():
-        for seed, stage in [(s, st) for s in range(5) for st in ("trained", "init")]:
+        stages = ("init_train",) if a.init_train_mode else ("trained", "init")
+        for seed, stage in [(s, st) for s in range(5) for st in stages]:
             if stage == "trained":
                 model = _load(ROOT / (grid if seed < 3 else "cifar_seeds") / SLUG.format(head, seed))
             else:
                 torch.manual_seed(seed)
                 model = HybridClassifier(10, 8, "cifar10", head, 3).eval()
-            z, y = _embed(model, get_splits("cifar10", 4000, seed, a.val_size)["val"], torch.device("cpu"))
+            val = get_splits("cifar10", 4000, seed, a.val_size)["val"]
+            if stage == "init_train":
+                model.train()
+                with torch.no_grad():
+                    batches = [(model.backbone(xb), yb) for xb, yb in DataLoader(val, batch_size=32, shuffle=False)]
+                z, y = torch.cat([b[0] for b in batches]), torch.cat([b[1] for b in batches])
+            else:
+                z, y = _embed(model, val, torch.device("cpu"))
             z = z.double()
             h = model.head.double()
             for floor in (0.0, 0.3, 1.0):

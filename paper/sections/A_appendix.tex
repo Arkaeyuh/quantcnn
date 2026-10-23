@@ -36,14 +36,14 @@ $W[\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}]_j+b$.
 rotation to zero, on the validation embeddings of the run's own backbone. The frozen circuit
 anchors the measurement: rotations held at their $\mathcal{U}(-0.1,0.1)$ initialization
 reproduce the product model almost exactly. Held-out $R^2$ equals the in-sample value to
-within 0.015 for every run, so the affine map does not overfit. These are endpoint
+within 0.015 for every run in this table, so the affine map does not overfit. These are endpoint
 measurements: they say how close the trained circuit is to its product model, not that
 training followed the product model's trajectory. Two results bound the approximation.
 First, on the small CNN the products, even after remapping, lose task-relevant detail: held-out
 accuracy drops by 6--12 points (by under 1 point on the pretrained backbone). Second, gradient alignment depends on the remapping: with the trained
 readout applied directly to the zeroed circuit, the median loss-gradient cosine is 0.59 for
 the default circuit, and $-0.08$ for its seed 4 (0.96 after remapping); after remapping it is
-0.79--0.87 for every entangling small-CNN circuit (0.91--0.98 on the pretrained backbone), with 3--7\% of samples negative on average (18\% in
+0.79--0.87 for every entangling small-CNN circuit in this table (0.91--0.98 on the pretrained backbone), with 3--7\% of samples negative on average (18\% in
 the worst run). Zeroing the
 rotations without remapping costs 14--23 accuracy points on average for the two ring circuits
 and 31--43 for the pairs and CNOT-free circuits, which mostly reflects the unrefitted readout. Low-order circuits drift further, as \cref{sec:sinusoid} explains for the
@@ -125,16 +125,19 @@ The first decoupling attempt passed each input's gradient only through its own f
 discards the sign of the other factors' product as well as its magnitude, and training collapsed.
 The gradient-floor test keeps the forward products and each path's sign and floors only the
 magnitude, $\mathrm{sign}(P)\max(|P|,\tau)$ with the sign taken as $+1$ at $P=0$ ($\tau=0$ is the
-true gradient, tested to match it within numerical tolerance). Measured before the runs on the
-coupled heads, the floor barely changes the bottleneck gradient at initialization, where the
-bottleneck is near zero and every factor is close to 1 (mean cosine with the true gradient 1.000,
-norm ratio at most 1.06), and changes its direction little at the end of training (mean cosine
-0.97 for the default and 0.91 for the last-ring supports at $\tau=1$, with norm ratios up to 1.7);
-these endpoint measurements do not show how strongly it acts along training. We predicted that
+true gradient, tested to match it within numerical tolerance). Our diagnostic before the runs,
+taken in evaluation mode on the coupled heads, suggested a weak intervention (mean cosine with
+the true bottleneck gradient 1.000 at initialization; 0.97 and 0.91 for the default and last-ring
+supports at the end of training, at $\tau=1$), but at initialization evaluation mode uses
+BatchNorm's uncalibrated running statistics. In training mode, as training computes it (a
+retrospective check), $\tau=1$ changes the initial bottleneck gradient substantially: mean cosine
+0.77--0.92 for the default and 0.63--0.73 for the last-ring supports across seeds, with median
+norm ratios of 1.3--1.6 and 1.8--4.1. The floor therefore acts strongly from the start of training. We predicted that
 $\tau=1$ would recover at least 2 probe points on the default supports and 4 on the last-ring
 supports if attenuation drives the cost, and committed a training guard and a refutation
-criterion. On the default supports training stays within the guard and the probe shows no
-improvement ($-0.4\pm2.0$ at $\tau=1$), which meets that support's part of the refutation
+criterion. On the default supports training stays within the guard and there is no observed mean
+recovery ($-0.4\pm2.0$ at $\tau=1$; approximate paired 95\% interval $[-2.9,2.1]$, which does not
+exclude the predicted 2 points), which meets that support's part of the refutation
 criterion; on the last-ring supports $\tau=1$ lowers clean training accuracy by 11 points, beyond
 the guard, so that support is inconclusive and the joint criterion is not met; $\tau=0.3$ has no
 reliable effect. We expected a partial recovery and found none. The attenuation hypothesis is
