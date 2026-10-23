@@ -9,9 +9,14 @@ on the test embeddings z of each run this records
 with q the bottleneck width, next to the run's linear-probe accuracy. Cells and criteria are in
 ``predictions/prospective_predictions.md`` (mechanism diagnostics).
 
+``--probe_csv`` instead measures every head in one probe file (e.g. the regularized heads of the
+mechanism test), at every lr and seed it contains.
+
 From repository root::
 
     PYTHONPATH=. python -m scripts.bottleneck_geometry --out results/bottleneck_geometry.csv
+    PYTHONPATH=. python -m scripts.bottleneck_geometry --probe_csv results/mech2_probe.csv \
+        --out results/mech2_geometry.csv
 """
 
 from __future__ import annotations
@@ -100,13 +105,22 @@ def _stats(z: torch.Tensor, y: torch.Tensor) -> dict:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="results/bottleneck_geometry.csv")
+    ap.add_argument("--probe_csv", default=None, help="measure every head/lr/seed in this probe file")
     a = ap.parse_args()
-    idx, probes = _run_index(), _probe_rows()
+    idx = _run_index()
+    if a.probe_csv:
+        cells, probes = {}, defaultdict(dict)
+        for r in csv.DictReader(open(a.probe_csv)):
+            key = f"{r['source_head']}@lr{r['source_lr']}"
+            cells[key] = ("probe_csv", r["source_head"], float("nan"))
+            probes[key][int(r["seed"])] = (r["source_lr"], float(r["probe_test_acc"]))
+    else:
+        cells, probes = CELLS, _probe_rows()
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     rows = []
-    for cell, (group, _, order) in CELLS.items():
+    for cell, (group, head, order) in cells.items():
         for seed, (lr, probe) in sorted(probes[cell].items()):
-            run = idx[(cell, lr, seed)]
+            run = idx[(head if a.probe_csv else cell, lr, seed)]
             meta = json.loads((run / "meta.json").read_text())
             model = HybridClassifier(10, int(meta.get("bottleneck_dim", 8)), meta["backbone"], meta["head"], 3,
                                      mlp_hidden=meta.get("mlp_hidden"), n_var_layers=meta.get("n_var_layers", 4),
