@@ -9,6 +9,7 @@
 * pairs after every layer cancel only at zero rotations;
 * designed supports have the order / overlap / rank stated in the paper;
 * gradient-decoupled product heads keep the forward value and pass the stated gradient;
+* the bottleneck regularizers of the mechanism test behave as defined;
 * gradient-floor product heads keep the forward value; floor 0 is the true gradient, otherwise
   each path keeps the sign of the other factors' product with its magnitude floored;
 * a VQC head with rotations frozen at zero equals the classical product head in output and
@@ -203,6 +204,25 @@ def test_grad_floor_head():
                         others = others * c[:, i].detach()
                 want = torch.sign(others) * others.abs().clamp_min(floor) if j in sup else torch.zeros(12, dtype=torch.float64)
                 assert torch.allclose(g[:, j], want, atol=1e-12), (last, floor, j)
+
+
+def test_bottleneck_penalties():
+    """sat is zero below the |tanh z| = 0.9 threshold and positive above it; decor is zero for an
+    exactly decorrelated batch and positive for correlated coordinates; both pass gradients."""
+    from quantcnn.training_utils import bottleneck_penalty
+
+    assert bottleneck_penalty(torch.full((4, 8), 1.0), "sat").item() == 0.0  # tanh(1) = 0.76
+    z = torch.full((4, 8), 3.0, requires_grad=True)
+    p = bottleneck_penalty(z, "sat")
+    p.backward()
+    assert p.item() > 0 and z.grad.abs().sum() > 0
+    h = torch.tensor([[1.0, 1, 1, 1], [1, -1, 1, -1], [1, 1, -1, -1], [1, -1, -1, 1]])  # orthogonal columns
+    assert bottleneck_penalty(h[:, 1:], "decor").item() < 1e-12
+    base = torch.randn(64, 1)
+    zc = torch.cat([base, base + 0.1 * torch.randn(64, 1), torch.randn(64, 2)], 1).requires_grad_(True)
+    p = bottleneck_penalty(zc, "decor")
+    p.backward()
+    assert p.item() > 0.1 and zc.grad.abs().sum() > 0
 
 
 if __name__ == "__main__":

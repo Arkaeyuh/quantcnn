@@ -104,6 +104,9 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
         default=0.1,
         help="Quantum head only: rotation angles start in uniform(-s, s) (default 0.1, near the identity).",
     )
+    p.add_argument("--bottleneck_reg", choices=["none", "sat", "decor"], default="none",
+                   help="Regularizer on the bottleneck (mechanism test): saturation hinge or decorrelation.")
+    p.add_argument("--reg_weight", type=float, default=0.0)
     p.add_argument(
         "--encoding",
         choices=["pi_tanh", "half", "half_sym", "phase"],
@@ -204,6 +207,8 @@ def run_training(args: argparse.Namespace) -> Path:
         encoding=args.encoding,
         entangle=_entangle(args),
         vqc_init_scale=float(args.vqc_init_scale),
+        bottleneck_reg=args.bottleneck_reg,
+        reg_weight=float(args.reg_weight),
     )
 
     set_seed(int(args.seed))
@@ -318,6 +323,8 @@ def run_training(args: argparse.Namespace) -> Path:
             optimizer,
             device,
             cfg.gradient_clip_norm,
+            cfg.bottleneck_reg,
+            cfg.reg_weight,
         )
         va_loss, va_acc = evaluate(model, val_loader, device)
 

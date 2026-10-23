@@ -220,6 +220,27 @@ def _q12_selected() -> dict[str, tuple[float, list[float]]]:
     return out
 
 
+# Mechanism test: product heads (order 1, 2.5, 5.25) with a bottleneck regularizer, lr fixed at the
+# unregularized heads' selected 1e-2; the penalty weight is selected on validation per (head, reg).
+MECH2_HEADS = ["cos", "cosprod", "cosprod_last"]
+MECH2_REGS = {"sat": [3.0, 10.0], "decor": [1.0, 3.0]}
+
+
+def _mech2_selected() -> dict[tuple[str, str], float]:
+    """(head, reg) -> reg weight with the best mean validation accuracy over seeds 0-2."""
+    root = Path("runs") / "protocol_v2" / "cifar_mech2"
+    vals = {}
+    for fin in root.glob("*/final.json"):
+        meta = json.loads((fin.parent / "meta.json").read_text())
+        vals.setdefault((meta["head"], meta["bottleneck_reg"], meta["reg_weight"]), []).append(
+            json.loads(fin.read_text())["val_acc"])
+    best = {}
+    for (head, reg, w), v in vals.items():
+        if (head, reg) not in best or sum(v) / len(v) > best[(head, reg)][1]:
+            best[(head, reg)] = (w, sum(v) / len(v))
+    return {k: w for k, (w, _) in best.items()}
+
+
 def _grid(name: str) -> list[dict]:
     items = []
     if name == "mnist_search":
@@ -430,6 +451,16 @@ def _grid(name: str) -> list[dict]:
         for key, (lr, _) in _q12_selected().items():
             for sd in EXTRA_SEEDS:
                 items.append(dict(_C4000, **Q12[key][0], bottleneck_dim=12, lr=lr, seed=sd))
+    elif name == "cifar_mech2":
+        for head in MECH2_HEADS:
+            for reg, weights in MECH2_REGS.items():
+                for w in weights:
+                    for sd in SEEDS:
+                        items.append(dict(_C4000, head=head, bottleneck_reg=reg, reg_weight=w, lr=1e-2, seed=sd))
+    elif name == "cifar_mech2_seeds":
+        for (head, reg), w in sorted(_mech2_selected().items()):
+            for sd in EXTRA_SEEDS:
+                items.append(dict(_C4000, head=head, bottleneck_reg=reg, reg_weight=w, lr=1e-2, seed=sd))
     elif name == "cifar_pretrained_10k_edge":
         # Linear, default and last-ring heads selected 3e-4 (grid bottom) at 10k images: one step down.
         for i in (0, 1, 3):
@@ -536,6 +567,7 @@ def _slug(it: dict) -> str:
     head += f"_{it['entangle_pattern']}" if it.get("entangle_pattern") else ""
     head += f"_init{it['vqc_init_scale']:.3g}" if it.get("vqc_init_scale", 0.1) != 0.1 else ""
     head += f"_b{it['bottleneck_dim']}" if it.get("bottleneck_dim", 8) != 8 else ""
+    head += f"_{it['bottleneck_reg']}{it['reg_weight']:g}" if it.get("bottleneck_reg", "none") != "none" else ""
     head += f"_ep{it['epochs']}" if it["epochs"] != DEFAULT_EPOCHS[it["dataset"]] and not it.get("backbone") else ""
     head += f"_{it['backbone']}" if it.get("backbone") else ""
     mult = it.get("lr_backbone_multiplier", DEFAULT_BB_MULT)
@@ -591,7 +623,7 @@ def main():
                                          "cifar_half_seeds", "cifar_phase", "cifar_phase_ext",
                                          "cifar_phase_seeds", "cifar_floor", "cifar_floor_ext",
                                          "cifar_floor_seeds", "cifar_q12", "cifar_q12_ext",
-                                         "cifar_q12_seeds"], required=True)
+                                         "cifar_q12_seeds", "cifar_mech2", "cifar_mech2_seeds"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

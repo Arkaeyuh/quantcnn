@@ -5,7 +5,7 @@ replication and the predictions and pass criteria for the second circuit family 
 before those runs. They were written in the project's working log (`findings.md`), which is not
 under version control. This file copies those entries **verbatim and unedited** so they have a
 verifiable record; its commit date is the first verifiable timestamp, not the date of writing.
-Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms, the gradient-floor test, the 12-qubit replication and the mechanism diagnostics) were
+Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms, the gradient-floor test, the 12-qubit replication, the mechanism diagnostics and the mechanism test) were
 committed and pushed before their runs started, so their commit date is itself the record.
 
 Corroborating, not conclusive: the earliest file in `results/protocol_v2/cifar_family/` was
@@ -149,3 +149,20 @@ Context: auto-review-loop run_20261018_8a770126, round 1 (5/10). Overlap = mean 
 - **H_sat (saturation):** Spearman(S, probe) ≤ −0.7 over the 28 quantum cells and over the 10 classical cells.
 - A statistic that fails either set is not a candidate mediator. Whatever passes is only a correlate; a causal intervention would be pre-registered separately.
 - **My expectation, stated in advance:** H_dim holds (the bottleneck-gradient rank already falls with order); H_sat is weaker, because the encodings move the saturating region (the half and phase encodings read z differently), so pooled across encodings saturation should not track the probe well.
+
+---
+
+## Mechanism test (phase 2): saturation vs dimensional collapse, predictions written 2026-10-23 11:44 before any run
+**Design:** classical product heads on CIFAR-10/4,000 (small CNN, 80 epochs, lr fixed at the unregularized heads' selected 1e-2): cos (order 1), default-support products (2.5), last-ring products (5.25). Each is trained with one regularizer on the bottleneck z added to the loss (quantcnn/training_utils.py::bottleneck_penalty; tested in tests/test_identities.py::test_bottleneck_penalties):
+- **sat** (anti-saturation): λ · mean(relu(tanh(z)² − 0.81)), nonzero only where |tanh z| > 0.9; λ ∈ {3, 10}.
+- **decor** (anti-collapse): λ · mean squared off-diagonal entry of the batch correlation matrix of z; λ ∈ {1, 3}.
+Seeds 0–2 for every (head, reg, λ) (`cifar_mech2`); λ selected per (head, reg) on mean validation accuracy, never on the probe; seeds 3–4 at the selected λ (`cifar_mech2_seeds`). Linear probe (primary) and MLP probe; S and PRn on test embeddings as in the diagnostics. λ sizes were set from the penalties on the existing trained bottlenecks (sat 0.065 / 0.109, decor 0.19 / 0.38 for default / last-ring products, against training cross-entropy of roughly 0.3–1.5).
+
+**Unregularized baselines (5 seeds, lr 1e-2):** cos probe 73.3, S 0.052, PRn 0.666; default products 68.8, S 0.412, PRn 0.476, clean train 86.0; last-ring products 54.8, S 0.604, PRn 0.278, clean train 56.1.
+
+- **Manipulation checks:** sat lowers S of the last-ring products to ≤ 0.42 (−30% relative); decor raises their PRn by ≥ 0.05. A regularizer that fails its check is inconclusive.
+- **Training guard:** clean training accuracy within 10 points of the unregularized head; otherwise that (head, reg) is inconclusive.
+- **H_sat-causal (saturation causes the cost):** with sat at the selected λ, the probe rises by ≥ 3 points on the last-ring products and ≥ 1.5 on the default products (paired by seed, positive in ≥ 4 of 5 seeds), and the gain on cos is less than half the last-ring gain (specificity).
+- **H_dim-causal (collapse causes the cost):** the same criteria with decor.
+- **Reading:** both pass → each is sufficient to recover part of the cost; one passes → that one is the operative route; manipulation succeeds but neither passes → both are symptoms. The non-selected λ is reported as secondary.
+- **My expectation, stated in advance:** decorrelation raises PRn and recovers a few points on the last-ring products (H_dim partly supported, smaller on default); the saturation penalty conflicts with what products need (factors near ±1) and helps little or hurts fit, so H_sat fails or is inconclusive.

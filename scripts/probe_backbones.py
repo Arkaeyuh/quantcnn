@@ -57,6 +57,7 @@ def _head_key(meta: dict) -> str:
     head += f"+{ent}" if isinstance(ent, str) and ent != "last" else ""
     head += f"+L{meta['n_var_layers']}" if meta["head"] == "quantum" and meta.get("n_var_layers", 4) != 4 else ""
     head += f"+init{meta['vqc_init_scale']:.3g}" if meta.get("vqc_init_scale", 0.1) != 0.1 else ""
+    head += f"+{meta['bottleneck_reg']}{meta['reg_weight']:g}" if meta.get("bottleneck_reg", "none") != "none" else ""
     pretrained = meta.get("backbone") not in (None, "mnist", "cifar10")
     head += f"+ep{meta['epochs']}" if meta["epochs"] != {"mnist": 50, "cifar10": 80}[meta["dataset"]] and not pretrained else ""
     head += f"+{meta['backbone']}" if pretrained else ""
@@ -129,7 +130,7 @@ def main():
         for (n, head), (lr, runs) in cells:
             if a.heads != ["all"] and head not in a.heads:
                 continue
-            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"], ["cifar_family_seeds"], ["cifar_half_seeds"], ["cifar_phase_seeds"], ["cifar_floor_seeds"], ["cifar_q12_seeds"]), (ds, n, head, lr)
+            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"], ["cifar_family_seeds"], ["cifar_half_seeds"], ["cifar_phase_seeds"], ["cifar_floor_seeds"], ["cifar_q12_seeds"], ["cifar_mech2_seeds"]), (ds, n, head, lr)
             for run in runs:
                 meta = json.loads((run / "meta.json").read_text())
                 if meta["dataset"] != ds:

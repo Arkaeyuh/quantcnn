@@ -36,6 +36,8 @@ class RunConfig:
     encoding: str = "pi_tanh"
     entangle: bool | str = True
     vqc_init_scale: float = 0.1
+    bottleneck_reg: str = "none"
+    reg_weight: float = 0.0
 
 
 def accuracy(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
@@ -69,14 +71,31 @@ def _param_grad_norm(params) -> float:
     return total ** 0.5
 
 
+def bottleneck_penalty(z: torch.Tensor, kind: str) -> torch.Tensor:
+    """Regularizers on the bottleneck z (mechanism test). ``sat``: mean of relu(tanh(z)^2 - 0.81),
+    nonzero only where |tanh z| > 0.9, the saturation threshold of the diagnostics. ``decor``: mean
+    squared off-diagonal entry of the batch correlation matrix of z (decorrelation)."""
+    if kind == "sat":
+        return torch.relu(torch.tanh(z) ** 2 - 0.81).mean()
+    if kind == "decor":
+        zs = (z - z.mean(0)) / (z.std(0) + 1e-6)
+        c = zs.T @ zs / (len(z) - 1)
+        q = c.shape[0]
+        return (c - torch.diag(torch.diag(c))).pow(2).sum() / (q * (q - 1))
+    raise ValueError(kind)
+
+
 def train_one_epoch(
     model: nn.Module,
     loader,
     optimizer,
     device,
     grad_clip: float,
+    bottleneck_reg: str = "none",
+    reg_weight: float = 0.0,
 ) -> tuple[float, float, float, float]:
-    """Return mean CE loss, accuracy, backbone grad norm, head grad norm."""
+    """Return mean CE loss, accuracy, backbone grad norm, head grad norm. With ``bottleneck_reg``
+    the optimized loss adds ``reg_weight * bottleneck_penalty(z)``; the returned loss is CE only."""
     model.train()
     ce = nn.CrossEntropyLoss()
     loss_sum = acc_sum = bb_norm_sum = hd_norm_sum = n = 0.0
@@ -84,9 +103,15 @@ def train_one_epoch(
         xb = xb.to(device)
         yb = yb.to(device)
         optimizer.zero_grad(set_to_none=True)
-        logits = model(xb)
-        loss = ce(logits, yb)
-        loss.backward()
+        if bottleneck_reg == "none":
+            logits = model(xb)
+            loss = ce(logits, yb)
+            loss.backward()
+        else:
+            z = model.backbone(xb)
+            logits = model.head(model.pre_norm(z))
+            loss = ce(logits, yb)
+            (loss + reg_weight * bottleneck_penalty(z, bottleneck_reg)).backward()
 
         # Pre-clip gradient norms per component. The head norm includes its classical
         # readout, so it monitors trainability but cannot diagnose barren plateaus.
