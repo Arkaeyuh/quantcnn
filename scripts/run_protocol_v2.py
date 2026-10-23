@@ -241,6 +241,28 @@ def _mech2_selected() -> dict[tuple[str, str], float]:
     return {k: w for k, (w, _) in best.items()}
 
 
+# Mechanism confirmation on circuits: 8-qubit VQC heads (order 1, 2.5, 5.25) with the
+# anti-saturation penalty, lr fixed at their selected 1e-2, weight selected on validation per layout.
+MECH3_LAYOUTS = {"noent": dict(head="quantum", no_entangle=True), "default": dict(head="quantum"),
+                 "entlast": dict(head="quantum", entangle_last_only=True)}
+MECH3_WEIGHTS = [3.0, 10.0]
+
+
+def _mech3_selected() -> dict[str, float]:
+    """layout -> sat weight with the best mean validation accuracy over seeds 0-2."""
+    vals = {}
+    for fin in (Path("runs") / "protocol_v2" / "cifar_mech3").glob("*/final.json"):
+        meta = json.loads((fin.parent / "meta.json").read_text())
+        ent = meta.get("entangle", True)
+        name = "noent" if ent is False else "entlast" if ent == "last" else "default"
+        vals.setdefault((name, meta["reg_weight"]), []).append(json.loads(fin.read_text())["val_acc"])
+    best = {}
+    for (name, w), v in vals.items():
+        if name not in best or sum(v) / len(v) > best[name][1]:
+            best[name] = (w, sum(v) / len(v))
+    return {k: w for k, (w, _) in best.items()}
+
+
 def _grid(name: str) -> list[dict]:
     items = []
     if name == "mnist_search":
@@ -461,6 +483,15 @@ def _grid(name: str) -> list[dict]:
         for (head, reg), w in sorted(_mech2_selected().items()):
             for sd in EXTRA_SEEDS:
                 items.append(dict(_C4000, head=head, bottleneck_reg=reg, reg_weight=w, lr=1e-2, seed=sd))
+    elif name == "cifar_mech3":
+        for opts in MECH3_LAYOUTS.values():
+            for w in MECH3_WEIGHTS:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, **opts, bottleneck_reg="sat", reg_weight=w, lr=1e-2, seed=sd))
+    elif name == "cifar_mech3_seeds":
+        for layout, w in sorted(_mech3_selected().items()):
+            for sd in EXTRA_SEEDS:
+                items.append(dict(_C4000, **MECH3_LAYOUTS[layout], bottleneck_reg="sat", reg_weight=w, lr=1e-2, seed=sd))
     elif name == "cifar_pretrained_10k_edge":
         # Linear, default and last-ring heads selected 3e-4 (grid bottom) at 10k images: one step down.
         for i in (0, 1, 3):
@@ -623,7 +654,8 @@ def main():
                                          "cifar_half_seeds", "cifar_phase", "cifar_phase_ext",
                                          "cifar_phase_seeds", "cifar_floor", "cifar_floor_ext",
                                          "cifar_floor_seeds", "cifar_q12", "cifar_q12_ext",
-                                         "cifar_q12_seeds", "cifar_mech2", "cifar_mech2_seeds"], required=True)
+                                         "cifar_q12_seeds", "cifar_mech2", "cifar_mech2_seeds", "cifar_mech3",
+                                         "cifar_mech3_seeds"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

@@ -5,7 +5,7 @@ replication and the predictions and pass criteria for the second circuit family 
 before those runs. They were written in the project's working log (`findings.md`), which is not
 under version control. This file copies those entries **verbatim and unedited** so they have a
 verifiable record; its commit date is the first verifiable timestamp, not the date of writing.
-Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms, the gradient-floor test, the 12-qubit replication, the mechanism diagnostics and the mechanism test) were
+Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms, the gradient-floor test, the 12-qubit replication, the mechanism diagnostics, the mechanism test and its circuit confirmation) were
 committed and pushed before their runs started, so their commit date is itself the record.
 
 Corroborating, not conclusive: the earliest file in `results/protocol_v2/cifar_family/` was
@@ -166,3 +166,16 @@ Seeds 0–2 for every (head, reg, λ) (`cifar_mech2`); λ selected per (head, re
 - **H_dim-causal (collapse causes the cost):** the same criteria with decor.
 - **Reading:** both pass → each is sufficient to recover part of the cost; one passes → that one is the operative route; manipulation succeeds but neither passes → both are symptoms. The non-selected λ is reported as secondary.
 - **My expectation, stated in advance:** decorrelation raises PRn and recovers a few points on the last-ring products (H_dim partly supported, smaller on default); the saturation penalty conflicts with what products need (factors near ±1) and helps little or hurts fit, so H_sat fails or is inconclusive.
+
+---
+
+## Mechanism confirmation on circuits, predictions written 2026-10-23 13:42 before any run
+**Design:** the anti-saturation penalty of the phase-2 test (λ · mean(relu(tanh(z)² − 0.81)) on the bottleneck z), applied to the 8-qubit VQC heads with π·tanh encoding: no CNOT (order 1, specificity control), default rings (2.5), ring after the last layer (5.25). CIFAR-10/4,000, small CNN, 80 epochs, lr fixed at the unregularized heads' selected 1e-2; λ ∈ {3, 10} × seeds 0–2 (`cifar_mech3`), λ selected per layout on mean validation accuracy, seeds 3–4 at the selected λ (`cifar_mech3_seeds`). Linear probe (primary), MLP probe; S and PRn on test embeddings.
+
+**Unregularized baselines (5 seeds, lr 1e-2):** no CNOT probe 73.61, S 0.013, PRn 0.679, clean train 96.6; default 69.77, S 0.295, PRn 0.526, 89.2; ring-last 60.11, S 0.494, PRn 0.338, 65.6.
+
+- **Manipulation check:** the penalty lowers S to ≤ 0.30 on ring-last and ≤ 0.18 on default (−40% relative). Otherwise inconclusive for that layout.
+- **Training guard:** clean training accuracy within 10 points of the unregularized head.
+- **H_sat-circuit:** at the selected λ the probe rises by ≥ 3 points on ring-last and ≥ 1.5 on default (paired by seed, positive in ≥ 4 of 5 seeds), and the no-CNOT gain is less than half the ring-last gain.
+- **Refutation:** manipulation and guard pass, and the gains are below +1 on both default and ring-last. Then the phase-2 result does not transfer from the product heads to the circuits, and the paper says so.
+- **My expectation, stated in advance:** the penalty transfers, with gains a little smaller than on the product heads (ring-last about +5 to +10, default about +1.5 to +3), because the trained rotations can partly route around the saturated coordinates.
