@@ -50,7 +50,9 @@ above its prediction, is the layout trained furthest from its product model; at 
 rotations its effective order is 2.6 rather than 3.5 (\cref{fig:hero}b,
 \cref{app:family,app:efforder}). Under $\tfrac{\pi}{2}\tanh z+\tfrac{\pi}{2}$ six layouts follow order
 as predicted ($-0.94$); under a phase encoding, whose zero-rotation readouts vanish, probe accuracy
-follows the circuits' $R_y$ order ($-0.99$, \cref{app:encoding,app:phase}). Order is a useful
+follows the circuits' $R_y$ order ($-0.99$, \cref{app:encoding,app:phase}). At 12 qubits the
+ordering holds as predicted, with the default ring again 4.0 points below the ring-free one
+(\cref{app:width}). Order is a useful
 but coarse descriptor.
 
 Two interventions test the products directly. First, classical heads trained end to end on a
@@ -129,8 +131,7 @@ backbone's gradient norm is larger, not smaller, with the VQC head. Freezing the
 rotations at initialization, which keeps the head close to its zero-rotation model, does
 not recover the probe ($-1.6\pm0.7$ against the trained circuit). BatchNorm before the encoding
 and two alternative encodings, one of which breaks the sign symmetry of
-$\cos(\pi\tanh z)$, recover at most 0.7 probe points. Lowering product order gives by far the
-largest recoveries.
+$\cos(\pi\tanh z)$, recover at most 0.7 probe points. Lowering product order recovers by far the most.
 
 Higher-order circuits also fit their training data less well under the 80-epoch budget
 (clean training accuracy 96.6\% without CNOTs, 89.2\% for the default circuit and 65.6\% for a

@@ -137,7 +137,8 @@ def main():
                 seed = int(meta["seed"])
                 if (ds, str(n), head, str(seed)) + ((f"{lr:g}",) if a.all_lrs else ()) in done:
                     continue
-                model = HybridClassifier(10, 8, meta["backbone"], meta["head"], 1 if ds == "mnist" else 3,
+                model = HybridClassifier(10, int(meta.get("bottleneck_dim", 8)), meta["backbone"], meta["head"],
+                                         1 if ds == "mnist" else 3,
                                          mlp_hidden=meta.get("mlp_hidden"), n_var_layers=meta.get("n_var_layers", 4),
                                          reupload_mode="none",
                                          quantum_sim="torch", pre_norm=meta.get("pre_norm", "none"),

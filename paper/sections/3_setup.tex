@@ -45,10 +45,10 @@ a Pauli-$Z$ string on a set $\Sk$ of qubits:
 \begin{equation}
   \ZZ{k}\big|_{\theta=0}=\prod_{j\in\Sk}\cos(\pi\tanh z_j),
   \qquad
-  \order=\tfrac{1}{8}\textstyle\sum_{k}|\Sk| .
+  \order=\tfrac{1}{q}\textstyle\sum_{k}|\Sk| .
   \label{eq:identity}
 \end{equation}
-We call $\order$ the \emph{product order}. It is 1 without CNOTs, 2.5 for the default
+We call $\order$ the \emph{product order} ($q=8$ qubits unless stated). It is 1 without CNOTs, 2.5 for the default
 circuit, 5.25 for a ring after the last layer or a single-layer circuit, 1.5 for pairs after
 the last layer, and 1 for pairs after every layer: the pair layer $P$ satisfies $P^2=I$, so its four
 copies cancel at zero rotations, while interleaved nonzero rotations generally prevent the

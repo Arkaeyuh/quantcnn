@@ -1,0 +1,27 @@
+\begin{table*}[t]
+\centering
+\caption{Width replication (CIFAR-10, 4,000 images, small CNN, protocol of \cref{sec:setup}, 5 seeds): the
+headline heads with an 8-dimensional bottleneck and 8 qubits, and with a 12-dimensional bottleneck and
+12 qubits. Product orders follow \cref{eq:identity} with $q$ the number of qubits. Predictions for the 12-qubit runs were
+committed before training: the ordering no CNOT $>$ default $>$ last ring (met), and a paired mean
+default $-$ no CNOT $\le-2$ and default $-$ linear $<0$, each negative in at least 4 of 5 seeds (met:
+$-4.0\pm1.0$ and $-4.9 \pm 1.0$, every seed negative).
+Extrapolating the 8-qubit ring-family slope ($3.22$ points per unit of order) predicted gaps of
+$-9.4$ and $-20.4$ to the no-CNOT head; the observed gaps are much smaller and close to
+those at 8 qubits. $\Delta$: paired probe difference to the no-CNOT head. Selected head learning rates at
+12 qubits: $3\times10^{-2}$ (linear, after one edge step) and $10^{-2}$ (VQC). Train: clean training accuracy at 12 qubits (\%).}
+\label{tab:width}
+\small
+\begin{tabular}{lcccccccc}
+\toprule
+& \multicolumn{3}{c}{8 qubits} & \multicolumn{5}{c}{12 qubits} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-9}
+Head & Order & Probe & $\Delta$ & Order & Probe & $\Delta$ & MLP probe & Train \\
+\midrule
+linear & --- & $74.5 \pm 0.5$ & --- & --- & $74.7 \pm 0.7$ & --- & $74.5 \pm 0.7$ & 98.7 \\
+VQC, no CNOT & 1 & $73.6 \pm 0.5$ & --- & 1 & $73.8 \pm 0.5$ & --- & $73.5 \pm 0.9$ & 97.0 \\
+VQC, ring (default) & 2.50 & $69.8 \pm 1.0$ & $-3.8 \pm 1.2$ & 3.92 & $69.8 \pm 0.8$ & $-4.0 \pm 1.0$ & $69.7 \pm 0.9$ & 86.3 \\
+VQC, ring, last & 5.25 & $60.1 \pm 3.1$ & $-13.5 \pm 3.1$ & 7.33 & $61.5 \pm 6.1$ & $-12.3 \pm 6.2$ & $61.6 \pm 6.5$ & 66.9 \\
+\bottomrule
+\end{tabular}
+\end{table*}

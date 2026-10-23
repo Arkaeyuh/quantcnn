@@ -84,13 +84,14 @@ class AffineQuantumHead(nn.Module):
 
 
 class MLPProbe(nn.Module):
-    """Nonlinear probe: fixed standardization, then 8 -> 256 -> 256 -> 10 with ReLU."""
+    """Nonlinear probe: fixed standardization, then d -> 256 -> 256 -> 10 with ReLU (d = 8 unless the
+    bottleneck is wider)."""
 
     def __init__(self, mu, sd, width: int = 256) -> None:
         super().__init__()
         self.register_buffer("mu", mu)
         self.register_buffer("sd", sd)
-        self.net = nn.Sequential(nn.Linear(8, width), nn.ReLU(), nn.Linear(width, width), nn.ReLU(),
+        self.net = nn.Sequential(nn.Linear(mu.shape[0], width), nn.ReLU(), nn.Linear(width, width), nn.ReLU(),
                                  nn.Linear(width, 10))
 
     def forward(self, z):
@@ -99,7 +100,7 @@ class MLPProbe(nn.Module):
 
 def _make_head(kind: str, mu, sd) -> nn.Module:
     if kind == "linear":
-        return LinearHead(8, 10)
+        return LinearHead(mu.shape[0], 10)
     if kind == "mlp":
         return MLPHead(8, 8, 10)
     if kind == "mlp_probe":

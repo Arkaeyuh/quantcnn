@@ -233,6 +233,23 @@ probe about 7 points below their $R_y$-order predictions.
 
 \input{figures/tableA_phase}
 
+\section{Width: 12 Qubits}
+\label{app:width}
+
+\Cref{tab:width} repeats the headline comparison with a 12-dimensional bottleneck and 12 qubits, one
+per coordinate, under the same protocol; \cref{eq:identity} holds at this width (tested), with product
+orders 1, 3.92 and 7.33 for the circuits without CNOTs, with the default rings and with a ring after
+the last layer only. We committed the predictions before the runs: the ordering of the three circuits,
+a default circuit at least 2 points below the ring-free one and below the linear head, and, as an
+order-only extrapolation, gaps to the ring-free head of 9.4 and 20.4 points from the 8-qubit
+ring-family slope, which we expected to overshoot. The ordering and both secondary criteria hold in
+every seed, under both probes. The gaps, however, barely change with width: the default circuit sits
+4.0 points below the ring-free one (3.8 at 8 qubits) and the last-ring circuit 12.3 points below it
+(13.5), although their orders rose from 2.5 and 5.25. Product order therefore ranks these three circuits at both widths, but the cost
+per unit of order is not constant across widths, and the 8-qubit slope does not transfer.
+
+\input{figures/tableA_width}
+
 \section{Effective Order Beyond Zero Rotations}
 \label{app:efforder}
 
