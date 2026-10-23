@@ -5,7 +5,7 @@ replication and the predictions and pass criteria for the second circuit family 
 before those runs. They were written in the project's working log (`findings.md`), which is not
 under version control. This file copies those entries **verbatim and unedited** so they have a
 verifiable record; its commit date is the first verifiable timestamp, not the date of writing.
-Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms, the gradient-floor test and the 12-qubit replication) were
+Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms, the gradient-floor test, the 12-qubit replication and the mechanism diagnostics) were
 committed and pushed before their runs started, so their commit date is itself the record.
 
 Corroborating, not conclusive: the earliest file in `results/protocol_v2/cifar_family/` was
@@ -129,3 +129,23 @@ Context: auto-review-loop run_20261018_8a770126, round 1 (5/10). Overlap = mean 
 - **Point extrapolation (order only):** with the 8-qubit ring-family slope of 3.22 points per unit of order, default − no CNOT ≈ −9.4 and ring-last − no CNOT ≈ −20.4.
 - **Kill:** default ≥ no CNOT in mean probe. Then the order effect does not carry over to 12 qubits, and the paper says so.
 - **My expectation, stated in advance:** the ordering holds, but the gaps fall short of the order-only extrapolation (default − no CNOT between −2 and −9), because a wider bottleneck gives the backbone more room, and the 8-qubit slope was fitted at one width only.
+
+---
+
+## Mechanism diagnostics: bottleneck geometry as a mediator, predictions written 2026-10-23 10:54 before any computation
+**Design (no training):** on the trained checkpoints, test embeddings z of each selected run (all available seeds), compute three bottleneck statistics and correlate their cell means with the cells' mean linear-probe accuracy. Cells (CIFAR-10/4,000, small CNN, selected lr), 38 in total:
+- 8-qubit VQCs, π·tanh (13): no CNOT, pairs, pairs-last, default, 2-layer ring, 1-layer ring, ring-last; star, chain, star-in-last, ladder-2-last, brickwork, chain-last.
+- half encoding (6) and phase encoding (6): the layouts of the two encoding arms.
+- 12 qubits (3): no CNOT, default, ring-last (results/q12_probe.csv).
+- classical product heads (10): cos, products of the pairs-last, default and ring-last supports, and the designed supports win2, star2, win3, star3, win4, gap4.
+
+**Statistics (q = bottleneck width):**
+- S (saturation): fraction of test coordinates with |tanh z| > 0.9.
+- PRn (effective dimensionality): participation ratio (Σλ)²/Σλ² of the correlation matrix of z, divided by q.
+- CPRn (class-mean dimensionality): participation ratio of the between-class covariance of standardized z, divided by min(q, 9).
+
+**Hypotheses:**
+- **H_dim (dimensional collapse):** Spearman(PRn, probe) ≥ 0.7 over the 28 quantum cells and ≥ 0.7 over the 10 classical cells. Secondary: CPRn behaves the same way; within the 13 8-qubit π·tanh cells, the residual of PRn after its own fit on order correlates ≥ 0.5 (Spearman) with the probe residual from the ring-family order fit (does dimensionality explain what order misses, e.g. brickwork?).
+- **H_sat (saturation):** Spearman(S, probe) ≤ −0.7 over the 28 quantum cells and over the 10 classical cells.
+- A statistic that fails either set is not a candidate mediator. Whatever passes is only a correlate; a causal intervention would be pre-registered separately.
+- **My expectation, stated in advance:** H_dim holds (the bottleneck-gradient rank already falls with order); H_sat is weaker, because the encodings move the saturating region (the half and phase encodings read z differently), so pooled across encodings saturation should not track the probe well.
