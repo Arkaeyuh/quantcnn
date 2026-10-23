@@ -263,6 +263,11 @@ def _mech3_selected() -> dict[str, float]:
     return {k: w for k, (w, _) in best.items()}
 
 
+# Last-ring replication of the saturation test on fresh seeds 5-9, both arms, penalty fixed at 10.
+RETEST_SEEDS = [5, 6, 7, 8, 9]
+RETEST_CELLS = [dict(head="quantum", entangle_last_only=True), dict(head="cosprod_last")]
+
+
 def _grid(name: str) -> list[dict]:
     items = []
     if name == "mnist_search":
@@ -492,6 +497,11 @@ def _grid(name: str) -> list[dict]:
         for layout, w in sorted(_mech3_selected().items()):
             for sd in EXTRA_SEEDS:
                 items.append(dict(_C4000, **MECH3_LAYOUTS[layout], bottleneck_reg="sat", reg_weight=w, lr=1e-2, seed=sd))
+    elif name == "cifar_lastring_retest":
+        for opts in RETEST_CELLS:
+            for reg in ({}, dict(bottleneck_reg="sat", reg_weight=10.0)):
+                for sd in RETEST_SEEDS:
+                    items.append(dict(_C4000, **opts, **reg, lr=1e-2, seed=sd))
     elif name == "cifar_pretrained_10k_edge":
         # Linear, default and last-ring heads selected 3e-4 (grid bottom) at 10k images: one step down.
         for i in (0, 1, 3):
@@ -655,7 +665,7 @@ def main():
                                          "cifar_phase_seeds", "cifar_floor", "cifar_floor_ext",
                                          "cifar_floor_seeds", "cifar_q12", "cifar_q12_ext",
                                          "cifar_q12_seeds", "cifar_mech2", "cifar_mech2_seeds", "cifar_mech3",
-                                         "cifar_mech3_seeds"], required=True)
+                                         "cifar_mech3_seeds", "cifar_lastring_retest"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

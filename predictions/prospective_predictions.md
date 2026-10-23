@@ -5,7 +5,7 @@ replication and the predictions and pass criteria for the second circuit family 
 before those runs. They were written in the project's working log (`findings.md`), which is not
 under version control. This file copies those entries **verbatim and unedited** so they have a
 verifiable record; its commit date is the first verifiable timestamp, not the date of writing.
-Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms, the gradient-floor test, the 12-qubit replication, the mechanism diagnostics, the mechanism test and its circuit confirmation) were
+Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms, the gradient-floor test, the 12-qubit replication, the mechanism diagnostics, the mechanism test, its circuit confirmation and the last-ring replication) were
 committed and pushed before their runs started, so their commit date is itself the record.
 
 Corroborating, not conclusive: the earliest file in `results/protocol_v2/cifar_family/` was
@@ -179,3 +179,16 @@ Seeds 0–2 for every (head, reg, λ) (`cifar_mech2`); λ selected per (head, re
 - **H_sat-circuit:** at the selected λ the probe rises by ≥ 3 points on ring-last and ≥ 1.5 on default (paired by seed, positive in ≥ 4 of 5 seeds), and the no-CNOT gain is less than half the ring-last gain.
 - **Refutation:** manipulation and guard pass, and the gains are below +1 on both default and ring-last. Then the phase-2 result does not transfer from the product heads to the circuits, and the paper says so.
 - **My expectation, stated in advance:** the penalty transfers, with gains a little smaller than on the product heads (ring-last about +5 to +10, default about +1.5 to +3), because the trained rotations can partly route around the saturated coordinates.
+
+---
+
+## Last-ring replication of the saturation test, predictions written 2026-10-23 18:55 before any run
+**Why:** in the phase-2 and circuit tests the last-ring heads improved clean training accuracy by 14–23 points under the anti-saturation penalty, beyond the committed guard ("within 10 points"), which made those results inconclusive as written; the guard was meant as a limit on lost fit. This replication fixes that wording and uses fresh seeds.
+
+**Design:** CIFAR-10/4,000, small CNN, 80 epochs, lr 1e-2, seeds 5–9 (not used before), both arms on every seed: the 8-qubit VQC with a ring after the last layer only, and the classical head on its products (last-ring supports), each unregularized and with the anti-saturation penalty at the previously selected λ = 10 (no new selection). Grid `cifar_lastring_retest` (20 runs). Linear probe (primary) and MLP probe; S on test embeddings.
+
+- **Manipulation check:** S with the penalty ≤ 0.30 (circuit) and ≤ 0.42 (products), seed-averaged.
+- **Training guard (no loss of fit):** the penalized head's mean clean training accuracy is at least the unregularized head's minus 10 points. Gains of any size pass.
+- **H_sat-lastring:** paired mean probe gain (penalty − unregularized, same seed) ≥ +3 points on each family, positive in ≥ 4 of 5 seeds.
+- **Refutation:** check and guard pass, and the mean gain is below +1 on both families.
+- **My expectation, stated in advance:** it replicates, circuit about +5 to +10 and products about +8 to +15 (seeds 0–4 gave +7.9 and +12.6).
