@@ -2,6 +2,7 @@
 
 * zero-rotation identity: with every rotation zero, <Z_k> = prod_{j in S_k} cos(pi tanh z_j)
   for every CNOT structure used (Eq. 1), including the second-family layouts;
+* the identity also holds at 12 qubits, with product orders 1, 3.92 and 7.33;
 * the classical product heads use exactly those supports;
 * ring-free circuit: <Z_j> lies in span{cos a_j, sin a_j} for any rotations and depends on
   z_j only (Eq. 2);
@@ -59,6 +60,20 @@ def test_zero_rotation_identity():
         q = _vqc(layers, ent)(z)
         expected = torch.stack([c[:, s].prod(1) for s in supports], 1)
         assert torch.allclose(q, expected, atol=1e-10), (layers, ent, (q - expected).abs().max())
+
+
+def test_zero_rotation_identity_12_qubits():
+    """Width replication: the identity and the product orders (1, 3.92, 7.33) at 12 qubits."""
+    z = torch.randn(8, 12, dtype=torch.float64) * 1.5
+    c = torch.cos(math.pi * torch.tanh(z))
+    for ent, last, order in ((False, False, 1.0), (True, False, 47 / 12), ("last", True, 88 / 12)):
+        vqc = TorchStatevectorVQC(12, 4, "none", entangle=ent).double()
+        with torch.no_grad():
+            vqc.weights.zero_()
+        sup = [[k] for k in range(12)] if ent is False else cnot_ring_supports(12, 4, last_only=last)
+        assert abs(st.mean(len(x) for x in sup) - order) < 1e-12, (ent, sup)
+        expected = torch.stack([c[:, x].prod(1) for x in sup], 1)
+        assert torch.allclose(vqc(z), expected, atol=1e-10), ent
 
 
 def test_product_heads_use_circuit_supports():

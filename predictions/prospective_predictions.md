@@ -5,7 +5,7 @@ replication and the predictions and pass criteria for the second circuit family 
 before those runs. They were written in the project's working log (`findings.md`), which is not
 under version control. This file copies those entries **verbatim and unedited** so they have a
 verifiable record; its commit date is the first verifiable timestamp, not the date of writing.
-Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms and the gradient-floor test) were
+Outcomes are deliberately left out (they are in the paper). Later entries (the two encoding arms, the gradient-floor test and the 12-qubit replication) were
 committed and pushed before their runs started, so their commit date is itself the record.
 
 Corroborating, not conclusive: the earliest file in `results/protocol_v2/cifar_family/` was
@@ -116,3 +116,16 @@ Context: auto-review-loop run_20261018_8a770126, round 1 (5/10). Overlap = mean 
 - **Training guard:** a support's result counts only if τ = 1 keeps clean training accuracy within 10 points of the coupled head (86.0 / 56.1); otherwise it is inconclusive, as the earlier decoupling test was.
 - **Refutation:** training intact and τ = 1 − τ = 0 below +1 point on both supports. Then gradient-magnitude attenuation is not the main cause, and the paper says so (with the caveat that the manipulation is mild at the measured states).
 - **My expectation, stated in advance:** given the mild measured manipulation, I expect at most a small recovery on the default supports (< 2 points) and a larger but partial one on the last-ring supports, i.e. H_att partly supported at most. I would not be surprised by a null.
+
+---
+
+## Width replication at 12 qubits, predictions written 2026-10-22 20:30 before any run
+**Design:** the headline comparison with a 12-dimensional bottleneck and 12 qubits (one per coordinate), everything else as in the CIFAR-10/4,000 small-CNN protocol (80 epochs, 4 variational layers, π·tanh encoding). Heads: linear (lr {1e-3, 3e-3, 1e-2, 3e-2}); VQC without CNOTs, with the default rings, and with a ring after the last layer only (lr {3e-3, 1e-2, 3e-2}); seeds 0–2 (`cifar_q12`), one edge step if a boundary lr is selected (`cifar_q12_ext`), seeds 3–4 at the selected lr (`cifar_q12_seeds`). Linear probe (primary) and MLP probe. At 12 qubits the zero-rotation identity holds (tests/test_identities.py::test_zero_rotation_identity_12_qubits) with product orders 1, 3.92 (supports of size 3–5) and 7.33 (2–12), against 1, 2.5 and 5.25 at 8 qubits.
+
+**8-qubit reference (5 seeds, linear probe):** linear 74.45, no CNOT 73.61, default 69.77, ring-last 60.11; default − no CNOT −3.84, ring-last − default −9.66.
+
+- **Primary:** the mean probe accuracy (5 seeds) is ordered no CNOT > default > ring-last.
+- **Secondary:** (a) default − no CNOT ≤ −2 points, paired, negative in ≥ 4 of 5 seeds; (b) default − linear < 0, negative in ≥ 4 of 5 seeds.
+- **Point extrapolation (order only):** with the 8-qubit ring-family slope of 3.22 points per unit of order, default − no CNOT ≈ −9.4 and ring-last − no CNOT ≈ −20.4.
+- **Kill:** default ≥ no CNOT in mean probe. Then the order effect does not carry over to 12 qubits, and the paper says so.
+- **My expectation, stated in advance:** the ordering holds, but the gaps fall short of the order-only extrapolation (default − no CNOT between −2 and −9), because a wider bottleneck gives the backbone more room, and the 8-qubit slope was fitted at one width only.

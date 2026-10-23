@@ -195,6 +195,31 @@ def _floor_selected() -> dict[str, tuple[float, list[float]]]:
     return {h: (sel[(4000, h)][0], sorted(tried[h])) for h in FLOOR_HEADS if (4000, h) in sel}
 
 
+# Width replication: 12-dimensional bottleneck, 12 qubits (zero-rotation orders 1, 3.92, 7.33).
+Q12 = {"linear": (dict(head="linear"), [1e-3, 3e-3, 1e-2, 3e-2]),
+       "noent": (dict(head="quantum", no_entangle=True), [3e-3, 1e-2, 3e-2]),
+       "default": (dict(head="quantum"), [3e-3, 1e-2, 3e-2]),
+       "entlast": (dict(head="quantum", entangle_last_only=True), [3e-3, 1e-2, 3e-2])}
+
+
+def _q12_selected() -> dict[str, tuple[float, list[float]]]:
+    """Q12 key -> (selected lr, lrs tried) from the finished cifar_q12(_ext) runs."""
+    from scripts.probe_backbones import _head_key, _selected_runs
+
+    root = Path("runs") / "protocol_v2"
+    sel = _selected_runs(root, ["cifar_q12", "cifar_q12_ext"])
+    out = {}
+    for key, (opts, _) in Q12.items():
+        hk = _head_key(dict(opts, mlp_hidden=None, epochs=80, dataset="cifar10", lr=0,
+                            entangle=False if opts.get("no_entangle") else "last" if opts.get("entangle_last_only") else True))
+        tried = sorted({json.loads((f.parent / "meta.json").read_text())["lr"]
+                        for g in ["cifar_q12", "cifar_q12_ext"] for f in (root / g).glob("*/final.json")
+                        if _head_key(json.loads((f.parent / "meta.json").read_text())) == hk})
+        if (4000, hk) in sel:
+            out[key] = (sel[(4000, hk)][0], tried)
+    return out
+
+
 def _grid(name: str) -> list[dict]:
     items = []
     if name == "mnist_search":
@@ -388,6 +413,23 @@ def _grid(name: str) -> list[dict]:
         for head, (lr, _) in _floor_selected().items():
             for sd in EXTRA_SEEDS:
                 items.append(dict(_C4000, head=head, lr=lr, seed=sd))
+    elif name == "cifar_q12":
+        for opts, lrs in Q12.values():
+            for lr in lrs:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, **opts, bottleneck_dim=12, lr=lr, seed=sd))
+    elif name == "cifar_q12_ext":
+        ladder = [1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1]
+        for key, (lr, tried) in _q12_selected().items():
+            i = ladder.index(min(ladder, key=lambda v: abs(v - lr)))
+            step = ladder[i - 1] if lr == min(tried) else ladder[i + 1] if lr == max(tried) else None
+            if step is not None and step not in tried:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, **Q12[key][0], bottleneck_dim=12, lr=step, seed=sd))
+    elif name == "cifar_q12_seeds":
+        for key, (lr, _) in _q12_selected().items():
+            for sd in EXTRA_SEEDS:
+                items.append(dict(_C4000, **Q12[key][0], bottleneck_dim=12, lr=lr, seed=sd))
     elif name == "cifar_pretrained_10k_edge":
         # Linear, default and last-ring heads selected 3e-4 (grid bottom) at 10k images: one step down.
         for i in (0, 1, 3):
@@ -493,6 +535,7 @@ def _slug(it: dict) -> str:
     head += f"_L{it['n_var_layers']}" if it.get("n_var_layers", 4) != 4 else ""
     head += f"_{it['entangle_pattern']}" if it.get("entangle_pattern") else ""
     head += f"_init{it['vqc_init_scale']:.3g}" if it.get("vqc_init_scale", 0.1) != 0.1 else ""
+    head += f"_b{it['bottleneck_dim']}" if it.get("bottleneck_dim", 8) != 8 else ""
     head += f"_ep{it['epochs']}" if it["epochs"] != DEFAULT_EPOCHS[it["dataset"]] and not it.get("backbone") else ""
     head += f"_{it['backbone']}" if it.get("backbone") else ""
     mult = it.get("lr_backbone_multiplier", DEFAULT_BB_MULT)
@@ -547,7 +590,8 @@ def main():
                                          "cifar_pretrained_budget_lr", "cifar_half", "cifar_half_ext",
                                          "cifar_half_seeds", "cifar_phase", "cifar_phase_ext",
                                          "cifar_phase_seeds", "cifar_floor", "cifar_floor_ext",
-                                         "cifar_floor_seeds"], required=True)
+                                         "cifar_floor_seeds", "cifar_q12", "cifar_q12_ext",
+                                         "cifar_q12_seeds"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)
