@@ -250,6 +250,58 @@ per unit of order is not constant across widths, and the 8-qubit slope does not 
 
 \input{figures/tableA_width}
 
+\section{Bottleneck Saturation}
+\label{app:saturation}
+
+\Cref{tab:geometry,tab:saturation} test where the cost arises, in three pre-registered steps. First,
+on the trained backbones of 38 configurations (both layout families, the default and two alternative
+encodings, both widths and the classical product heads), we measured the fraction of saturated bottleneck
+coordinates, the effective dimensionality of the bottleneck and that of its class means, and committed in
+advance that a candidate must correlate with probe accuracy at $\rho\le-0.7$ (saturation) or
+$\rho\ge0.7$ (dimensionality) over the VQC and over the classical cells. All three pass. We had expected
+saturation to track the probe poorly across encodings, and it did not. A secondary criterion also
+passes: within the 13 8-qubit layouts, the part of effective dimensionality not explained by order
+tracks the part of probe accuracy not explained by order ($\rho=0.87$; criterion $\ge0.5$). Saturation
+and dimensionality are themselves tightly coupled ($\rho=-0.91$ across cells), so the diagnostics alone
+cannot order them.
+
+Second, on the classical product heads we added one penalty to the loss, either against saturation or
+against correlated bottleneck coordinates, with the weight selected on validation accuracy. Both pass
+their manipulation checks (last-ring saturation $\le0.42$ under the first: 0.03; an effective-dimensionality
+increase of at least 0.05 under the second: 0.28 to 0.93). The committed training guard asked for
+clean training accuracy within 10 points of the unregularized head. Both penalties raised it instead:
+within the band on the default products ($+5.6$ and $+3.5$ points) but by 23 and 17 points on the
+last-ring products, so by the guard as written the last-ring results are inconclusive; we had meant it
+as a limit on lost fit, but did not write it that way. On the default products the anti-saturation
+penalty meets every criterion as committed, decorrelation does not (it recovers nothing reliable there),
+and on the last-ring products both raise the probe substantially (\cref{tab:saturation}). We had expected
+the anti-saturation penalty to fail; the decorrelation pattern, larger on the last-ring than on the
+default products, was as expected, though its default gain falls below the criterion. The MLP probe
+agrees (anti-saturation $+0.5$, $+2.0$, $+12.2$; decorrelation $-0.4$, $+0.0$, $+8.0$ on the order-1, 2.5
+and 5.25 heads). At the non-selected weights (3 seeds), anti-saturation gives $+0.6$, $+2.9$ and $+10.7$
+points, and decorrelation $-3.0$, $-0.3$ and $+3.7$.
+
+Third, the same anti-saturation penalty on the 8-qubit circuits passes its manipulation check
+(saturation 0.30 to 0.002 and 0.49 to 0.005, against thresholds of 0.18 and 0.30) and raises clean
+training accuracy, by 4.4 points on the default circuit (within the guard) and 13.6 on the last-ring
+circuit (beyond it, so inconclusive by the guard as written). It raises probe accuracy
+on the default and last-ring circuits, positive in every seed under the linear probe, as predicted, with
+a small gain on the ring-free circuit ($+0.6\pm0.8$, within the specificity criterion). The MLP probe
+gives $+1.6$, $+7.7$ and $+0.4$ (one negative default seed). The gains recover about 44\% and 59\% of the
+two circuits' gaps to the unregularized ring-free head; the rest remains unexplained, and the refutation
+condition (gains below $+1$ on both) is not met. Because the last-ring results were inconclusive under the guard as written, we replicated them on
+fresh seeds 5--9, re-running both arms with the penalty fixed at 10 and committing beforehand a guard
+stated as no loss of fit. The replication meets every criterion: $+6.0\pm4.1$ points for the last-ring
+circuit and $+9.9\pm5.2$ for its products, positive in every seed, with saturation down to 0.01 and 0.04
+and unchanged baselines ($60.0$ against $60.1$ on seeds 0--4); the MLP probe gives $+6.1$ and $+9.4$.
+The penalty acts during training only, so the heads keep the same forward architecture. Under criteria
+as committed, the results support a causal role for saturation on both supports and both head families;
+the penalty also changes fit and effective dimensionality, so saturation need not be the only route.
+
+\input{figures/tableA_geometry}
+
+\input{figures/tableA_saturation}
+
 \section{Effective Order Beyond Zero Rotations}
 \label{app:efforder}
 

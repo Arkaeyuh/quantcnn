@@ -1,0 +1,25 @@
+\begin{table}[h]
+\centering
+\caption{Bottleneck geometry of the trained backbones (CIFAR-10, 4,000 images, small CNN; test
+embeddings $z$ of every probed run). $S$: fraction of coordinates with $|\tanh z|>0.9$; PRn:
+participation ratio of the correlation matrix of $z$, divided by the width; CPRn: participation ratio
+of the between-class covariance of standardized $z$, divided by $\min(q,9)$. Entries: Spearman
+correlation between the cell means and the cells' mean probe accuracy. Criteria ($\rho\le-0.7$ for $S$,
+$\rho\ge0.7$ for PRn and CPRn, separately over the VQC and the classical cells) were committed before
+the computation.}
+\label{tab:geometry}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Cells & $n$ & $S$ & PRn & CPRn \\
+\midrule
+VQC, 8 qubits ($\pi\tanh$) & 13 & $-0.97$ & $0.99$ & $0.97$ \\
+VQC, half encoding & 6 & $-1.00$ & $0.94$ & $0.94$ \\
+VQC, phase encoding & 6 & $-1.00$ & $0.94$ & $0.94$ \\
+VQC, 12 qubits & 3 & $-1.00$ & $1.00$ & $1.00$ \\
+classical product heads & 10 & $-0.98$ & $0.96$ & $0.95$ \\
+\midrule
+all VQC cells & 28 & $-0.91$ & $0.86$ & $0.92$ \\
+\bottomrule
+\end{tabular}
+\end{table}

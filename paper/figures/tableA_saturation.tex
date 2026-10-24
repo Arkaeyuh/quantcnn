@@ -1,0 +1,38 @@
+\begin{table*}[t]
+\centering
+\caption{Interventions on bottleneck saturation (CIFAR-10, 4,000 images, small CNN, head learning rate
+$10^{-2}$, 5 seeds). Each head is trained with a penalty on its bottleneck added to the loss:
+anti-saturation, $\lambda\,\mathrm{mean}(\mathrm{relu}(\tanh^2z-0.81))$, nonzero only where
+$|\tanh z|>0.9$; decorrelation, $\lambda$ times the mean squared off-diagonal entry of the batch
+correlation matrix of $z$. $\lambda$ was selected on validation accuracy from $\{3,10\}$
+(anti-saturation) and $\{1,3\}$ (decorrelation); every product head selected 10 and 1. $\Delta$:
+paired probe difference to the unregularized head (linear probe). Manipulation checks, a training guard
+and the causal criteria (mean gains of at least $+3$ and $+1.5$ probe points on the order-5.25 and
+order-2.5 heads, positive in at least 4 of 5 seeds, with less than half the order-5.25 gain on the
+order-1 head) were committed before the runs. Anti-saturation meets the gain, sign and specificity
+criteria on both head families and decorrelation does not; the first last-ring rows exceed the committed
+training guard (clean training accuracy within 10 points) by improving fit, so they are inconclusive as
+written. The replication on fresh seeds 5--9, committed with the guard stated as no loss of fit (penalty
+fixed at 10, both arms re-run), meets every criterion (\cref{app:saturation}).}
+\label{tab:saturation}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+Head (order) & Probe & $\Delta$ anti-sat. & $\Delta$ decorr. & $S$ & Clean train & $\lambda$ \\
+\midrule
+\multicolumn{7}{l}{\emph{Classical product heads}} \\
+cos (1) & $73.3 \pm 0.4$ & $+0.2 \pm 1.1$ & $-0.3 \pm 0.4$ & 0.05 $\to$ 0.02 & 95.5 $\to$ 96.6 & 10 \\
+default supports (2.5) & $68.8 \pm 1.6$ & $+2.2 \pm 1.7$ & $+0.3 \pm 1.9$ & 0.41 $\to$ 0.03 & 86.0 $\to$ 91.7 & 10 \\
+last-ring supports (5.25) & $54.8 \pm 3.4$ & $+12.6 \pm 4.9$ & $+7.8 \pm 4.1$ & 0.60 $\to$ 0.03 & 56.1 $\to$ 78.8 & 10 \\
+\addlinespace
+\multicolumn{7}{l}{\emph{8-qubit VQC heads}} \\
+no CNOT (1) & $73.6 \pm 0.5$ & $+0.6 \pm 0.8$ & --- & 0.01 $\to$ 0.00 & 96.6 $\to$ 97.7 & 3 \\
+ring, default (2.5) & $69.8 \pm 1.0$ & $+1.7 \pm 1.3$ & --- & 0.30 $\to$ 0.00 & 89.2 $\to$ 93.6 & 10 \\
+ring, last (5.25) & $60.1 \pm 3.1$ & $+7.9 \pm 3.0$ & --- & 0.49 $\to$ 0.00 & 65.6 $\to$ 79.3 & 10 \\
+\addlinespace
+\multicolumn{7}{l}{\emph{Replication on seeds 5--9, both arms (guard: no loss of fit)}} \\
+VQC, ring, last (5.25) & $60.0 \pm 4.4$ & $+6.0 \pm 4.1$ & --- & 0.46 $\to$ 0.01 & 64.6 $\to$ 76.7 & 10 \\
+last-ring products (5.25) & $57.2 \pm 5.2$ & $+9.9 \pm 5.2$ & --- & 0.62 $\to$ 0.04 & 60.2 $\to$ 78.2 & 10 \\
+\bottomrule
+\end{tabular}
+\end{table*}
