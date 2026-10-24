@@ -70,13 +70,14 @@ def _run_index() -> dict:
 
 
 def _probe_rows() -> dict:
-    """cell -> {seed: (lr, probe test acc)} at the lr with the most seeds."""
+    """cell -> {seed: (lr, probe test acc)} at the lr with the most seeds, seeds 0-4 only (the
+    pre-registered cohort; later replications on other seeds are analysed separately)."""
     by = defaultdict(lambda: defaultdict(dict))
     for f in glob.glob("results/*probe.csv"):
         if "mlp" in f or f == Q12_PROBE:
             continue
         for r in csv.DictReader(open(f)):
-            if r.get("dataset") == "cifar10" and r.get("train_subset_size") == "4000":
+            if r.get("dataset") == "cifar10" and r.get("train_subset_size") == "4000" and int(r["seed"]) <= 4:
                 by[r["source_head"]][r["source_lr"]][int(r["seed"])] = float(r["probe_test_acc"])
     for r in csv.DictReader(open(Q12_PROBE)):
         by[r["source_head"] + "@b12"][r["source_lr"]][int(r["seed"])] = float(r["probe_test_acc"])

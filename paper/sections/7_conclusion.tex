@@ -9,7 +9,6 @@ second encoding, with predictions recorded in advance. Lowering that order, by r
 entangling only in pairs that cancel at zero rotations, recovers most of the gap, and
 classical heads on the same products follow it. High-order heads saturate more of the bottleneck;
 penalizing saturation recovers part of the cost. On a pretrained ResNet-18 the default head
-costs 6--8 points at every training size when updates are approximately matched. Without CNOTs the head is
-a classical sinusoidal model. In practice: tune each head separately,
+costs 6--8 points at every training size when updates are approximately matched. In practice: tune each head separately,
 probe the backbone, count a circuit's product order before training, and penalize bottleneck
 saturation.
