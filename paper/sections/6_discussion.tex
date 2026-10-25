@@ -1,33 +1,10 @@
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
-\paragraph{A mechanism: bottleneck saturation.}
-Why should product order cost the backbone? Differentiating \cref{eq:identity} at zero
-rotations gives, for $j\in\Sk$,
-\begin{equation}
-  \frac{\partial \ZZ{k}}{\partial z_j}
-  = -\pi\,\mathrm{sech}^2(z_j)\,\sin\enc{j}\prod_{i\in\Sk\setminus\{j\}}\cos\enc{i}.
-\end{equation}
-The gradient a coordinate receives is scaled by the cosines of the other coordinates in $\Sk$
-(\cref{prop:atten}) and by its own factor $\mathrm{sech}^2(z_j)$, which vanishes as $z_j$ saturates.
-Pre-registered interventions target the two. Removing the attenuation by the other factors while keeping
-each path's sign gives no observed mean recovery on the default products (an interval that includes
-the predicted 2 points) and impairs training on the last-ring ones, leaving its role open (\cref{tab:floor}).
-Across 38 trained configurations, the fraction of saturated bottleneck coordinates and the bottleneck's
-effective dimensionality track probe accuracy (Spearman $-0.91$ and $0.86$ over the VQC cells;
-\cref{tab:geometry}); higher-order heads saturate more of it (30--49\% of coordinates for the default and
-last-ring circuits, 1\% without CNOTs), where a coordinate's own factor $\mathrm{sech}^2z_j$ is below 0.19.
-A penalty that keeps the bottleneck out of saturation improves fit and raises probe accuracy by
-$1.7\pm1.3$ and $7.9\pm3.0$ points for these circuits, every seed (44\% and 59\% of their gaps to the
-ring-free head, which gains little), and the last-ring gain replicates on fresh seeds ($+6.0\pm4.1$); on
-the product heads, restoring dimensionality directly recovers less (\cref{tab:saturation,app:saturation}).
-Because the penalty also changes fit and dimensionality, this supports a causal role for saturation
-without isolating it as the only route.
-
 \paragraph{Implications for hybrid design.}
 For CNN-fed quantum heads trained end to end, the CNOT layout is a choice about the
 backbone: product order, computable before training, ranks the ring family on both datasets,
-new layouts and a second encoding, with a few rank reversals.
+new layouts and a second encoding, with a few rank reversals. The best quantum heads are low-order, and the best, the ring-free head, is exactly classical (\cref{eq:ringfree}); for entangling heads, a penalty on bottleneck saturation recovers part of the cost (\cref{sec:saturation}).
 
 \paragraph{Limitations.}
 We study two families of CNOT layouts (8 qubits, and 12 for the headline heads; $R_yR_z$ layers,

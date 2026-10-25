@@ -46,9 +46,12 @@ Order also carries over to layouts it was not fit on. For six CNOT layouts outsi
 family, chosen by order alone, we predicted probe accuracy from the ring-family fit before
 training. The association holds (Spearman $-0.89$, against a threshold of $-0.8$ set in advance;
 five of six within 4 points), with two rank reversals. The largest miss, brickwork at 5 points
-above its prediction, is the layout trained furthest from its product model; at its trained
-rotations its effective order is 2.6 rather than 3.5 (\cref{fig:hero}b,
-\cref{app:family,app:efforder}). Under $\tfrac{\pi}{2}\tanh z+\tfrac{\pi}{2}$ six layouts follow order
+above its prediction, is the layout trained furthest from its product model. Order extends to any
+rotations: expanding each readout operator $U(\theta)^\dagger Z_kU(\theta)=\sum_Pc_PP$ in Pauli strings,
+the \emph{effective order} is the $c_P^2$-weighted mean number of inputs touched by the strings visible on
+the encoded state, which equals $\order$ at $\theta=0$ (\cref{app:efforder}). At its trained rotations
+brickwork's effective order is 2.6 rather than 3.5, below the distance-2 ring's 3.0 (\cref{fig:hero}b,
+\cref{app:family}). Under $\tfrac{\pi}{2}\tanh z+\tfrac{\pi}{2}$ six layouts follow order
 as predicted ($-0.94$); under a phase encoding, whose zero-rotation readouts vanish, probe accuracy
 follows the circuits' $R_y$ order ($-0.99$, \cref{app:encoding,app:phase}). At 12 qubits the
 ordering holds as predicted, with the default ring again 4.0 points below the ring-free one
@@ -121,10 +124,9 @@ cosine 0.41 against the cos-only model, \cref{app:zeroangle}).
 \subsection{Controls that do not recover the gap}
 \label{sec:controls}
 
-\input{figures/table2_controls}
 \input{figures/table4_pretrained}
 
-\Cref{tab:controls} tests alternative explanations on CIFAR-10/4,000. Lowering or raising the
+\Cref{tab:controls} (\cref{app:controls}) tests alternative explanations on CIFAR-10/4,000. Lowering or raising the
 backbone learning rate with the head learning rate fixed leaves a gap of 4.9--8.6 points at
 every rate where the VQC trains, and the VQC collapses at the two highest rates. The
 backbone's gradient norm is larger, not smaller, with the VQC head. Freezing the circuit's
@@ -175,3 +177,31 @@ $3\times10^{-4}$ and $10^{-3}$, 10 seeds; 95\% intervals $[-2.0,0.8]$ and $[-2.1
 the main-grid rates the products head stays ahead ($+2.9\pm3.0$, 8 of 10 seeds). Learning-rate
 selection is thus the more likely source of the products head's advantage, without excluding
 a contribution of the rotations.
+
+\subsection{Where the cost arises: bottleneck saturation}
+\label{sec:saturation}
+
+\input{figures/tableM_saturation}
+
+Differentiating \cref{eq:identity} at zero rotations gives, for $j\in\Sk$,
+\begin{equation}
+  \frac{\partial \ZZ{k}}{\partial z_j}
+  = -\pi\,\mathrm{sech}^2(z_j)\,\sin\enc{j}\prod_{i\in\Sk\setminus\{j\}}\cos\enc{i},
+  \label{eq:grad}
+\end{equation}
+so a coordinate's gradient is scaled by the cosines of the other coordinates in $\Sk$
+(\cref{prop:atten}) and by its own factor $\mathrm{sech}^2(z_j)$, which vanishes as $z_j$ saturates.
+We tested both routes with pre-registered interventions. Removing the attenuation by the other factors
+while keeping each path's sign gives no observed mean recovery on the default products, within an
+interval that includes the predicted 2 points, and impairs training on the last-ring ones, leaving its
+role open (\cref{tab:floor}). Saturation, in contrast, tracks the cost: across 38 trained configurations
+the fraction of saturated bottleneck coordinates and the bottleneck's effective dimensionality follow
+probe accuracy (Spearman $-0.91$ and $0.86$ over the VQC cells; \cref{tab:geometry}), and higher-order
+heads saturate more of it (30--49\% of coordinates for the default and last-ring circuits, 1\% without
+CNOTs), where a coordinate's own factor is below 0.19. A penalty on saturation, added to the loss,
+improves fit and raises probe accuracy by $1.7\pm1.3$ and $7.9\pm3.0$ points for these circuits, every
+seed, recovering 44\% and 59\% of their gaps to the ring-free head, with little change for the ring-free
+head; the last-ring gain replicates on fresh seeds ($+6.0\pm4.1$; \cref{tab:satmain}). On the product
+heads, a penalty that restores dimensionality directly recovers less. Because the penalty also changes
+fit and dimensionality, these results support a causal role for saturation without isolating it as the
+only route (\cref{app:saturation}).

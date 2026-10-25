@@ -102,6 +102,13 @@ seven for the last-ring circuit, a factor of roughly 0.6--0.8 per additional inp
 with $\mathbb{E}[\cos^2\enc{j}]$ near 1 sit at $\enc{j}\approx\pm\pi$, where $\tanh$ saturates: they leave
 the other inputs' gradients unattenuated but receive almost none themselves.
 
+\section{Controls}
+\label{app:controls}
+
+\input{figures/table2_controls}
+
+\Cref{tab:controls} gives the controls summarized in \cref{sec:controls}.
+
 \section{Nonlinear Probe, Gradient Rank, Initialization and Gradient Decoupling}
 \label{app:mechanism}
 
@@ -125,14 +132,11 @@ The first decoupling attempt passed each input's gradient only through its own f
 discards the sign of the other factors' product as well as its magnitude, and training collapsed.
 The gradient-floor test keeps the forward products and each path's sign and floors only the
 magnitude, $\mathrm{sign}(P)\max(|P|,\tau)$ with the sign taken as $+1$ at $P=0$ ($\tau=0$ is the
-true gradient, tested to match it within numerical tolerance). Our diagnostic before the runs,
-taken in evaluation mode on the coupled heads, suggested a weak intervention (mean cosine with
-the true bottleneck gradient 1.000 at initialization; 0.97 and 0.91 for the default and last-ring
-supports at the end of training, at $\tau=1$), but at initialization evaluation mode uses
-BatchNorm's uncalibrated running statistics. In training mode, as training computes it (a
-retrospective check), $\tau=1$ changes the initial bottleneck gradient substantially: mean cosine
-0.77--0.92 for the default and 0.63--0.73 for the last-ring supports across seeds, with median
-norm ratios of 1.3--1.6 and 1.8--4.1. The floor therefore acts strongly from the start of training. We predicted that
+true gradient, tested to match it within numerical tolerance). At initialization, in training mode (a retrospective check), $\tau=1$
+changes the bottleneck gradient substantially (mean cosine with the true gradient 0.77--0.92 for the default and 0.63--0.73
+for the last-ring supports across seeds; median norm ratios 1.3--1.6 and 1.8--4.1), so the floor acts
+from the start of training; a pre-run check in evaluation mode, with uncalibrated BatchNorm statistics,
+had understated this, and our expectation of a weak intervention rested on it. We predicted that
 $\tau=1$ would recover at least 2 probe points on the default supports and 4 on the last-ring
 supports if attenuation drives the cost, and committed a training guard and a refutation
 criterion. On the default supports training stays within the guard and there is no observed mean
@@ -210,26 +214,21 @@ With the phase encoding, $H$ then $R_z(\pi\tanh z_j)$, each qubit's Bloch vector
 $(\cos\enc{j},\sin\enc{j},0)$, so every readout is zero at zero rotations and the product order of
 \cref{eq:identity} is undefined. The effective order of \cref{app:efforder} still applies, with
 $Z$ instead of $Y$ strings invisible (the expansion and the simulator are tested against an
-independent PennyLane circuit). We committed two competing predictions before the runs: the
-effective order at the initialization distribution, and the $R_y$ product order. As computed then,
-the initialization order disagreed with the $R_y$ order on most layouts (the ring after the last
-layer at 1.5 instead of 5.25, the star at 4.5 instead of 1), and we expected it to predict
-moderately and the $R_y$ order to fail. The $R_y$ order passed and the initialization order, as
-committed, failed (\cref{tab:phase}); the no-CNOT head also landed just below its predicted range
-(71.8 against $[72,75]$). An audit after the runs found that the committed initialization orders
-were wrong for the last-layer layouts: the code set a readout's order to 0 when its total visible
-weight was below $10^{-12}$, which is the case at small rotations because those readouts are
-products of small factors. A last-layer circuit's readouts factorize over its supports at any
-rotations, so its effective order equals its $R_y$ order whenever the readout is nonzero; with
-that correction, which is retrospective and not a prediction, the initialization order also meets
-the criterion. The two predictors therefore differ only on the three layouts with CNOTs after
-every layer, and there probe accuracy follows the $R_y$ order: the star, at initialization order
-4.5 but $R_y$ order 1, probes like the no-CNOT head. Post hoc, the trained rotations agree: on
-average over readouts about 99\% of the weight is invisible at initialization, after training it
-is near zero for every layout except the chain and the default ring (0.30 and 0.48), and the
-trained effective order ranks the layouts as probe accuracy does. The two highest-order heads also
-fit their training data poorly under this encoding (54--57\%) and vary widely across seeds, and
-probe about 7 points below their $R_y$-order predictions.
+independent PennyLane circuit). A last-layer circuit's readouts factorize over its supports at any rotations,
+so its effective order equals its $R_y$ order whenever the readout is nonzero. At the initialization
+distribution the effective order therefore differs from the $R_y$ order only on the three layouts with
+CNOTs after every layer, and there probe accuracy follows the $R_y$ order: the star, at initialization
+order 4.5 but $R_y$ order 1, probes like the no-CNOT head (\cref{tab:phase}). We committed both
+orders as competing predictors before the runs, expecting the initialization order to predict
+moderately and the $R_y$ order to fail; the $R_y$ order passed. The initialization orders we committed
+were computed with a numerical cutoff that zeroed tiny but genuine last-layer readouts (first column)
+and failed as committed; the correct values (second column) meet the criterion only in retrospect. The
+no-CNOT head landed just below its predicted range (71.8 against $[72,75]$). Post hoc, the trained
+rotations agree: on average over readouts about 99\% of the weight is invisible at initialization,
+after training it is near zero for every layout except the chain and the default ring (0.30 and 0.48),
+and the trained effective order ranks the layouts as probe accuracy does. The two highest-order heads
+fit their training data poorly under this encoding (54--57\%), vary widely across seeds, and probe
+about 7 points below their $R_y$-order predictions.
 
 \input{figures/tableA_phase}
 
@@ -265,38 +264,37 @@ tracks the part of probe accuracy not explained by order ($\rho=0.87$; criterion
 and dimensionality are themselves tightly coupled ($\rho=-0.91$ across cells), so the diagnostics alone
 cannot order them.
 
-Second, on the classical product heads we added one penalty to the loss, either against saturation or
-against correlated bottleneck coordinates, with the weight selected on validation accuracy. Both pass
-their manipulation checks (last-ring saturation $\le0.42$ under the first: 0.03; an effective-dimensionality
-increase of at least 0.05 under the second: 0.28 to 0.93). The committed training guard asked for
-clean training accuracy within 10 points of the unregularized head. Both penalties raised it instead:
-within the band on the default products ($+5.6$ and $+3.5$ points) but by 23 and 17 points on the
-last-ring products, so by the guard as written the last-ring results are inconclusive; we had meant it
-as a limit on lost fit, but did not write it that way. On the default products the anti-saturation
-penalty meets every criterion as committed, decorrelation does not (it recovers nothing reliable there),
-and on the last-ring products both raise the probe substantially (\cref{tab:saturation}). We had expected
-the anti-saturation penalty to fail; the decorrelation pattern, larger on the last-ring than on the
-default products, was as expected, though its default gain falls below the criterion. The MLP probe
-agrees (anti-saturation $+0.5$, $+2.0$, $+12.2$; decorrelation $-0.4$, $+0.0$, $+8.0$ on the order-1, 2.5
-and 5.25 heads). At the non-selected weights (3 seeds), anti-saturation gives $+0.6$, $+2.9$ and $+10.7$
-points, and decorrelation $-3.0$, $-0.3$ and $+3.7$.
+Second, in a discovery cohort (seeds 0--4), we added one penalty to the loss of the classical product
+heads, either against saturation or against correlated bottleneck coordinates, with the weight selected
+on validation accuracy. Both pass their manipulation checks (last-ring saturation $\le0.42$ under the
+first: 0.03; an effective-dimensionality increase of at least 0.05 under the second: 0.28 to 0.93), and
+both improve fit. On the default products the anti-saturation penalty meets every criterion and
+decorrelation does not; on the last-ring products both raise the probe substantially
+(\cref{tab:saturation}). We had expected the anti-saturation penalty to fail; the decorrelation pattern,
+larger on the last-ring than on the default products, was as expected, its default gain below the
+criterion. The MLP probe agrees (anti-saturation $+0.5$, $+2.0$, $+12.2$; decorrelation $-0.4$, $+0.0$,
+$+8.0$ on the order-1, 2.5 and 5.25 heads). At the non-selected weights (3 seeds), anti-saturation gives
+$+0.6$, $+2.9$ and $+10.7$ points, and decorrelation $-3.0$, $-0.3$ and $+3.7$.
 
 Third, the same anti-saturation penalty on the 8-qubit circuits passes its manipulation check
-(saturation 0.30 to 0.002 and 0.49 to 0.005, against thresholds of 0.18 and 0.30) and raises clean
-training accuracy, by 4.4 points on the default circuit (within the guard) and 13.6 on the last-ring
-circuit (beyond it, so inconclusive by the guard as written). It raises probe accuracy
-on the default and last-ring circuits, positive in every seed under the linear probe, as predicted, with
-a small gain on the ring-free circuit ($+0.6\pm0.8$, within the specificity criterion). The MLP probe
-gives $+1.6$, $+7.7$ and $+0.4$ (one negative default seed). The gains recover about 44\% and 59\% of the
-two circuits' gaps to the unregularized ring-free head; the rest remains unexplained, and the refutation
-condition (gains below $+1$ on both) is not met. Because the last-ring results were inconclusive under the guard as written, we replicated them on
-fresh seeds 5--9, re-running both arms with the penalty fixed at 10 and committing beforehand a guard
-stated as no loss of fit. The replication meets every criterion: $+6.0\pm4.1$ points for the last-ring
-circuit and $+9.9\pm5.2$ for its products, positive in every seed, with saturation down to 0.01 and 0.04
-and unchanged baselines ($60.0$ against $60.1$ on seeds 0--4); the MLP probe gives $+6.1$ and $+9.4$.
-The penalty acts during training only, so the heads keep the same forward architecture. Under criteria
-as committed, the results support a causal role for saturation on both supports and both head families;
-the penalty also changes fit and effective dimensionality, so saturation need not be the only route.
+(saturation 0.30 to 0.002 and 0.49 to 0.005, against thresholds of 0.18 and 0.30), improves fit, and
+raises probe accuracy on the default and last-ring circuits, positive in every seed under the linear
+probe, as predicted, with a small gain on the ring-free circuit ($+0.6\pm0.8$, within the specificity
+criterion); the MLP probe gives $+1.6$, $+7.7$ and $+0.4$ (one negative default seed). The gains recover
+about 44\% and 59\% of the two circuits' gaps to the unregularized ring-free head; the rest remains
+unexplained, and the refutation condition (gains below $+1$ on both) is not met.
+
+Finally, a replication cohort (seeds 5--9). The training guard we committed, clean training accuracy
+within 10 points of the unregularized head, was meant to exclude lost fit but as written also excluded
+the large gains in fit on the last-ring heads (13.6 to 23 points), which left those results
+inconclusive. We therefore re-ran both arms of the last-ring comparison on fresh seeds, with the penalty
+fixed at 10 and a guard committed as no loss of fit. The replication meets every criterion: $+6.0\pm4.1$
+points for the last-ring circuit and $+9.9\pm5.2$ for its products, positive in every seed, with
+saturation down to 0.01 and 0.04 and unregularized baselines of 60.0 and 57.2 (60.1 and 54.8 on seeds 0--4); the MLP
+probe gives $+6.1$ and $+9.4$. The penalty acts during training only, so the heads keep the same forward
+architecture. Under criteria as committed, the results support a causal role for saturation on both
+supports and both head families; the penalty also changes fit and effective dimensionality, so
+saturation need not be the only route.
 
 \input{figures/tableA_geometry}
 
