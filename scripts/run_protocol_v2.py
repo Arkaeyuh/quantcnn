@@ -553,6 +553,11 @@ def _grid(name: str) -> list[dict]:
             for sd in ALL_SEEDS:
                 items.append(dict(_C4000, head="quantum", no_entangle=True, bottleneck_reg=f"satup{k}",
                                   reg_weight=SATUP_WEIGHT, lr=1e-2, seed=sd))
+    elif name == "night26":
+        # One priority-ordered queue over the night's grids so no worker idles between small grids;
+        # each run still goes to its own grid's directory (``_grid``).
+        for g in ("cifar_st", "cifar_cz", "cifar_readout", "cifar_lin", "cifar_satup"):
+            items += [dict(it, _grid=g) for it in _grid(g)]
     elif name == "night26_seeds":
         for opts, lr in _night26_selected():
             for sd in EXTRA_SEEDS:
@@ -674,6 +679,9 @@ def _slug(it: dict) -> str:
 
 def _run(it: dict, root: str, val_size: int, threads: int) -> str:
     torch.set_num_threads(threads)
+    it = dict(it)
+    if "_grid" in it:
+        root = str(Path(root).parent / it.pop("_grid"))
     out = Path(root) / _slug(it)
     if (out / "final.json").exists():
         return f"skip {out.name}"
@@ -722,7 +730,7 @@ def main():
                                          "cifar_floor_seeds", "cifar_q12", "cifar_q12_ext",
                                          "cifar_q12_seeds", "cifar_mech2", "cifar_mech2_seeds", "cifar_mech3",
                                          "cifar_mech3_seeds", "cifar_lastring_retest", "cifar_st", "cifar_cz",
-                                         "cifar_lin", "cifar_readout", "cifar_satup", "night26_seeds"], required=True)
+                                         "cifar_lin", "cifar_readout", "cifar_satup", "night26", "night26_seeds"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)
@@ -744,8 +752,10 @@ def main():
                 print(f"[{i}/{len(items)}] {f.result()}", flush=True)
             except Exception as exc:  # report and keep going
                 print(f"[{i}/{len(items)}] FAILED {_slug(futs[f])}: {exc!r}", flush=True)
-    n = _export(Path(root), Path(a.export_root) / a.grid)
-    print(f"done; exported {n} finished runs to {Path(a.export_root) / a.grid}", flush=True)
+    for g in sorted({it.get("_grid", a.grid) for it in items}):
+        r = Path(root).parent / g if g != a.grid else Path(root)
+        n = _export(r, Path(a.export_root) / g)
+        print(f"done; exported {n} finished runs to {Path(a.export_root) / g}", flush=True)
 
 
 if __name__ == "__main__":
