@@ -268,6 +268,43 @@ RETEST_SEEDS = [5, 6, 7, 8, 9]
 RETEST_CELLS = [dict(head="quantum", entangle_last_only=True), dict(head="cosprod_last")]
 
 
+# Mechanism and generality tests, 2026-10-26 (predictions in predictions/prospective_predictions.md).
+ALL_SEEDS = [0, 1, 2, 3, 4]
+NIGHT26_LRS = [3e-3, 1e-2, 3e-2]
+# Straight-through tanh (forward identical, sech^2 removed backward), lr fixed at the selected 1e-2.
+ST_CELLS = [dict(head="quantum", encoding="pi_tanh_st"),
+            dict(head="quantum", encoding="pi_tanh_st", entangle_last_only=True),
+            dict(head="quantum", encoding="pi_tanh_st", no_entangle=True),
+            dict(head="cosprod_st"), dict(head="cosprod_last_st")]
+# New architectures, each tuned over NIGHT26_LRS on seeds 0-2.
+NIGHT26_ARCH = {
+    "cifar_cz": [dict(head="quantum", entangle_pattern="cz")],
+    "cifar_lin": [dict(head="quantum", encoding="lin", **lay) for lay in
+                  (dict(no_entangle=True), dict(entangle_pattern="pairs_last"), {}, dict(entangle_last_only=True))],
+    "cifar_readout": [dict(head="quantum", no_entangle=True, readout=r) for r in ("zz", "zzz")],
+}
+SATUP_WEIGHT = 10.0
+
+
+def _night26_selected() -> list[tuple[dict, float]]:
+    """(run options, lr with the best mean validation accuracy over seeds 0-2) per NIGHT26_ARCH cell."""
+    out = []
+    for grid, cells in NIGHT26_ARCH.items():
+        for opts in cells:
+            vals = {}
+            for lr in NIGHT26_LRS:
+                v = []
+                for sd in SEEDS:
+                    fin = Path("runs") / "protocol_v2" / grid / _slug(dict(_C4000, **opts, lr=lr, seed=sd)) / "final.json"
+                    if fin.exists():
+                        v.append(json.loads(fin.read_text())["val_acc"])
+                if len(v) == len(SEEDS):
+                    vals[lr] = sum(v) / len(v)
+            if vals:
+                out.append((opts, max(vals, key=vals.get)))
+    return out
+
+
 def _grid(name: str) -> list[dict]:
     items = []
     if name == "mnist_search":
@@ -502,6 +539,24 @@ def _grid(name: str) -> list[dict]:
             for reg in ({}, dict(bottleneck_reg="sat", reg_weight=10.0)):
                 for sd in RETEST_SEEDS:
                     items.append(dict(_C4000, **opts, **reg, lr=1e-2, seed=sd))
+    elif name == "cifar_st":
+        for opts in ST_CELLS:
+            for sd in ALL_SEEDS:
+                items.append(dict(_C4000, **opts, lr=1e-2, seed=sd))
+    elif name in NIGHT26_ARCH:
+        for opts in NIGHT26_ARCH[name]:
+            for lr in NIGHT26_LRS:
+                for sd in SEEDS:
+                    items.append(dict(_C4000, **opts, lr=lr, seed=sd))
+    elif name == "cifar_satup":
+        for k in (2, 4):
+            for sd in ALL_SEEDS:
+                items.append(dict(_C4000, head="quantum", no_entangle=True, bottleneck_reg=f"satup{k}",
+                                  reg_weight=SATUP_WEIGHT, lr=1e-2, seed=sd))
+    elif name == "night26_seeds":
+        for opts, lr in _night26_selected():
+            for sd in EXTRA_SEEDS:
+                items.append(dict(_C4000, **opts, lr=lr, seed=sd))
     elif name == "cifar_pretrained_10k_edge":
         # Linear, default and last-ring heads selected 3e-4 (grid bottom) at 10k images: one step down.
         for i in (0, 1, 3):
@@ -606,6 +661,7 @@ def _slug(it: dict) -> str:
     head += "_entlast" if it.get("entangle_last_only") else ""
     head += f"_L{it['n_var_layers']}" if it.get("n_var_layers", 4) != 4 else ""
     head += f"_{it['entangle_pattern']}" if it.get("entangle_pattern") else ""
+    head += f"_ro{it['readout']}" if it.get("readout", "z") != "z" else ""
     head += f"_init{it['vqc_init_scale']:.3g}" if it.get("vqc_init_scale", 0.1) != 0.1 else ""
     head += f"_b{it['bottleneck_dim']}" if it.get("bottleneck_dim", 8) != 8 else ""
     head += f"_{it['bottleneck_reg']}{it['reg_weight']:g}" if it.get("bottleneck_reg", "none") != "none" else ""
@@ -665,7 +721,8 @@ def main():
                                          "cifar_phase_seeds", "cifar_floor", "cifar_floor_ext",
                                          "cifar_floor_seeds", "cifar_q12", "cifar_q12_ext",
                                          "cifar_q12_seeds", "cifar_mech2", "cifar_mech2_seeds", "cifar_mech3",
-                                         "cifar_mech3_seeds", "cifar_lastring_retest"], required=True)
+                                         "cifar_mech3_seeds", "cifar_lastring_retest", "cifar_st", "cifar_cz",
+                                         "cifar_lin", "cifar_readout", "cifar_satup", "night26_seeds"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

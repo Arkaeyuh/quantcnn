@@ -230,3 +230,28 @@ if __name__ == "__main__":
         if name.startswith("test_"):
             fn()
             print("ok", name)
+
+
+def test_straight_through_products_and_induced_saturation():
+    import math
+
+    import torch
+
+    from quantcnn.models.classical_heads import CosProductHead
+    from quantcnn.training_utils import bottleneck_penalty
+
+    torch.manual_seed(0)
+    a, b = CosProductHead(8, 10), CosProductHead(8, 10, st_tanh=True)
+    b.load_state_dict(a.state_dict())
+    x = (torch.randn(4, 8) * 2).requires_grad_(True)
+    xs = x.detach().clone().requires_grad_(True)
+    assert torch.allclose(a(x), b(xs), atol=1e-6)
+    a(x).sum().backward()
+    b(xs).sum().backward()
+    assert torch.allclose(x.grad, xs.grad * (1 - torch.tanh(x.detach()) ** 2), atol=1e-6)
+    z = torch.zeros(3, 8)
+    z[:, 2:] = 0.0
+    assert math.isclose(bottleneck_penalty(z, "satup2").item(), 0.9025, rel_tol=1e-6)
+    z[:, :2] = 5.0  # saturated designated coordinates: no penalty, whatever the others do
+    assert bottleneck_penalty(z, "satup2").item() == 0.0
+    assert bottleneck_penalty(z, "satup4").item() > 0.0

@@ -56,7 +56,7 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
     p.add_argument("--head", choices=["linear", "mlp", "quantum", "cos", "cossin", "cosprod", "cosprod_last", "cosprod_pairs_last",
                                        "cosprod_win2", "cosprod_win3", "cosprod_win4", "cosprod_star2", "cosprod_star3",
                                        "cosprod_gap4", "cosprod_sg", "cosprod_last_sg", "cosprod_fl03", "cosprod_fl1",
-                                       "cosprod_last_fl03", "cosprod_last_fl1"],
+                                       "cosprod_last_fl03", "cosprod_last_fl1", "cosprod_st", "cosprod_last_st"],
                    default="quantum")
     p.add_argument("--reupload_mode", choices=["none", "light", "strong"], default="none")
     p.add_argument("--bottleneck_dim", type=int, default=8)
@@ -104,16 +104,18 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
         default=0.1,
         help="Quantum head only: rotation angles start in uniform(-s, s) (default 0.1, near the identity).",
     )
-    p.add_argument("--bottleneck_reg", choices=["none", "sat", "decor"], default="none",
+    p.add_argument("--bottleneck_reg", choices=["none", "sat", "decor", "satup2", "satup4"], default="none",
                    help="Regularizer on the bottleneck (mechanism test): saturation hinge or decorrelation.")
     p.add_argument("--reg_weight", type=float, default=0.0)
     p.add_argument(
         "--encoding",
-        choices=["pi_tanh", "half", "half_sym", "phase"],
+        choices=["pi_tanh", "half", "half_sym", "phase", "pi_tanh_st", "lin"],
         default="pi_tanh",
         help="Quantum head angle map (torch sim only): pi*tanh z; (pi/2)*tanh z + pi/2 (monotone "
         "under <Z>); (pi/2)*tanh z; or phase: H then RZ(pi*tanh z).",
     )
+    p.add_argument("--readout", choices=["z", "zz", "zzz"], default="z",
+                   help="Quantum head observables (torch sim only): <Z_k>, <Z_k Z_k+1> or <Z_k Z_k+1 Z_k+2>.")
     p.add_argument("--no_entangle", action="store_true", help="Quantum head without CNOT rings (torch sim only).")
     p.add_argument("--entangle_last_only", action="store_true",
                    help="Quantum head with a CNOT ring after the last variational layer only (torch sim only).")
@@ -209,6 +211,7 @@ def run_training(args: argparse.Namespace) -> Path:
         vqc_init_scale=float(args.vqc_init_scale),
         bottleneck_reg=args.bottleneck_reg,
         reg_weight=float(args.reg_weight),
+        readout=args.readout,
     )
 
     set_seed(int(args.seed))
@@ -242,6 +245,7 @@ def run_training(args: argparse.Namespace) -> Path:
         pre_norm=args.pre_norm,
         encoding=args.encoding,
         entangle=_entangle(args),
+        readout=args.readout,
     )
     if cfg.vqc_init_scale != 0.1:
         if args.head != "quantum":

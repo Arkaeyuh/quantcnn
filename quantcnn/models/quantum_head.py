@@ -95,16 +95,18 @@ class QuantumVQCLayer(nn.Module):
         sim: str = "pennylane",
         encoding: str = "pi_tanh",
         entangle: bool | str = True,
+        readout: str = "z",
     ) -> None:
         super().__init__()
         self.sim = sim
         if sim == "torch":
-            self.qlayer = TorchStatevectorVQC(n_qubits, n_var_layers, mode, encoding=encoding, entangle=entangle)
+            self.qlayer = TorchStatevectorVQC(n_qubits, n_var_layers, mode, encoding=encoding, entangle=entangle,
+                                              readout=readout)
             return
         if sim != "pennylane":
             raise ValueError(sim)
-        if encoding != "pi_tanh" or entangle is not True:
-            raise ValueError("encoding/entangle ablations require sim='torch'")
+        if encoding != "pi_tanh" or entangle is not True or readout != "z":
+            raise ValueError("encoding/entangle/readout ablations require sim='torch'")
         qnode = build_qnode(n_qubits, n_var_layers, mode)
         weight_shapes = {"weights": (n_var_layers, n_qubits, 2)}
         self.qlayer = qml.qnn.TorchLayer(qnode, weight_shapes)
@@ -134,9 +136,11 @@ class QuantumClassifierHead(nn.Module):
         sim: str = "pennylane",
         encoding: str = "pi_tanh",
         entangle: bool | str = True,
+        readout: str = "z",
     ) -> None:
         super().__init__()
-        self.vqc = QuantumVQCLayer(n_qubits, n_var_layers, mode, sim=sim, encoding=encoding, entangle=entangle)
+        self.vqc = QuantumVQCLayer(n_qubits, n_var_layers, mode, sim=sim, encoding=encoding, entangle=entangle,
+                                   readout=readout)
         self.proj = nn.Linear(n_qubits, num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

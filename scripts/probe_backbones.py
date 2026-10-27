@@ -55,6 +55,7 @@ def _head_key(meta: dict) -> str:
     head += "+entlast" if meta.get("entangle", True) == "last" else ""
     ent = meta.get("entangle", True)
     head += f"+{ent}" if isinstance(ent, str) and ent != "last" else ""
+    head += f"+ro{meta['readout']}" if meta.get("readout", "z") != "z" else ""
     head += f"+L{meta['n_var_layers']}" if meta["head"] == "quantum" and meta.get("n_var_layers", 4) != 4 else ""
     head += f"+init{meta['vqc_init_scale']:.3g}" if meta.get("vqc_init_scale", 0.1) != 0.1 else ""
     head += f"+{meta['bottleneck_reg']}{meta['reg_weight']:g}" if meta.get("bottleneck_reg", "none") != "none" else ""

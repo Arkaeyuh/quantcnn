@@ -17,7 +17,14 @@ zero-rotation readout vanishes and the product identity does not hold), and ``en
 after every variational layer; ``"last"``: a ring after the last one only; ``"pairs"``
 / ``"pairs_last"``: disjoint CNOT(0,1), CNOT(2,3), ... after every / the last layer;
 ``False``: none). Further layouts, each after every layer (``"<pattern>"``) or only after the
-last one (``"<pattern>_last"``), are listed in ``cnot_gates``.
+last one (``"<pattern>_last"``), are listed in ``cnot_gates``. ``"cz"`` is a ring of CZ(q, q+1 mod n)
+after every layer: it entangles, but CZ commutes with Z, so its zero-rotation product order is 1.
+
+Mechanism and generality tests (2026-10-26): encoding ``"pi_tanh_st"`` is pi*tanh z forward with a
+straight-through backward (d phi / d z = pi, removing the sech^2 factor); ``"lin"`` is phi = z,
+unbounded, with no saturating map. ``readout`` selects the measured observables: ``"z"`` (<Z_k>),
+``"zz"`` (<Z_k Z_{k+1 mod n}>) or ``"zzz"`` (<Z_k Z_{k+1} Z_{k+2}>), which raise the product order
+of a CNOT-free circuit to 2 or 3 without entangling gates.
 """
 
 from __future__ import annotations
@@ -28,9 +35,10 @@ import torch
 import torch.nn as nn
 
 
-ENCODINGS = ("pi_tanh", "half", "half_sym", "phase")
+ENCODINGS = ("pi_tanh", "half", "half_sym", "phase", "pi_tanh_st", "lin")
+READOUTS = {"z": 1, "zz": 2, "zzz": 3}  # readout -> weight of the measured Z string
 PATTERNS = ("ring", "pairs", "chain", "brick", "star", "star_in", "ladder2")
-ENTANGLE = (True, False, "last") + tuple(p for name in PATTERNS[1:] for p in (name, f"{name}_last"))
+ENTANGLE = (True, False, "last", "cz") + tuple(p for name in PATTERNS[1:] for p in (name, f"{name}_last"))
 
 
 def cnot_gates(n_qubits: int, pattern: str = "ring", layer: int = 0) -> list[tuple[int, int]]:
@@ -59,7 +67,7 @@ def cnot_gates(n_qubits: int, pattern: str = "ring", layer: int = 0) -> list[tup
 
 def entangle_layout(entangle: bool | str) -> tuple[str, bool] | None:
     """(pattern, last_only) for an ``entangle`` setting, or None for no CNOTs."""
-    if entangle is False:
+    if entangle is False or entangle == "cz":
         return None
     if entangle is True:
         return "ring", False
@@ -87,7 +95,7 @@ class TorchStatevectorVQC(nn.Module):
     """Drop-in replacement for the PennyLane TorchLayer: same ``weights`` parameter."""
 
     def __init__(self, n_qubits: int, n_var_layers: int, mode: str, light_second_scale: float = 0.5,
-                 encoding: str = "pi_tanh", entangle: bool | str = True):
+                 encoding: str = "pi_tanh", entangle: bool | str = True, readout: str = "z"):
         super().__init__()
         if mode not in ("none", "light", "strong"):
             raise ValueError(mode)
@@ -95,6 +103,8 @@ class TorchStatevectorVQC(nn.Module):
             raise ValueError(encoding)
         if entangle not in ENTANGLE:
             raise ValueError(entangle)
+        if readout not in READOUTS:
+            raise ValueError(readout)
         self.encoding = encoding
         self.entangle = entangle
         self.n_qubits = n_qubits
@@ -113,7 +123,15 @@ class TorchStatevectorVQC(nn.Module):
                 if not last_only or l == n_var_layers - 1:
                     self._perms[l] = _ring_cnot_permutation(n_qubits, pattern, l)
         bits = (torch.arange(2**n_qubits)[:, None] >> torch.arange(n_qubits - 1, -1, -1)) & 1
-        self._zsign = (1 - 2 * bits).to(torch.float64)
+        # CZ ring as a diagonal sign: (-1)^(b_q b_{q+1}) summed over the ring's pairs.
+        self._czsign = None
+        if entangle == "cz":
+            par = sum(bits[:, q] * bits[:, (q + 1) % n_qubits] for q in range(n_qubits)) % 2
+            self._czsign = (1 - 2 * par).to(torch.complex128)
+        zs = (1 - 2 * bits).to(torch.float64)
+        w = READOUTS[readout]
+        self.readout = readout
+        self._zsign = torch.stack([zs[:, [(k + i) % n_qubits for i in range(w)]].prod(1) for k in range(n_qubits)], 1)
 
     def _apply_1q(self, state: torch.Tensor, q: int, mat: torch.Tensor) -> torch.Tensor:
         # state: (B, 2**n) complex; mat: (B, 2, 2) or (2, 2)
@@ -148,6 +166,10 @@ class TorchStatevectorVQC(nn.Module):
             return state
         if self.encoding == "pi_tanh":
             phi = math.pi * torch.tanh(x)
+        elif self.encoding == "pi_tanh_st":
+            phi = math.pi * (torch.tanh(x).detach() + x - x.detach())
+        elif self.encoding == "lin":
+            phi = x
         elif self.encoding == "half":
             phi = 0.5 * math.pi * torch.tanh(x) + 0.5 * math.pi
         else:
@@ -160,6 +182,8 @@ class TorchStatevectorVQC(nn.Module):
         for q in range(self.n_qubits):
             state = self._apply_1q(state, q, self._ry(w[q, 0], cdtype))
             state = self._apply_1q(state, q, self._rz(w[q, 1], cdtype))
+        if self._czsign is not None:
+            return state * self._czsign
         perm = self._perms[l]
         return state if perm is None else state[:, perm]
 

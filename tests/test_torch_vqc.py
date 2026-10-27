@@ -69,3 +69,71 @@ if __name__ == "__main__":
     test_forward_and_grad_match_pennylane()
     test_phase_encoding_matches_pennylane()
     print("ok")
+
+
+def test_cz_ring_readouts_and_linear_encoding_match_pennylane():
+    """CZ ring, multi-qubit Z readouts and the unbounded phi = z encoding (2026-10-26 tests)."""
+    dev = qml.device("default.qubit", wires=8)
+    for ent, readout, enc in (("cz", "z", "pi_tanh"), (False, "zz", "pi_tanh"), (False, "zzz", "lin"),
+                              (True, "z", "lin"), ("cz", "zz", "lin")):
+        torch.manual_seed(2)
+        ts = TorchStatevectorVQC(8, 4, "none", encoding=enc, entangle=ent, readout=readout).double()
+        with torch.no_grad():
+            ts.weights.uniform_(-3.0, 3.0)
+        w_len = {"z": 1, "zz": 2, "zzz": 3}[readout]
+
+        @qml.qnode(dev, interface="torch")
+        def circuit(x, w):
+            for q in range(8):
+                qml.RY(x[q] if enc == "lin" else math.pi * torch.tanh(x[q]), q)
+            for l in range(4):
+                for q in range(8):
+                    qml.RY(w[l, q, 0], q)
+                    qml.RZ(w[l, q, 1], q)
+                if ent == "cz":
+                    for q in range(8):
+                        qml.CZ([q, (q + 1) % 8])
+                elif ent is True:
+                    for q in range(8):
+                        qml.CNOT([q, (q + 1) % 8])
+            obs = []
+            for k in range(8):
+                o = qml.PauliZ(k)
+                for i in range(1, w_len):
+                    o = o @ qml.PauliZ((k + i) % 8)
+                obs.append(qml.expval(o))
+            return obs
+
+        x = torch.randn(3, 8, dtype=torch.float64) * 1.5
+        ref = torch.stack([torch.stack(circuit(x[b], ts.weights.detach())) for b in range(3)])
+        assert torch.allclose(ts(x), ref, atol=1e-8), (ent, readout, enc)
+
+
+def test_zero_rotation_orders_of_new_heads():
+    """At zero rotations the CZ ring reads cos(phi_k) (order 1), and the CNOT-free circuit with
+    zz / zzz readout reads products of 2 / 3 consecutive cosines."""
+    x = torch.randn(5, 8, dtype=torch.float64)
+    c = torch.cos(math.pi * torch.tanh(x))
+    for ent, readout, w in (("cz", "z", 1), (False, "zz", 2), (False, "zzz", 3)):
+        ts = TorchStatevectorVQC(8, 4, "none", entangle=ent, readout=readout).double()
+        with torch.no_grad():
+            ts.weights.zero_()
+        expect = torch.stack([c[:, [(k + i) % 8 for i in range(w)]].prod(1) for k in range(8)], 1)
+        assert torch.allclose(ts(x), expect, atol=1e-10), (ent, readout)
+
+
+def test_straight_through_encoding():
+    """pi_tanh_st: same forward as pi_tanh; backward drops sech^2 (d phi/dz = pi)."""
+    torch.manual_seed(3)
+    a = TorchStatevectorVQC(8, 4, "none").double()
+    b = TorchStatevectorVQC(8, 4, "none", encoding="pi_tanh_st").double()
+    with torch.no_grad():
+        b.weights.copy_(a.weights)
+    x = (torch.randn(4, 8, dtype=torch.float64) * 2).requires_grad_(True)
+    xs = x.detach().clone().requires_grad_(True)
+    ya, yb = a(x), b(xs)
+    assert torch.allclose(ya, yb, atol=1e-12)
+    ya.sum().backward()
+    yb.sum().backward()
+    sech2 = 1 - torch.tanh(x.detach()) ** 2
+    assert torch.allclose(x.grad, xs.grad * sech2, atol=1e-10)

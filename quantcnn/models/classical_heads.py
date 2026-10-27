@@ -117,12 +117,14 @@ class CosProductHead(nn.Module):
     the disjoint-pairs circuits at zero rotation angles; or explicit ``supports``.
     ``decouple_grad`` keeps the forward products but removes the multiplicative coupling
     from the backward pass (mechanism test). ``grad_floor`` keeps the forward products and the
-    sign of each path's gradient but floors its magnitude (``_FlooredProduct``)."""
+    sign of each path's gradient but floors its magnitude (``_FlooredProduct``). ``st_tanh`` keeps
+    the forward products but passes d tanh(z)/dz = 1 backward (straight-through; saturation test)."""
 
     def __init__(self, in_dim: int, num_classes: int, n_var_layers: int = 4, last_only: bool = False,
                  pattern: str = "ring", supports: list[list[int]] | None = None,
-                 decouple_grad: bool = False, grad_floor: float | None = None) -> None:
+                 decouple_grad: bool = False, grad_floor: float | None = None, st_tanh: bool = False) -> None:
         super().__init__()
+        self.st_tanh = st_tanh
         self.decouple_grad = decouple_grad
         self.grad_floor = grad_floor
         if supports is None:
@@ -134,7 +136,8 @@ class CosProductHead(nn.Module):
         self.fc = nn.Linear(in_dim, num_classes)
 
     def forward(self, x):
-        c = torch.cos(math.pi * torch.tanh(x))  # (B, n)
+        t = torch.tanh(x).detach() + x - x.detach() if self.st_tanh else torch.tanh(x)
+        c = torch.cos(math.pi * t)  # (B, n)
         # prod_j c_j^{mask_kj}: take the product over masked entries, others replaced by 1.
         if self.grad_floor is not None:
             return self.fc(_FlooredProduct.apply(c, self.mask, self.grad_floor))

@@ -192,3 +192,50 @@ Seeds 0–2 for every (head, reg, λ) (`cifar_mech2`); λ selected per (head, re
 - **H_sat-lastring:** paired mean probe gain (penalty − unregularized, same seed) ≥ +3 points on each family, positive in ≥ 4 of 5 seeds.
 - **Refutation:** check and guard pass, and the mean gain is below +1 on both families.
 - **My expectation, stated in advance:** it replicates, circuit about +5 to +10 and products about +8 to +15 (seeds 0–4 gave +7.9 and +12.6).
+
+---
+
+## Mechanism and generality tests (night of 2026-10-26), predictions written 2026-10-26 22:00 before any run
+**Why:** reviewer rounds 6–10 left two limits: the saturation mechanism is not isolated from the fit and dimensionality changes the penalty also causes, and generality is bounded (one gate family, tanh-bounded encodings, order only ever set by CNOT layouts). Plan: `PUSH_PLAN_20261026.md`.
+
+**Common design:** CIFAR-10/4,000, small CNN, 80 epochs, the usual recipe (`_C4000`). Linear probe (primary) and MLP probe; S (fraction of test bottleneck coordinates with |tanh z| > 0.9) and PRn on test embeddings. "Paired" means same seed. **Archived baselines (5 seeds, lr 1e-2, π·tanh encoding):** no CNOT probe 73.61, S 0.013, clean train 96.6; default ring 69.77, S 0.295, 89.2; last ring 60.11, S 0.494, 65.6; default products 68.8, S 0.412; last-ring products 54.8, S 0.604. Pairs-last 71.2 (3 seeds). **Ring-family order fit** (least squares over orders 1, 1.5, 2.5, 5.25): probe = 76.62 − 3.10 · order, which gives 70.4 at order 2 and 67.3 at order 3. Code: `quantcnn/models/torch_vqc.py` (`pi_tanh_st`, `lin`, `cz`, `readout`), `CosProductHead(st_tanh=True)`, `bottleneck_penalty("satup<k>")`; tests in `tests/test_torch_vqc.py` and `tests/test_identities.py` (CZ ring, readouts and linear encoding checked against independent PennyLane circuits; zero-rotation orders; straight-through forward equality and gradient).
+
+### (1) `cifar_st`: straight-through tanh (forward identical, backward d tanh/dz = 1), lr 1e-2, seeds 0–4
+Cells: default ring, last ring, no CNOT (all `pi_tanh_st`); classical default products and last-ring products (`cosprod_st`, `cosprod_last_st`). Only the gradient at saturated coordinates changes, so this separates the sech² gradient trap from the saturated forward values.
+- **Manipulation check:** S falls by ≥ 30% relative to the baseline on the default and last-ring circuits. Otherwise that cell is inconclusive (the trap was not what kept coordinates saturated).
+- **Training guard:** mean clean training accuracy ≥ baseline − 10 points.
+- **H_trap (the gradient trap is a route):** paired probe gain ≥ +1.5 on the default ring and ≥ +3 on the last ring (each positive in ≥ 4 of 5 seeds), and the no-CNOT gain is below half the last-ring gain. The product heads are a secondary check with the same thresholds.
+- **Refutation:** check and guard pass, and the gains are below +1 on both circuits. Then the cost comes from saturated forward values, not from blocked gradients.
+- **My expectation, stated in advance:** partial support. Last ring +3 to +8, default +0.5 to +2. S falls, but less than under the penalty, because the forward products still reward factors at ±1.
+
+### (2) `cifar_cz`: CZ ring after every layer, lr {3e-3, 1e-2, 3e-2} × seeds 0–2, seeds 3–4 at the selected lr (`night26_seeds`)
+CZ commutes with Z, so the circuit entangles but has zero-rotation product order **1**.
+- **H_order:** CZ probe − default-ring probe ≥ +2 (paired over 5 seeds, ≥ 4 positive), and the CZ probe is within 1.5 points of the no-CNOT head.
+- **H_entanglement (the cost needs entanglement, not order):** CZ probe ≤ default + 1.
+- **Retrospective, not a criterion:** effective order at the trained rotations (`scripts/effective_order.py`).
+- **My expectation, stated in advance:** H_order holds. CZ probes 72–73.5, slightly below no CNOT, because nonzero rotations let CZ couple the X components (effective order a little above 1).
+
+### (3) `cifar_lin`: unbounded encoding φ = z (no saturating map), 4 layouts × lr {3e-3, 1e-2, 3e-2} × seeds 0–2, seeds 3–4 at the selected lr
+Layouts: no CNOT (order 1), pairs-last (1.5), default ring (2.5), last ring (5.25). Identity (1) still holds with cos z_j, so the attenuation route remains but there is no sech² trap.
+- **Statistic:** the least-squares slope of the mean probe on order across the 4 layouts, compared with the π·tanh slope (−3.10).
+- **H_sat-route (saturation carries the order cost):** |lin slope| < 1.55 (half the π·tanh slope).
+- **H_order-general (the order cost does not need a saturating encoding):** |lin slope| ≥ 1.55 and the 4 means are ordered by order (at most one adjacent swap).
+- Between these, or with a selected lr at a grid edge for any layout: inconclusive until that layout's grid is extended.
+- **Caveat recorded in advance:** with φ = z, a linear probe on z faces wrapped (periodic) features that could disadvantage every layout. The slope, not the level, is the criterion, and the MLP probe is reported alongside.
+- **My expectation, stated in advance:** H_order-general, with a slope of 60–90% of the π·tanh slope. The attenuation by the other cosines is still there.
+
+### (4) `cifar_readout`: order without entanglement, CNOT-free circuit measured with ⟨Z_kZ_{k+1}⟩ (order 2) or ⟨Z_kZ_{k+1}Z_{k+2}⟩ (order 3), lr {3e-3, 1e-2, 3e-2} × seeds 0–2, seeds 3–4 at the selected lr
+Without entangling gates each qubit evolves alone, so these readouts are exactly products of 2 or 3 per-coordinate sinusoids at every rotation. Their order is exact throughout training, not only at zero rotations.
+- **H_order-observable:** mean probe ordering no CNOT (73.61) > zz > zzz, with each mean within 3 points of the ring-family fit (70.4 at order 2, 67.3 at order 3).
+- **H_entanglement-needed:** zz and zzz both within 1 point of no CNOT.
+- **My expectation, stated in advance:** the ordering holds. zz is near or slightly above the fit (about 70–72), and zzz is about 66–69.
+
+### (5) `cifar_satup`: induced saturation in the order-1 (no-CNOT) head, penalty λ · mean over coordinates 0..k−1 of relu(0.9025 − tanh(z)²), k ∈ {2, 4}, λ = 10, lr 1e-2, seeds 0–4
+This manipulates saturation in the other direction: it is induced in a head that has no order cost.
+- **Manipulation check:** S ≥ 0.20 (k = 2) and ≥ 0.45 (k = 4), seed-averaged.
+- **Reference:** the probe cost the ring family shows at the same S, interpolated linearly in S through (0.013, 0), (0.295, −3.84), (0.494, −13.50). This is −3.2 at S = 0.25 and −13.7 at S = 0.50. For each k, ratio = (paired probe drop vs the no-CNOT baseline) / (reference drop at the observed S).
+- **H_sat-sufficient:** ratio ≥ 0.5 for both k. Saturation alone accounts for most of the ring family's cost at matched S.
+- **H_order-beyond-saturation:** ratio < 0.25 for both k. Saturating coordinates without high order costs little, so order acts through more than saturation.
+- **My expectation, stated in advance:** k = 2 near the reference (ratio about 0.5–1), and k = 4 with a ratio of about 0.3–0.6. Two saturated coordinates of eight lose little, and four lose more, but less than the last ring's attenuation plus saturation.
+
+**Selection and seeds:** the lr for (2)–(4) is selected on mean validation accuracy over seeds 0–2, never on the probe. Seeds 3–4 run at that lr only. Fixed-lr cells (1) and (5) use the archived heads' selected 1e-2. No new seeds are added after the outcomes are seen without stating it.

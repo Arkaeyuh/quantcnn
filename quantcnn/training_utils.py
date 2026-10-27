@@ -38,6 +38,7 @@ class RunConfig:
     vqc_init_scale: float = 0.1
     bottleneck_reg: str = "none"
     reg_weight: float = 0.0
+    readout: str = "z"
 
 
 def accuracy(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
@@ -74,7 +75,12 @@ def _param_grad_norm(params) -> float:
 def bottleneck_penalty(z: torch.Tensor, kind: str) -> torch.Tensor:
     """Regularizers on the bottleneck z (mechanism test). ``sat``: mean of relu(tanh(z)^2 - 0.81),
     nonzero only where |tanh z| > 0.9, the saturation threshold of the diagnostics. ``decor``: mean
-    squared off-diagonal entry of the batch correlation matrix of z (decorrelation)."""
+    squared off-diagonal entry of the batch correlation matrix of z (decorrelation). ``satup<k>``
+    (induced saturation): mean over the first k coordinates of relu(0.9025 - tanh(z)^2), which pushes
+    |tanh z| above 0.95 on those coordinates only."""
+    if kind.startswith("satup"):
+        k = int(kind[len("satup"):])
+        return torch.relu(0.9025 - torch.tanh(z[:, :k]) ** 2).mean()
     if kind == "sat":
         return torch.relu(torch.tanh(z) ** 2 - 0.81).mean()
     if kind == "decor":
