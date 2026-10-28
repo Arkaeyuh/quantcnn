@@ -43,7 +43,7 @@ to the quantum-head setting, where the head is a fixed-form circuit rather than 
 classical layer.
 
 \paragraph{Vanishing gradients through products and saturating maps.}
-Circuit gradients vanish with qubit count \citep{mcclean2018}, faster for global observables, products over many qubits, than for local ones \citep{cerezo2021cost}. Our signal budget (\cref{prop:budget}) is a related effect at eight qubits that constrains the network feeding the circuit rather than the circuit's parameters. We test the saturating map's role with a straight-through estimator \citep{bengio2013}.
+In sufficiently random circuits gradients vanish exponentially with qubit count \citep{mcclean2018}, and in shallow layered circuits global costs, such as tensor products of observables over many qubits, do so where local costs need not \citep{cerezo2021cost}. Our signal budget (\cref{prop:budget}) is related but constrains the network feeding the circuit. Our saturation test adapts the straight-through estimator \citep{bengio2013}.
 
 \paragraph{Position of this work.}
 That entanglement often does not help, and that trigonometric surrogates can stand in for simple

@@ -72,9 +72,7 @@ classical head on their products ($71.2\pm1.3$).
 
 \input{figures/tableM_generality}
 
-Order needs neither CNOTs, entanglement nor a saturating encoding (\cref{tab:generality};
-pre-registered, 5 seeds). A ring of CZ gates after every layer entangles, but CZ commutes with $Z$,
-so its order is 1: it probes $3.4\pm0.8$ points above the default CNOT ring (every seed) and
+Order needs neither CNOTs, entanglement nor a saturating encoding (\cref{tab:generality}). A CZ ring entangles, but CZ commutes with $Z$, so its order is 1: it probes $3.4\pm0.8$ points above the default CNOT ring (every seed) and
 $0.4\pm0.8$ below the ring-free head. Conversely, two- and three-qubit $Z$ readouts of the
 ring-free circuit, which has no entangling gate, probe at 70.3 and 67.4, against 70.4 and 67.3 from
 the ring-family fit. Under the unbounded encoding $\enc{j}=z_j$ four layouts keep their order ranking.
@@ -186,7 +184,7 @@ Saturated coordinates are hard to leave, because $\mathrm{sech}^2$ removes their
 head saturates early in training ($S=0.44$--$0.77$ at epoch 5, 3 seeds); the ring-free head then
 desaturates to 0.02, while the default and last-ring heads stall at 0.30 and 0.46 and their probe gaps
 peak at epochs 15 and 35 (\cref{app:dynamics}). We tested this trap with a pre-registered intervention
-that leaves the forward pass unchanged: an escape-only straight-through estimator \citep{bengio2013} that, in the backward
+that leaves the forward pass unchanged: our escape-only variant of the straight-through estimator \citep{bengio2013}, which, in the backward
 pass only, drops $\mathrm{sech}^2(z_j)$ when the descent step moves $z_j$ toward 0, so saturated
 coordinates can leave while outward steps keep their usual attenuation.\footnote{A plain straight-through estimator made every
 circuit diverge; we redesigned it after seeing this, as the pre-registration states (\cref{app:dynamics}).} It removes saturation in every head (mean $S\le0.005$) and raises
