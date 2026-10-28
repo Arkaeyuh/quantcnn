@@ -1,0 +1,15 @@
+dataset,train_subset_size,source_head,source_lr,seed,source_test_acc,probe_lr,probe_val_acc,probe_train_acc,probe_test_acc,sat_090_z,sat_090_head_input
+cifar10,4000,quantum+cz,0.01,3,72.87,0.001,74.1,97.175,73.46,1.94,1.94
+cifar10,4000,quantum+cz,0.01,4,71.09,0.001,72.8,95.2,71.64,0.88,0.88
+cifar10,4000,quantum+lin,0.01,3,66.84,0.001,70.45,85.75,68.93,32.92,32.92
+cifar10,4000,quantum+lin,0.01,4,69.06,0.001,71.35,92.55,69.46,17.12,17.12
+cifar10,4000,quantum+lin+entlast,0.01,3,60.31,0.001,66.75,85.425,66.01,11.24,11.24
+cifar10,4000,quantum+lin+entlast,0.01,4,52.38,0.001,59.8,67.675,58.28,40.18,40.18
+cifar10,4000,quantum+lin+noent,0.01,3,72.39,0.001,73.9,95.45,73.34,36.44,36.44
+cifar10,4000,quantum+lin+noent,0.01,4,71.45,0.001,74.4,95.225,72.43,38.53,38.53
+cifar10,4000,quantum+lin+pairs_last,0.01,3,69.69,0.001,72.85,92.85,71.87,19.68,19.68
+cifar10,4000,quantum+lin+pairs_last,0.01,4,69.72,0.001,73.0,93.475,71.68,23.73,23.73
+cifar10,4000,quantum+noent+rozz,0.01,3,70.87,0.003,72.4,95.175,71.52,18.53,18.53
+cifar10,4000,quantum+noent+rozz,0.01,4,68.56,0.001,71.1,90.575,69.44,17.26,17.26
+cifar10,4000,quantum+noent+rozzz,0.01,3,61.04,0.003,66.8,80.25,64.14,39.86,39.86
+cifar10,4000,quantum+noent+rozzz,0.01,4,64.89,0.001,68.0,85.4,66.65,15.23,15.23

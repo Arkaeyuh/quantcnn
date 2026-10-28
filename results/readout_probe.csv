@@ -1,0 +1,7 @@
+dataset,train_subset_size,source_head,source_lr,seed,source_test_acc,probe_lr,probe_val_acc,probe_train_acc,probe_test_acc,sat_090_z,sat_090_head_input
+cifar10,4000,quantum+noent+rozz,0.01,0,69.3,0.01,71.45,88.175,70.51,29.98,29.98
+cifar10,4000,quantum+noent+rozz,0.01,1,67.99,0.1,70.3,88.4,68.97,25.65,25.65
+cifar10,4000,quantum+noent+rozz,0.01,2,69.92,0.1,72.45,93.075,71.5,26.89,26.89
+cifar10,4000,quantum+noent+rozzz,0.01,0,66.21,0.1,68.75,86.05,67.91,44.06,44.06
+cifar10,4000,quantum+noent+rozzz,0.01,1,65.78,0.1,68.25,83.5,67.95,34.84,34.84
+cifar10,4000,quantum+noent+rozzz,0.01,2,67.27,0.1,70.8,87.275,69.68,28.6,28.6
