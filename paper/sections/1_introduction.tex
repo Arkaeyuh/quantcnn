@@ -59,10 +59,17 @@ Our contributions are:
         pretrained backbone they reproduce the ordering.
         The ordering replicates on MNIST and, under predictions recorded
         before the runs, on six new layouts (Spearman $-0.89$, two rank reversals), under a second encoding ($-0.94$) and at 12 qubits. A circuit that keeps its CNOTs
-        but has product order 1 recovers $3.1\pm1.2$ points over the default. Without CNOTs
-        the head is exactly a classical per-coordinate sinusoidal model, and classical heads
-        of that form come within 0.3--0.9 probe points of it. A pre-registered penalty on
-        bottleneck saturation raises probe accuracy by 1.7 and 7.9 points for the two entangling
-        circuits tested (\cref{sec:saturation}).
+        but has product order 1 recovers $3.1\pm1.2$ points over the default. Order, not
+        entanglement, carries the cost: a CZ ring, which entangles at order 1, comes within 0.4
+        points of the ring-free head, and two- and three-body readouts of a circuit with no
+        entangling gate land within 0.1 points of the order trend (\cref{tab:generality}).
+        Without CNOTs the head is exactly a classical per-coordinate sinusoidal model, and
+        classical heads of that form come within 0.3--0.9 probe points of it.
+  \item \textbf{A mechanism} (\cref{sec:saturation}). We prove that a product readout of high
+        order must push its inputs out of the graded middle of the encoding (a signal budget),
+        and find that the CNNs' bottlenecks saturate early and stay saturated at high order. A
+        pre-registered intervention that leaves the forward pass unchanged but lets saturated
+        coordinates escape recovers 6.8 of the 13.5 last-ring points; the order cost that
+        remains, and an unbounded encoding that keeps two thirds of the slope, fit the budget.
 \end{enumerate}
 

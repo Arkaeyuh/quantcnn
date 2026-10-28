@@ -30,6 +30,23 @@ $W[\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}]_j+b$.
 \section{Trained Circuits against the Product Model}
 \label{app:zeroangle}
 
+The identity is exact only at zero rotations, so we fit an affine map from each trained circuit's
+zero-rotation readouts to its trained readouts on half of the validation set and evaluate it on
+the other half (\cref{tab:zeroangle}; a frozen circuit gives $R^2=0.997$). For the default and
+last-ring circuits it recovers 87\% and 90\% of the held-out readout variance, and the bottleneck
+gradient through the remapped products aligns with the trained one (median cosine 0.86 and
+0.87). The products miss some task detail: the trained readout on the remapped products scores
+7 and 6 points lower. Low-order circuits move further ($R^2$ 0.73--0.83; for the ring-free
+circuit through the $\sin\enc{j}$ term of \cref{eq:ringfree}). At order 5.25 the trained rotations
+may recover part of the cost: the last-ring circuit tests $6.4\pm5.8$ points above the classical
+head on its products (four of five seeds; 95\% interval $[-0.8,13.6]$). The cost does not depend on starting in the product regime: with the
+rotations initialized in $\mathcal{U}(-\pi,\pi)$, where the identity does not hold at the start,
+the default circuit still probes $4.6\pm1.7$ points below the ring-free one ($3.8\pm1.6$ on the
+same three seeds at the default initialization), and neither circuit's probe moves by more
+than a point on average (\cref{tab:init}); each default readout then depends on all eight
+inputs (\cref{app:efforder}).
+
+
 \input{figures/tableA_zero_angle}
 
 \Cref{tab:zeroangle} compares each trained circuit with the same circuit after setting every
@@ -51,6 +68,27 @@ ring-free case.
 
 \section{Order versus Overlap, and Training Budget}
 \label{app:support}
+
+The pattern also replicates on MNIST with 1,000 images, where we fixed the layouts and recorded
+the predicted ordering before running them. Probe accuracy is 96.5 without CNOTs, 95.5
+for pairs after the last layer, 95.1 for the default circuit and 91.6 for a ring after the
+last layer; the small pairs-last advantage over the default is $+0.4\pm0.5$ (5 seeds, 4
+positive); the classical head on the default products probes $0.1\pm0.5$ below the default
+VQC, and the one on the last-ring products falls below that circuit (90.4).
+
+
+In CNOT-derived supports, order rises with overlap, the number of inputs two readouts share, so
+classical product heads on designed supports separate the two (\cref{tab:support}). At equal
+overlap and full rank, the order-3 star probes $5.4\pm2.7$ points above an order-4 layout (5 seeds,
+all positive); the other matched comparisons point the same way but also change rank or match
+overlap only approximately. At equal order the stars, which reuse one or two inputs across most
+products, probe 3.0 and 1.8 points above the windows (the latter with mixed signs), so how the coupling is distributed also
+matters, and an order-3 star probes as high as the default ring's order-2.5 products (68.9 vs
+68.8). The designed heads also differ in training fit (85.6\% vs 74.1\% clean training accuracy
+for the order-3 star and the order-4 layout), so their contrasts mix structure with
+optimization. Within the tested family and protocols, higher order tracks lower mean probe
+accuracy, but order is not sufficient to determine it.
+
 
 \input{figures/tableA_support}
 
@@ -300,6 +338,116 @@ saturation need not be the only route.
 
 \input{figures/tableA_saturation}
 
+\section{The Signal Budget}
+\label{app:budget}
+
+\begin{proof}[Proof of \cref{prop:budget}]
+Write $c_j=\cos\enc{j}$ and $t_j=|\tanh z_j|$. Independence gives
+$\mathbb{E}|r_k|=\prod_{j\in\Sk}\mathbb{E}|c_j|\ge a$, so the largest $\mathbb{E}|c_j|$ is at least
+$a^{1/m}$. On the middle zone $\delta<t_j<1-\delta$ we have $|c_j|=|\cos\pi t_j|\le\cos\pi\delta$,
+and $|c_j|\le1$ everywhere, so
+$\mathbb{E}|c_j|\le1-(1-\cos\pi\delta)\Pr(\delta<t_j<1-\delta)$. Rearranging gives the bound. With
+identically distributed factors every $\mathbb{E}|c_j|$ equals the largest.
+\end{proof}
+
+The proposition says the middle zone must empty as order grows; it does not say at which end the
+coordinates gather. At $z\approx0$ a coordinate gives $c=+1$, and at saturation $c=-1$ with
+$\mathrm{sech}^2z\approx0$. A coordinate pinned at one end carries little information, so an
+informative coordinate in a high-order support is pushed toward a near-binary code. The same argument
+holds for any encoding whose factors are bounded by 1 and are flat only at the ends, including
+$\enc{j}=z_j$ restricted to one period. Independence is an assumption: on the trained bottlenecks the
+measured $\mathbb{E}[\prod_i\cos^2\enc{i}]$ follows the independence product closely
+(\cref{app:attenuation}), but a bound without it is open.
+
+\paragraph{Where the trained coordinates sit.} On the test embeddings of the archived heads (CIFAR-10,
+4,000 images, seeds 0--4), the middle-zone fraction $M$ and the mean factor magnitude
+$\mathbb{E}|\cos\enc{j}|$ are 0.84 and 0.61 without CNOTs, 0.63 and 0.73 for the default circuit, and
+0.46 and 0.82 for the last-ring circuit; for the default and last-ring products, 0.53 and 0.78, and 0.35
+and 0.86. The near-zero fraction falls with order (0.15, 0.08, 0.05), so the mass leaves the middle
+for saturation.
+
+\paragraph{A toy model.} A 32--64--8 MLP on a ten-class Gaussian mixture, trained through classical
+product heads on the paper's supports (5 seeds), reproduces the falling middle zone and a probe cost
+that rises with order, but a smaller one (3.7 points from order 1 to 5.25) and with coordinates pinned
+near $z\approx0$ rather than at saturation. Tripling the backbone's initial output scale moves the
+pinning to saturation without enlarging the default support's cost ($-2.4\pm1.0$ vs $-2.3\pm0.7$
+against order 1). The budget alone therefore gives a modest cost; in the CNNs, where the coordinates
+start saturated, the trap of \cref{app:dynamics} adds to it.
+
+\section{Training Dynamics and Interventions on the Saturation Trap}
+\label{app:dynamics}
+
+All runs: CIFAR-10, 4,000 images, small CNN, learning rate $10^{-2}$ (the selected rate of the
+unregularized heads), 80 epochs. Predictions were committed before each batch of runs.
+
+\paragraph{Dynamics.} We retrained the ring-free, default and last-ring circuits (seeds 0--2) with a
+checkpoint every 5 epochs. These runs reproduce the archived per-seed probes exactly. At each
+checkpoint we fit the common linear probe and measured $S$ and $M$ (\cref{tab:dynamics}). Every head
+saturates early, and the heads then differ in how far they desaturate. We had pre-registered two
+timing hypotheses that assumed saturation would rise during training (saturation's half-way rise
+preceding the probe gap's, or the middle zone's drop preceding saturation's). Neither applies as
+written: all half-way epochs fall at the first checkpoint, so these tests are inconclusive. The probe
+gap peaks at epochs 15--20 and then partly closes as $S$ slowly falls, so the gap at 80 epochs is a
+snapshot of an incomplete escape; this agrees with the doubled-budget results of \cref{sec:controls}.
+
+\begin{table}[h]
+\centering
+\caption{Training dynamics (seed means, 3 seeds). $S$: saturated fraction; gap: probe accuracy
+minus the ring-free circuit's at the same epoch and seed; $M$: middle-zone fraction (ring-free in
+parentheses).}
+\label{tab:dynamics}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{rcccccc}
+\toprule
+& \multicolumn{3}{c}{$S$} & \multicolumn{2}{c}{gap} & $M$ \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}
+Epoch & no CNOT & ring & last & ring & last & last (no CNOT) \\
+\midrule
+5 & 0.44 & 0.67 & 0.77 & $-3.2$ & $-8.4$ & 0.21 (0.51) \\
+10 & 0.23 & 0.56 & 0.68 & $-7.9$ & $-14.3$ & 0.30 (0.69) \\
+20 & 0.12 & 0.42 & 0.59 & $-7.9$ & $-18.8$ & 0.38 (0.80) \\
+40 & 0.02 & 0.34 & 0.48 & $-4.9$ & $-17.2$ & 0.48 (0.86) \\
+80 & 0.02 & 0.30 & 0.46 & $-3.6$ & $-12.7$ & 0.48 (0.85) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Straight-through estimators.} A plain straight-through estimator replaces
+$\mathrm{d}\tanh z/\mathrm{d}z$ by 1 in the backward pass and leaves the forward pass unchanged. On the
+classical product heads it raised the last-ring probe by $5.7$ points and lowered the default products'
+by $1.0$. On every circuit it diverged (validation accuracy 18--25\%, backbone gradient norm up to
+$1.8\times10^4$): a circuit readout $\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}$ keeps a gradient of order
+$\pi\beta_j$ at saturation while its forward value is flat, so $z_j$ is pushed outward without bound.
+Under the committed training guard these cells are inconclusive. After seeing this we pre-registered
+the escape-only estimator, which uses $\mathrm{d}\tanh z/\mathrm{d}z=1$ only when the descent step
+moves $z$ toward 0 and $\mathrm{sech}^2z$ otherwise, per sample and coordinate. Its manipulation check
+(saturation down by at least 30\%) and training guard (clean training accuracy no more than 10 points
+below baseline) pass in every cell; clean training accuracy rises. The committed hypothesis required
+paired gains of at least $+1.5$ (default) and $+3$ (last ring), each positive in at least four of five
+seeds, and a ring-free gain below half the last-ring gain. The observed $+1.48$, $+6.83$ and $+0.89$
+(5 of 5 seeds positive in each) miss the first threshold by 0.02; the refutation condition (gains below
+$+1$ on both circuits) is not met. We had expected weaker results (a default gain of 0 to $+1.5$ and
+saturation falling by less than 30\% on the default circuit).
+
+\paragraph{Induced saturation.} To manipulate saturation in the other direction, we added to the
+ring-free circuit's loss a penalty $\lambda\,\mathrm{mean}_{j<k}\,\mathrm{relu}(0.9025-\tanh^2z_j)$ that
+pushes the first $k\in\{2,4\}$ coordinates into saturation ($\lambda=10$, 5 seeds). The manipulation
+check passes ($S=0.40$ and $0.53$), and the probe falls to $59.8\pm22.2$ and $61.5\pm10.1$, which
+meets the committed criterion for saturation alone accounting for most of the cost at matched $S$. We
+do not count it, because no training guard was committed for this test and the penalty damaged fit:
+clean training accuracy fell to 71.5\% and 72.9\% (96.6\% without the penalty), and one $k=2$ seed never
+trained (head and probe at chance). Without that seed (an exclusion we did not commit) the $k=2$ drop
+is 3.8 points at $S=0.27$, close to the ring family's 3.6 at that $S$, and clean training accuracy is
+86.7\%. The test as run cannot separate saturation from lost fit.
+
+\paragraph{Generality runs.} The CZ, readout and $\enc{j}=z_j$ heads were tuned like every new head
+(learning rates $\{3\times10^{-3},10^{-2},3\times10^{-2}\}$ on seeds 0--2, seeds 3--4 at the rate
+selected on validation); every head selected $10^{-2}$, the middle of the grid. The MLP probe agrees:
+the $\enc{j}=z_j$ slope is $-2.0$ points per unit order under it ($-2.1$ under the linear probe).
+Under $\enc{j}=z_j$ the identity of \cref{eq:identity} holds with $\cos z_j$; its fraction ``$S$'' is
+not comparable to the $\pi\tanh$ heads', because nothing bounds the scale of $z$.
+
 \section{Effective Order Beyond Zero Rotations}
 \label{app:efforder}
 
@@ -326,6 +474,19 @@ prediction.
 
 \section{Pretrained-Backbone Controls}
 \label{app:ptcontrols}
+
+On the pretrained backbone the high-order heads are also unstable across runs (test accuracy spans up to 27 points
+over three seeds at one learning rate). In the
+main grid the classical head on the default circuit's products probes above the circuit
+($-4.0\pm1.6$ vs $-7.2\pm2.3$ against linear, every seed), each at its validation-selected
+rate. When the circuit, the same circuit frozen at zero rotations and the products head are
+trained in lockstep, from copied weights on identical batches (below), they
+do not differ detectably at a shared learning rate (circuit $-$ products $-0.6\pm2.0$ and $+0.6\pm3.9$ at
+$3\times10^{-4}$ and $10^{-3}$, 10 seeds; 95\% intervals $[-2.0,0.8]$ and $[-2.1,3.4]$), while at
+the main-grid rates the products head stays ahead ($+2.9\pm3.0$, 8 of 10 seeds). Learning-rate
+selection is thus the more likely source of the products head's advantage, without excluding
+a contribution of the rotations.
+
 
 \Cref{tab:ptbudget} separates training size from the number of optimizer updates on the
 pretrained ResNet-18, and \cref{tab:lockstep} gives the lockstep comparison of the trained

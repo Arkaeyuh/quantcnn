@@ -3,21 +3,14 @@
 
 \input{figures/table1_matched_tuning}
 
-Before turning to representations, we check how much a head comparison depends on the
-training recipe. In an exploratory sweep with one shared recipe (head learning rate
-$10^{-3}$ for every head, 25 MNIST epochs; \cref{app:sweep}), the VQC beat MLP-8 on MNIST by
-17.8, 18.1 and 6.9 points at 250, 500 and 1,000 images and lost to it on CIFAR-10 by 14.2,
-13.8 and 8.3 points. Under the protocol of \cref{sec:setup} (50 MNIST epochs,
-validation-based selection, per-head learning rates), these differences change in both size
-and sign (\cref{tab:matched}). On MNIST, VQC $-$ MLP-8 becomes $-2.1\pm9.7$, $+3.3\pm2.6$
-and $+0.8\pm1.0$. Part of this change comes from the protocol itself: at the shared rate
-under the new protocol the advantage is already $+10.8$, $+6.1$ and $-0.5$ (last column of
-\cref{tab:matched}), and per-head tuning moves it to the values above. On CIFAR-10, where
-only the learning rate changes between the two columns of \cref{tab:matched}, the VQC deficit to MLP-8 shrinks from 10.1--13.6 points to
-3.1--9.2, and the VQC's own test accuracy rises by 6.0, 6.1 and 10.7 points. A linear head
-has the highest mean in all six settings and beats the VQC for every seed; its mean lead is
-1.7--13.7 points on MNIST and 7.0--15.8 on CIFAR-10. Every selected rate is interior to its
-grid; for the linear head this took two extension steps in five settings.
+Before turning to representations, we check how much a head comparison depends on the training
+recipe. With one shared recipe (head learning rate $10^{-3}$, 25 MNIST epochs; \cref{app:sweep}), the
+VQC beat MLP-8 on MNIST by up to 18 points and lost to it on CIFAR-10 by 8--14. Under the protocol of
+\cref{sec:setup}, these differences change in size and sign (\cref{tab:matched}): on MNIST, VQC
+$-$ MLP-8 becomes $-2.1\pm9.7$, $+3.3\pm2.6$ and $+0.8\pm1.0$ at 250, 500 and 1,000 images, partly
+through the protocol itself and partly through per-head tuning (last column); on CIFAR-10 the deficit
+shrinks to 3.1--9.2 points. A linear head has the highest mean in all six settings and beats the VQC
+for every seed. Every selected rate is interior to its grid.
 
 This audit fixes the comparisons used in the rest of the paper: every head is evaluated at
 its own validated learning rate. It also leaves a question. At 4,000 CIFAR-10 images the

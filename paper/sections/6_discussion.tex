@@ -4,10 +4,10 @@
 \paragraph{Implications for hybrid design.}
 For CNN-fed quantum heads trained end to end, the CNOT layout is a choice about the
 backbone: product order, computable before training, ranks the ring family on both datasets,
-new layouts and a second encoding, with a few rank reversals. The best quantum heads are low-order, and the best, the ring-free head, is exactly classical (\cref{eq:ringfree}); for entangling heads, a penalty on bottleneck saturation recovers part of the cost (\cref{sec:saturation}).
+new layouts and a second encoding, with a few rank reversals. The best quantum heads are low-order, and the best, the ring-free head, is exactly classical (\cref{eq:ringfree}).
 
 \paragraph{Limitations.}
-We study two families of CNOT layouts (8 qubits, and 12 for the headline heads; $R_yR_z$ layers,
+We study two families of CNOT layouts and a CZ ring (8 qubits, and 12 for the headline heads; $R_yR_z$ layers,
 angle encodings, mainly $\pi\tanh$), one qubit per bottleneck coordinate, in noiseless simulation, with small CNNs and one pretrained ResNet-18 on subsets
 of MNIST and CIFAR-10 of at most 10,000 images; the size of the effect with non-angle encodings,
 other pretrained models or on hardware is untested. Most cells use 3 seeds (5 or 10 where stated), too few
@@ -15,5 +15,6 @@ for equivalence claims. Product order is a
 coarse scalar: it misses brickwork by 5 points, its cost per unit does not carry across widths, and at fixed order the distribution of
 coupling matters by an amount we do not pin down (\cref{tab:support}); the designed supports
 were tested with classical heads only. The identity is exact only at zero rotations, and trained
-circuits on the small CNNs move away from it (held-out $R^2$ 0.51--0.90). Information recoverable only by decoders stronger than a
-two-layer MLP is not measured.
+circuits on the small CNNs move away from it (held-out $R^2$ 0.51--0.90). The signal budget assumes independent factors, and how it and the
+saturation trap divide the cost at low order is not settled. Information recoverable only by
+decoders stronger than a two-layer MLP is not measured.

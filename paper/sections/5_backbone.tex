@@ -72,40 +72,32 @@ circuit. Pairs after the
 last layer only (order 1.5) probe at $71.2\pm0.7$, between orders 1 and 2.5, as does the
 classical head on their products ($71.2\pm1.3$).
 
-In CNOT-derived supports, order rises with overlap, the number of inputs two readouts share, so
-classical product heads on designed supports separate the two (\cref{tab:support}). At equal
-overlap and full rank, the order-3 star probes $5.4\pm2.7$ points above an order-4 layout (5 seeds,
-all positive); the other matched comparisons point the same way but also change rank or match
-overlap only approximately. At equal order the stars, which reuse one or two inputs across most
-products, probe 3.0 and 1.8 points above the windows (the latter with mixed signs), so how the coupling is distributed also
-matters, and an order-3 star probes as high as the default ring's order-2.5 products (68.9 vs
-68.8). The designed heads also differ in training fit (85.6\% vs 74.1\% clean training accuracy
-for the order-3 star and the order-4 layout), so their contrasts mix structure with
-optimization. Within the tested family and protocols, higher order tracks lower mean probe
-accuracy, but order is not sufficient to determine it.
+\input{figures/tableM_generality}
 
-The pattern also replicates on MNIST with 1,000 images, where we fixed the layouts and recorded
-the predicted ordering before running them. Probe accuracy is 96.5 without CNOTs, 95.5
-for pairs after the last layer, 95.1 for the default circuit and 91.6 for a ring after the
-last layer; the small pairs-last advantage over the default is $+0.4\pm0.5$ (5 seeds, 4
-positive); the classical head on the default products probes $0.1\pm0.5$ below the default
-VQC, and the one on the last-ring products falls below that circuit (90.4).
+Order needs neither CNOTs, entanglement nor a saturating encoding (\cref{tab:generality};
+pre-registered, 5 seeds). A ring of CZ gates after every layer entangles, but CZ commutes with $Z$,
+so its order is 1: it probes $3.4\pm0.8$ points above the default CNOT ring (every seed) and
+$0.4\pm0.8$ below the ring-free head. Conversely, measuring $\langle Z_kZ_{k+1}\rangle$ or
+$\langle Z_kZ_{k+1}Z_{k+2}\rangle$ on the ring-free circuit, which has no entangling gate, makes
+every readout an exact product of 2 or 3 per-coordinate sinusoids at any rotation; these heads probe
+at 70.3 and 67.4, against 70.4 and 67.3 predicted by the ring-family fit. With the unbounded encoding
+$\enc{j}=z_j$, which cannot saturate, four layouts keep their order ranking and 68\% of the
+$\pi\tanh$ slope.
 
-The identity is exact only at zero rotations, so we fit an affine map from each trained circuit's
-zero-rotation readouts to its trained readouts on half of the validation set and evaluate it on
-the other half (\cref{app:zeroangle}; a frozen circuit gives $R^2=0.997$). For the default and
-last-ring circuits it recovers 87\% and 90\% of the held-out readout variance, and the bottleneck
-gradient through the remapped products aligns with the trained one (median cosine 0.86 and
-0.87). The products miss some task detail: the trained readout on the remapped products scores
-7 and 6 points lower. Low-order circuits move further ($R^2$ 0.73--0.83; for the ring-free
-circuit through the $\sin\enc{j}$ term of \cref{eq:ringfree}). At order 5.25 the trained rotations
-may recover part of the cost: the last-ring circuit tests $6.4\pm5.8$ points above the classical
-head on its products (four of five seeds; 95\% interval $[-0.8,13.6]$). The cost does not depend on starting in the product regime: with the
-rotations initialized in $\mathcal{U}(-\pi,\pi)$, where the identity does not hold at the start,
-the default circuit still probes $4.6\pm1.7$ points below the ring-free one ($3.8\pm1.6$ on the
-same three seeds at the default initialization), and neither circuit's probe moves by more
-than a point on average (\cref{tab:init}); each default readout then depends on all eight
-inputs (\cref{app:efforder}).
+In CNOT-derived supports, order rises with overlap, the number of inputs two readouts share.
+Classical product heads on designed supports separate the two: at equal overlap and full rank an
+order-3 star probes $5.4\pm2.7$ points above an order-4 layout (5 seeds, all positive), and at equal
+order how the coupling is distributed also matters (\cref{tab:support}). Order tracks lower mean
+probe accuracy but does not determine it.
+
+The pattern replicates on MNIST with 1,000 images under an ordering recorded in advance: probe
+accuracy is 96.5, 95.5, 95.1 and 91.6 at orders 1, 1.5, 2.5 and 5.25 (\cref{app:support}).
+
+The identity is exact only at zero rotations. An affine map from each trained circuit's zero-rotation
+readouts to its trained readouts recovers 87\% and 90\% of the held-out readout variance for the
+default and last-ring circuits (\cref{app:zeroangle}), and the cost does not depend on starting in the
+product regime: with rotations initialized in $\mathcal{U}(-\pi,\pi)$ the default circuit still probes
+$4.6\pm1.7$ points below the ring-free one (\cref{tab:init}).
 
 \subsection{Without CNOTs the head is a classical sinusoidal model}
 \label{sec:sinusoid}
@@ -166,19 +158,11 @@ below linear. Training budget therefore
 accounts for much of the size dependence at fixed epochs; with one matched budget and a
 schedule that changes with the epoch count, data size and budget are not fully separated.
 
-Here the high-order heads are also unstable across runs (test accuracy spans up to 27 points
-over three seeds at one learning rate). In the
-main grid the classical head on the default circuit's products probes above the circuit
-($-4.0\pm1.6$ vs $-7.2\pm2.3$ against linear, every seed), each at its validation-selected
-rate. When the circuit, the same circuit frozen at zero rotations and the products head are
-trained in lockstep, from copied weights on identical batches (\cref{app:ptcontrols}), they
-do not differ detectably at a shared learning rate (circuit $-$ products $-0.6\pm2.0$ and $+0.6\pm3.9$ at
-$3\times10^{-4}$ and $10^{-3}$, 10 seeds; 95\% intervals $[-2.0,0.8]$ and $[-2.1,3.4]$), while at
-the main-grid rates the products head stays ahead ($+2.9\pm3.0$, 8 of 10 seeds). Learning-rate
-selection is thus the more likely source of the products head's advantage, without excluding
-a contribution of the rotations.
+On this backbone the high-order heads are unstable across runs, and the classical head on the
+default products probes above the circuit at the main-grid rates; lockstep training from copied
+weights traces this to learning-rate selection (\cref{app:ptcontrols}).
 
-\subsection{Where the cost arises: bottleneck saturation}
+\subsection{Why order costs: a signal budget and a saturation trap}
 \label{sec:saturation}
 
 \input{figures/tableM_saturation}
@@ -191,17 +175,36 @@ Differentiating \cref{eq:identity} at zero rotations gives, for $j\in\Sk$,
 \end{equation}
 so a coordinate's gradient is scaled by the cosines of the other coordinates in $\Sk$
 (\cref{prop:atten}) and by its own factor $\mathrm{sech}^2(z_j)$, which vanishes as $z_j$ saturates.
-We tested both routes with pre-registered interventions. Removing the attenuation by the other factors
-while keeping each path's sign gives no observed mean recovery on the default products, within an
-interval that includes the predicted 2 points, and impairs training on the last-ring ones, leaving its
-role open (\cref{tab:floor}). Saturation, in contrast, tracks the cost: across 38 trained configurations
-the fraction of saturated bottleneck coordinates and the bottleneck's effective dimensionality follow
-probe accuracy (Spearman $-0.91$ and $0.86$ over the VQC cells; \cref{tab:geometry}), and higher-order
-heads saturate more of it (30--49\% of coordinates for the default and last-ring circuits, 1\% without
-CNOTs), where a coordinate's own factor is below 0.19. A penalty on saturation, added to the loss,
-improves fit and raises probe accuracy by $1.7\pm1.3$ and $7.9\pm3.0$ points for these circuits, every
-seed, recovering 44\% and 59\% of their gaps to the ring-free head, with little change for the ring-free
-head; the last-ring gain replicates on fresh seeds ($+6.0\pm4.1$; \cref{tab:satmain}). On the product
-heads, a penalty that restores dimensionality directly recovers less. Because the penalty also changes
-fit and dimensionality, these results support a causal role for saturation without isolating it as the
-only route (\cref{app:saturation}).
+The products have a further consequence, a signal budget: a readout keeps a useful
+magnitude only if its factors stay near $\pm1$, which pushes their inputs out of the graded middle of
+the encoding.
+\begin{proposition}[Signal budget]\label{prop:budget}
+Let $r_k=\prod_{j\in\Sk}\cos\enc{j}$ with $|\Sk|=m$, $\enc{j}=\pi\tanh z_j$ and independent factors, and
+let $\mathbb{E}|r_k|\ge a>0$. Then some $j\in\Sk$ has
+$\Pr\big(\delta<|\tanh z_j|<1-\delta\big)\le(1-a^{1/m})/(1-\cos\pi\delta)$ for every
+$\delta\in(0,\tfrac12)$; if the factors are identically distributed, every $j\in\Sk$ does.
+\end{proposition}
+As $m$ grows, $a^{1/m}\to1$, so the inputs of high-order readouts gather at $z\approx0$ or at
+saturation, where a coordinate carries little graded information (\cref{app:budget}). On the trained
+bottlenecks the middle-zone fraction ($0.1\le|\tanh z|\le0.9$) is 0.84, 0.63 and 0.46 at orders 1, 2.5
+and 5.25, and the lost mass goes to saturation (30--49\% of coordinates for the two ring circuits, 1\%
+without CNOTs), which tracks probe accuracy across 38 configurations ($\rho=-0.91$; \cref{tab:geometry}).
+
+Saturated coordinates are hard to leave, because $\mathrm{sech}^2$ removes their gradient. Every
+head saturates early in training ($S=0.44$--$0.77$ at epoch 5, 3 seeds); the ring-free head then
+desaturates to 0.02, while the default and last-ring heads stall at 0.30 and 0.46 and their probe gaps
+peak at epochs 15--20 (\cref{app:dynamics}). We tested this trap with a pre-registered intervention
+that leaves the forward pass unchanged: an escape-only straight-through estimator that, in the backward
+pass only, drops $\mathrm{sech}^2(z_j)$ when the descent step moves $z_j$ toward 0, so saturated
+coordinates can leave but are not pushed further out.\footnote{A plain straight-through estimator made every
+circuit diverge; we redesigned it after seeing this, as the pre-registration states (\cref{app:dynamics}).} It removes saturation in every head ($S\le0.004$) and raises
+probe accuracy by $6.8\pm2.2$ points on the last-ring circuit and $1.5\pm0.9$ on the default, positive
+in every seed, against $0.9\pm0.5$ without CNOTs (\cref{tab:satmain}). The default gain is 0.02 points
+short of the $+1.5$ we committed, so the hypothesis is not met as written; the last-ring and
+specificity criteria are. A penalty against saturation, which also changes the loss, gives similar
+gains (\cref{app:saturation}).
+
+With saturation removed, order still costs: the escape-only circuits probe at 74.5, 71.3 and 66.9 at
+orders 1, 2.5 and 5.25. The trap accounts for about half of the last-ring cost and little of the
+default's; the remainder is consistent with the signal budget, which at high order compounds with the
+trap. Inducing saturation in the ring-free head was inconclusive (\cref{app:dynamics}).
