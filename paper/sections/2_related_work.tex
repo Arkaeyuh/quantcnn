@@ -43,12 +43,7 @@ to the quantum-head setting, where the head is a fixed-form circuit rather than 
 classical layer.
 
 \paragraph{Vanishing gradients through products and saturating maps.}
-Barren plateaus make circuit gradients vanish as qubit count grows \citep{mcclean2018}, faster for costs
-built from global observables, products over many qubits, than for local ones \citep{cerezo2021cost}.
-Our signal budget (\cref{prop:budget}) is a related effect at eight qubits and zero rotations: high-order
-products constrain the network that feeds the circuit, not the circuit's own parameters. Saturating
-maps are a classical source of vanishing gradients; we test their role with a straight-through
-estimator \citep{bengio2013}, restricted to inward steps.
+Circuit gradients vanish with qubit count \citep{mcclean2018}, faster for global observables, products over many qubits, than for local ones \citep{cerezo2021cost}. Our signal budget (\cref{prop:budget}) is a related effect at eight qubits that constrains the network feeding the circuit rather than the circuit's parameters. We test the saturating map's role with a straight-through estimator \citep{bengio2013}.
 
 \paragraph{Position of this work.}
 That entanglement often does not help, and that trigonometric surrogates can stand in for simple

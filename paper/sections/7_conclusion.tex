@@ -2,10 +2,8 @@
 \label{sec:conclusion}
 
 A quantum classifier head trained jointly with a CNN changes the representation the CNN learns:
-under one common probe, the default ring-entangled VQC head lowers CIFAR-10 probe accuracy by 4.7 points, and the drop tracks
-the product order of the head, with predictions recorded in advance: across CNOT layouts, encodings,
-a CZ ring and multi-qubit readouts, order rather than entanglement carries the cost. High-order
-products must push their inputs out of the middle of the encoding; the bottleneck saturates early and
-stays saturated, and letting saturated coordinates escape recovers half of the highest-order cost. In
-practice: tune each head separately, probe the backbone, count a circuit's product order before
-training, and keep the bottleneck out of saturation.
+under one common probe, the default VQC head lowers CIFAR-10 probe accuracy by 4.7
+points. Across CNOT layouts, encodings, a CZ ring and multi-qubit readouts the cost tracks product
+order, as predicted in advance, and entangling gates are neither sufficient nor necessary for it.
+High-order products confine their inputs to the ends of the encoding, where the bottleneck saturates
+early and stays; letting saturated coordinates escape recovers half of the highest-order cost. In practice: tune heads separately, probe the backbone, count product order, and keep the bottleneck out of saturation.

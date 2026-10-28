@@ -299,3 +299,5 @@ Linear probe on test, lr 1e-2 (selected in the middle of the grid for every tune
 - **Recorded as not separable:** M ≈ 1 − S − Z0, and Z0 is small, so an M-before-S ordering cannot be told apart from S. No M hypothesis is set.
 - **Descriptive:** the epoch of peak S for each head. Whether the no-CNOT head ever reaches the ring heads' S, or separates from the first epoch.
 - **My expectation, stated in advance:** the S gap opens at epochs 1–2, before the probe gap reaches half its peak (around epoch 5–10). The no-CNOT head peaks lower (S ≈ 0.5) than the last ring (≈ 0.8).
+
+**Corrections from the zero-context claim audit (2026-10-28).** These change no verdict above. The probe gap peaks at epoch 15 for the default ring and at epoch 35 for the last ring (−19.0), not "epochs 15–20". The epoch-5 default gap is −3.15. The largest plain-ST backbone gradient norm was 2.4×10⁴, not about 18,000. The failed satup seed's probe is 20.5% while its head is at chance. The escape-only last-ring products head's mean S is 0.0044, with a single-run maximum of 0.016.

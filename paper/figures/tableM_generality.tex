@@ -2,7 +2,7 @@
 \centering
 \caption{Order without CNOTs, without entanglement and without a saturating encoding
 (CIFAR-10, 4,000 images, small CNN, 5 seeds; pre-registered). Probe: common linear probe (mean
-$\pm$ SD). Fit: the ring-family least-squares line $76.6-3.1\,\order$, recorded before these runs.
+$\pm$ SD). Fit: least-squares line $76.6-3.1\,\order$ over the four ring-family layouts at orders 1, 1.5, 2.5 and 5.25 (5 seeds), recorded before these runs; it differs slightly from the three-seed fit of \cref{fig:hero}b.
 CZ commutes with $Z$, so a CZ ring entangles but has order 1; $\langle Z_kZ_{k+1}\rangle$ and
 $\langle Z_kZ_{k+1}Z_{k+2}\rangle$ on the CNOT-free circuit are exact products of 2 or 3
 per-coordinate sinusoids at any rotation. Bottom row: encoding $\enc{j}=z_j$, which does not
@@ -20,7 +20,7 @@ VQC, no CNOT & no & 1 & $73.6 \pm 0.5$ & 73.5 \\
 VQC, CNOT ring & yes & 2.5 & $69.8 \pm 1.0$ & 68.9 \\
 VQC, CZ ring & yes & 1 & $73.2 \pm 0.9$ & 73.5 \\
 no CNOT, $\langle Z_kZ_{k+1}\rangle$ & no & 2 & $70.3 \pm 1.5$ & 70.4 \\
-no CNOT, $\langle Z_kZ_{k+1}Z_{k+2}\rangle$ & no & 3 & $67.4 \pm 1.9$ & 67.3 \\
+no CNOT, $\langle Z_kZ_{k+1}Z_{k+2}\rangle$ & no & 3 & $67.4 \pm 1.8$ & 67.3 \\
 \midrule
 $\enc{j}=z_j$, four layouts & varies & 1--5.25 & \multicolumn{2}{c}{72.5, 71.7, 69.8, 63.7} \\
 \bottomrule

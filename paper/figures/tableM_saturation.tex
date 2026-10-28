@@ -2,7 +2,7 @@
 \centering
 \caption{Releasing or penalizing bottleneck saturation recovers part of the cost at high order (CIFAR-10, 4,000 images,
 small CNN, 5 seeds; pre-registered). Probe: unregularized head (mean); $\Delta$ sat., $\Delta$ dec.: paired probe difference
-to it (mean $\pm$ SD) with the escape-only straight-through estimator (forward pass unchanged; $S\le0.004$ in every head), the anti-saturation and the decorrelation penalty.
+to it (mean $\pm$ SD) with the escape-only straight-through estimator (forward pass unchanged; mean $S\le0.005$ in every head), the anti-saturation and the decorrelation penalty.
 $S$: fraction of saturated bottleneck coordinates ($|\tanh z|>0.9$), unregularized $\to$
 anti-saturation. The default circuit's escape-only gain misses the committed $+1.5$ by 0.02. A replication on fresh seeds 5--9 gives $+6.0 \pm 4.1$ and $+9.9 \pm 5.2$ for the two
 last-ring heads. ``prod.'': classical heads on the circuits' zero-rotation products. Details in \cref{app:saturation}.}

@@ -357,16 +357,13 @@ assumption is needed for that dependence: if all inputs of a support are equal, 
 $\mathbb{E}|c|^m\ge a$ allows a middle-zone mass up to $(1-a)/(1-\cos^m\pi\delta)$, which tends to
 $1-a$ rather than to 0 as $m$ grows. (Generalized H\"older,
 $\mathbb{E}\prod_j|c_j|\le\prod_j(\mathbb{E}|c_j|^m)^{1/m}$, gives this bound for some $j$ under any
-dependence.) The order dependence therefore rests on the factors being close to independent, which
-the trained bottlenecks are: the measured $\mathbb{E}[\prod_i\cos^2\enc{i}]$ matches the independence
-product to within 0.02 (\cref{app:attenuation}).
+dependence.) The order dependence therefore rests on the factors being close to independent. On the trained bottlenecks, the measured $\mathbb{E}[\prod_i\cos^2\enc{i}]$ matches the independence
+product to within 0.04 in the moments measured (\cref{app:attenuation}), which is consistent with, but does not establish, near-independence.
 
 The proposition says the middle zone must empty as order grows; it does not say at which end the
 coordinates gather. At $z\approx0$ a coordinate gives $c=+1$, and at saturation $c=-1$ with
-$\mathrm{sech}^2z\approx0$. A coordinate pinned at one end carries little information, so an
-informative coordinate in a high-order support is pushed toward a near-binary code. The same argument
-holds for any encoding whose factors are bounded by 1 and are flat only at the ends, including
-$\enc{j}=z_j$ restricted to one period.
+$\mathrm{sech}^2z\approx0$. Near either end a coordinate's factor is locally insensitive to it, so graded variation in a high-order support has little effect on the readout. Averaged over a support, the bound gives $\frac1m\sum_j\Pr(\text{middle})\le-\log a/\big(m(1-\cos\pi\delta)\big)$ under independence, so the mean middle-zone mass vanishes as $m$ grows, though a single coordinate need not leave it. The same argument
+holds for any encoding whose factors are bounded by 1 and are flat only at the ends, including $\enc{j}=z_j$, with the zones defined around the extrema of $\cos z$ at multiples of $\pi$.
 
 \paragraph{Where the trained coordinates sit.} On the test embeddings of the archived heads (CIFAR-10,
 4,000 images, seeds 0--4), the middle-zone fraction $M$ and the mean factor magnitude
@@ -377,11 +374,11 @@ for saturation.
 
 \paragraph{A toy model.} A 32--64--8 MLP on a ten-class Gaussian mixture, trained through classical
 product heads on the paper's supports (5 seeds), reproduces the falling middle zone and a probe cost
-that rises with order, but a smaller one (3.7 points from order 1 to 5.25) and with coordinates pinned
+that generally rises with order (with reversals at orders 3 and 4), but a smaller one (3.7 points from order 1 to 5.25) and with coordinates pinned
 near $z\approx0$ rather than at saturation. Tripling the backbone's initial output scale moves the
 pinning to saturation without enlarging the default support's cost ($-2.4\pm1.0$ vs $-2.3\pm0.7$
 against order 1). The budget alone therefore gives a modest cost; in the CNNs, where the coordinates
-start saturated, the trap of \cref{app:dynamics} adds to it.
+are saturated by epoch 5, the trap of \cref{app:dynamics} adds to it.
 
 \section{Training Dynamics and Interventions on the Saturation Trap}
 \label{app:dynamics}
@@ -395,8 +392,8 @@ checkpoint we fit the common linear probe and measured $S$ and $M$ (\cref{tab:dy
 saturates early, and the heads then differ in how far they desaturate. We had pre-registered two
 timing hypotheses that assumed saturation would rise during training (saturation's half-way rise
 preceding the probe gap's, or the middle zone's drop preceding saturation's). Neither applies as
-written: all half-way epochs fall at the first checkpoint, so these tests are inconclusive. The probe
-gap peaks at epochs 15--20 and then partly closes as $S$ slowly falls, so the gap at 80 epochs is a
+written: saturation is past its half-way point at the first checkpoint (epoch 5) in every run, while the probe gaps reach half their final size at epoch 5 or 10, so the 5-epoch resolution cannot order them and these tests are inconclusive. The probe
+gap peaks at epoch 15 (default) and 35 (last ring) and then partly closes as $S$ slowly falls, so the gap at 80 epochs is a
 snapshot of an incomplete escape; this agrees with the doubled-budget results of \cref{sec:controls}.
 
 \begin{table}[h]
@@ -413,10 +410,10 @@ parentheses).}
 \cmidrule(lr){2-4}\cmidrule(lr){5-6}
 Epoch & no CNOT & ring & last & ring & last & last (no CNOT) \\
 \midrule
-5 & 0.44 & 0.67 & 0.77 & $-3.2$ & $-8.4$ & 0.21 (0.51) \\
+5 & 0.44 & 0.67 & 0.77 & $-3.1$ & $-8.4$ & 0.21 (0.51) \\
 10 & 0.23 & 0.56 & 0.68 & $-7.9$ & $-14.3$ & 0.30 (0.69) \\
 20 & 0.12 & 0.42 & 0.59 & $-7.9$ & $-18.8$ & 0.38 (0.80) \\
-40 & 0.02 & 0.34 & 0.48 & $-4.9$ & $-17.2$ & 0.48 (0.86) \\
+40 & 0.02 & 0.34 & 0.48 & $-4.9$ & $-17.2$ & 0.47 (0.86) \\
 80 & 0.02 & 0.30 & 0.46 & $-3.6$ & $-12.7$ & 0.48 (0.85) \\
 \bottomrule
 \end{tabular}
@@ -425,9 +422,7 @@ Epoch & no CNOT & ring & last & ring & last & last (no CNOT) \\
 \paragraph{Straight-through estimators.} A plain straight-through estimator replaces
 $\mathrm{d}\tanh z/\mathrm{d}z$ by 1 in the backward pass and leaves the forward pass unchanged. On the
 classical product heads it raised the last-ring probe by $5.7$ points and lowered the default products'
-by $1.0$. On every circuit it diverged (validation accuracy 18--25\%, backbone gradient norm up to
-$1.8\times10^4$): a circuit readout $\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}$ keeps a gradient of order
-$\pi\beta_j$ at saturation while its forward value is flat, so $z_j$ is pushed outward without bound.
+by $1.0$. On every circuit it diverged (head-mean validation accuracy 18--25\%, backbone gradient norm up to $2.4\times10^4$): a circuit readout $\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}$ keeps a gradient of order $\pi\beta_j$ at saturation while its forward value is flat, which can drive $z_j$ further out without any change in the loss; we take this as the likely cause.
 Under the committed training guard these cells are inconclusive. After seeing this we pre-registered
 the escape-only estimator, which uses $\mathrm{d}\tanh z/\mathrm{d}z=1$ only when the descent step
 moves $z$ toward 0 and $\mathrm{sech}^2z$ otherwise, per sample and coordinate. Its manipulation check
@@ -446,8 +441,8 @@ check passes ($S=0.40$ and $0.53$), and the probe falls to $59.8\pm22.2$ and $61
 meets the committed criterion for saturation alone accounting for most of the cost at matched $S$. We
 do not count it, because no training guard was committed for this test and the penalty damaged fit:
 clean training accuracy fell to 71.5\% and 72.9\% (96.6\% without the penalty), and one $k=2$ seed never
-trained (head and probe at chance). Without that seed (an exclusion we did not commit) the $k=2$ drop
-is 3.8 points at $S=0.27$, close to the ring family's 3.6 at that $S$, and clean training accuracy is
+trained (head at chance, probe 20.5\%). Without that seed (an exclusion we did not commit) the $k=2$ drop
+is 3.8 points at $S=0.27$, close to the ring-family cost of 3.6 interpolated linearly in $S$ to that value, and clean training accuracy is
 86.7\%. The test as run cannot separate saturation from lost fit.
 
 \paragraph{Generality runs.} The CZ, readout and $\enc{j}=z_j$ heads were tuned like every new head

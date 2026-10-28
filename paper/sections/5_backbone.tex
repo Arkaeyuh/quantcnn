@@ -77,9 +77,7 @@ pre-registered, 5 seeds). A ring of CZ gates after every layer entangles, but CZ
 so its order is 1: it probes $3.4\pm0.8$ points above the default CNOT ring (every seed) and
 $0.4\pm0.8$ below the ring-free head. Conversely, two- and three-qubit $Z$ readouts of the
 ring-free circuit, which has no entangling gate, probe at 70.3 and 67.4, against 70.4 and 67.3 from
-the ring-family fit. With the unbounded encoding
-$\enc{j}=z_j$, which cannot saturate, four layouts keep their order ranking and 68\% of the
-$\pi\tanh$ slope.
+the ring-family fit. Under the unbounded encoding $\enc{j}=z_j$ four layouts keep their order ranking.
 
 In CNOT-derived supports, order rises with overlap, the number of inputs two readouts share.
 Classical product heads on designed supports separate the two: at equal overlap and full rank an
@@ -179,19 +177,19 @@ $\delta\in(0,\tfrac12)$; if the factors are identically distributed, every $j\in
 independence, every $j\in\Sk$ satisfies the bound with $a$ in place of $a^{1/m}$.
 \end{proposition}
 As $m$ grows, $a^{1/m}\to1$, so the inputs of high-order readouts gather at $z\approx0$ or at
-saturation, where a coordinate carries little graded information (\cref{app:budget}). On the trained
+saturation, where a coordinate's factor is locally insensitive to it (\cref{app:budget}). On the trained
 bottlenecks the middle-zone fraction ($0.1\le|\tanh z|\le0.9$) is 0.84, 0.63 and 0.46 at orders 1, 2.5
 and 5.25, and the lost mass goes to saturation (30--49\% of coordinates for the two ring circuits, 1\%
-without CNOTs), which tracks probe accuracy across 38 configurations ($\rho=-0.91$; \cref{tab:geometry}).
+without CNOTs), which tracks probe accuracy across the 28 VQC configurations ($\rho=-0.91$; \cref{tab:geometry}).
 
 Saturated coordinates are hard to leave, because $\mathrm{sech}^2$ removes their gradient. Every
 head saturates early in training ($S=0.44$--$0.77$ at epoch 5, 3 seeds); the ring-free head then
 desaturates to 0.02, while the default and last-ring heads stall at 0.30 and 0.46 and their probe gaps
-peak at epochs 15--20 (\cref{app:dynamics}). We tested this trap with a pre-registered intervention
+peak at epochs 15 and 35 (\cref{app:dynamics}). We tested this trap with a pre-registered intervention
 that leaves the forward pass unchanged: an escape-only straight-through estimator \citep{bengio2013} that, in the backward
 pass only, drops $\mathrm{sech}^2(z_j)$ when the descent step moves $z_j$ toward 0, so saturated
-coordinates can leave but are not pushed further out.\footnote{A plain straight-through estimator made every
-circuit diverge; we redesigned it after seeing this, as the pre-registration states (\cref{app:dynamics}).} It removes saturation in every head ($S\le0.004$) and raises
+coordinates can leave while outward steps keep their usual attenuation.\footnote{A plain straight-through estimator made every
+circuit diverge; we redesigned it after seeing this, as the pre-registration states (\cref{app:dynamics}).} It removes saturation in every head (mean $S\le0.005$) and raises
 probe accuracy by $6.8\pm2.2$ points on the last-ring circuit and $1.5\pm0.9$ on the default, positive
 in every seed, against $0.9\pm0.5$ without CNOTs (\cref{tab:satmain}). The default gain is 0.02 points
 short of the $+1.5$ we committed, so the hypothesis is not met as written; the last-ring and
@@ -199,6 +197,4 @@ specificity criteria are. A penalty against saturation, which also changes the l
 gains (\cref{app:saturation}).
 
 With saturation removed, order still costs: the escape-only circuits probe at 74.5, 71.3 and 66.9 at
-orders 1, 2.5 and 5.25. The trap accounts for about half of the last-ring cost and little of the
-default's; the remainder is consistent with the signal budget, which at high order compounds with the
-trap. Inducing saturation in the ring-free head was inconclusive (\cref{app:dynamics}).
+orders 1, 2.5 and 5.25. Releasing the trap recovers half of the last-ring cost and 1.5 of the default's 3.8 points (44\% and 15\% if both arms are treated); the rest is consistent with the budget, though not uniquely attributed to it. Inducing saturation in the ring-free head was inconclusive (\cref{app:dynamics}).
