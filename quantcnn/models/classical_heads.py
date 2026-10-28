@@ -7,6 +7,8 @@ import math
 import torch
 import torch.nn as nn
 
+from quantcnn.models.torch_vqc import EscapeTanh
+
 
 class LinearHead(nn.Module):
     def __init__(self, in_dim: int, num_classes: int) -> None:
@@ -118,11 +120,12 @@ class CosProductHead(nn.Module):
     ``decouple_grad`` keeps the forward products but removes the multiplicative coupling
     from the backward pass (mechanism test). ``grad_floor`` keeps the forward products and the
     sign of each path's gradient but floors its magnitude (``_FlooredProduct``). ``st_tanh`` keeps
-    the forward products but passes d tanh(z)/dz = 1 backward (straight-through; saturation test)."""
+    the forward products but passes d tanh(z)/dz = 1 backward (straight-through; saturation test);
+    ``st_tanh="esc"`` does so only for inward steps (``EscapeTanh``)."""
 
     def __init__(self, in_dim: int, num_classes: int, n_var_layers: int = 4, last_only: bool = False,
                  pattern: str = "ring", supports: list[list[int]] | None = None,
-                 decouple_grad: bool = False, grad_floor: float | None = None, st_tanh: bool = False) -> None:
+                 decouple_grad: bool = False, grad_floor: float | None = None, st_tanh: bool | str = False) -> None:
         super().__init__()
         self.st_tanh = st_tanh
         self.decouple_grad = decouple_grad
@@ -136,7 +139,10 @@ class CosProductHead(nn.Module):
         self.fc = nn.Linear(in_dim, num_classes)
 
     def forward(self, x):
-        t = torch.tanh(x).detach() + x - x.detach() if self.st_tanh else torch.tanh(x)
+        if self.st_tanh == "esc":
+            t = EscapeTanh.apply(x)
+        else:
+            t = torch.tanh(x).detach() + x - x.detach() if self.st_tanh else torch.tanh(x)
         c = torch.cos(math.pi * t)  # (B, n)
         # prod_j c_j^{mask_kj}: take the product over masked entries, others replaced by 1.
         if self.grad_floor is not None:

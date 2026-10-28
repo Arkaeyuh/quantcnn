@@ -25,6 +25,13 @@ straight-through backward (d phi / d z = pi, removing the sech^2 factor); ``"lin
 unbounded, with no saturating map. ``readout`` selects the measured observables: ``"z"`` (<Z_k>),
 ``"zz"`` (<Z_k Z_{k+1 mod n}>) or ``"zzz"`` (<Z_k Z_{k+1} Z_{k+2}>), which raise the product order
 of a CNOT-free circuit to 2 or 3 without entangling gates.
+
+Escape-only straight-through (2026-10-27): ``"pi_tanh_esc"`` is pi*tanh z forward; backward it
+keeps sech^2 when the gradient step would push |z| outward and removes it (d tanh/dz = 1) when the
+step pulls |z| inward. Saturated coordinates can leave, but the flat forward cannot drive them
+outward without bound, which is what made ``"pi_tanh_st"`` diverge. ``"cz_last"`` is the CZ ring
+after the last layer only; being diagonal right before a Z-basis measurement, it leaves every <Z>
+readout unchanged, so it equals the no-CNOT circuit (a check, not an experiment).
 """
 
 from __future__ import annotations
@@ -35,10 +42,26 @@ import torch
 import torch.nn as nn
 
 
-ENCODINGS = ("pi_tanh", "half", "half_sym", "phase", "pi_tanh_st", "lin")
+ENCODINGS = ("pi_tanh", "half", "half_sym", "phase", "pi_tanh_st", "lin", "pi_tanh_esc")
 READOUTS = {"z": 1, "zz": 2, "zzz": 3}  # readout -> weight of the measured Z string
 PATTERNS = ("ring", "pairs", "chain", "brick", "star", "star_in", "ladder2")
-ENTANGLE = (True, False, "last", "cz") + tuple(p for name in PATTERNS[1:] for p in (name, f"{name}_last"))
+class EscapeTanh(torch.autograd.Function):
+    """tanh forward; backward d tanh/dz = 1 where the descent step -g moves z toward 0
+    (g * z > 0), and the usual sech^2 elsewhere."""
+
+    @staticmethod
+    def forward(ctx, x):
+        t = torch.tanh(x)
+        ctx.save_for_backward(x, t)
+        return t
+
+    @staticmethod
+    def backward(ctx, g):
+        x, t = ctx.saved_tensors
+        return torch.where(g * x > 0, g, g * (1 - t * t))
+
+
+ENTANGLE = (True, False, "last", "cz", "cz_last") + tuple(p for name in PATTERNS[1:] for p in (name, f"{name}_last"))
 
 
 def cnot_gates(n_qubits: int, pattern: str = "ring", layer: int = 0) -> list[tuple[int, int]]:
@@ -67,7 +90,7 @@ def cnot_gates(n_qubits: int, pattern: str = "ring", layer: int = 0) -> list[tup
 
 def entangle_layout(entangle: bool | str) -> tuple[str, bool] | None:
     """(pattern, last_only) for an ``entangle`` setting, or None for no CNOTs."""
-    if entangle is False or entangle == "cz":
+    if entangle is False or entangle in ("cz", "cz_last"):
         return None
     if entangle is True:
         return "ring", False
@@ -125,7 +148,8 @@ class TorchStatevectorVQC(nn.Module):
         bits = (torch.arange(2**n_qubits)[:, None] >> torch.arange(n_qubits - 1, -1, -1)) & 1
         # CZ ring as a diagonal sign: (-1)^(b_q b_{q+1}) summed over the ring's pairs.
         self._czsign = None
-        if entangle == "cz":
+        self._cz_last = entangle == "cz_last"
+        if entangle in ("cz", "cz_last"):
             par = sum(bits[:, q] * bits[:, (q + 1) % n_qubits] for q in range(n_qubits)) % 2
             self._czsign = (1 - 2 * par).to(torch.complex128)
         zs = (1 - 2 * bits).to(torch.float64)
@@ -168,6 +192,8 @@ class TorchStatevectorVQC(nn.Module):
             phi = math.pi * torch.tanh(x)
         elif self.encoding == "pi_tanh_st":
             phi = math.pi * (torch.tanh(x).detach() + x - x.detach())
+        elif self.encoding == "pi_tanh_esc":
+            phi = math.pi * EscapeTanh.apply(x)
         elif self.encoding == "lin":
             phi = x
         elif self.encoding == "half":
@@ -183,7 +209,7 @@ class TorchStatevectorVQC(nn.Module):
             state = self._apply_1q(state, q, self._ry(w[q, 0], cdtype))
             state = self._apply_1q(state, q, self._rz(w[q, 1], cdtype))
         if self._czsign is not None:
-            return state * self._czsign
+            return state * self._czsign if not self._cz_last or l == self.n_var_layers - 1 else state
         perm = self._perms[l]
         return state if perm is None else state[:, perm]
 

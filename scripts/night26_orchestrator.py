@@ -16,8 +16,8 @@ import os
 
 from scripts.night_orchestrator import log, run
 
-SOFT_DEADLINE = dt.datetime(2026, 10, 27, 6, 40)
-HARD_DEADLINE = dt.datetime(2026, 10, 27, 6, 55)
+SOFT_DEADLINE = dt.datetime(2026, 10, 28, 6, 40)  # relaunched 2026-10-27 22:40 after the session kill
+HARD_DEADLINE = dt.datetime(2026, 10, 28, 6, 55)
 PY = ".venv/bin/python"
 GRID = [PY, "-u", "-m", "scripts.run_protocol_v2", "--n_workers", "6", "--threads_per_worker", "2", "--grid"]
 PROBE = [PY, "-u", "-m", "scripts.probe_backbones", "--heads", "all", "--datasets", "cifar10"]
@@ -34,7 +34,7 @@ def _probe(grid: str, kind: str) -> tuple:
 
 # (name, estimated minutes, command, log file)
 STAGES = [
-    ("night26 queue (98 runs)", 330, GRID + ["night26"], "night26.log"),
+    ("night26 queue (98 runs; 61 done)", 150, GRID + ["night26"], "night26.log"),
     ("night26 seeds 3-4", 60, GRID + ["night26_seeds"], "night26_seeds.log"),
     *[_probe(g, "linear") for g in GRIDS],
     *[_probe(g, "mlp") for g in GRIDS],

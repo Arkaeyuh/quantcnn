@@ -19,7 +19,7 @@ DatasetName = Literal["mnist", "cifar10"]
 HeadKind = Literal["linear", "mlp", "quantum", "cos", "cossin", "cosprod", "cosprod_last", "cosprod_pairs_last",
                    "cosprod_win2", "cosprod_win3", "cosprod_win4", "cosprod_star2", "cosprod_star3",
                    "cosprod_gap4", "cosprod_sg", "cosprod_last_sg", "cosprod_fl03", "cosprod_fl1",
-                   "cosprod_last_fl03", "cosprod_last_fl1", "cosprod_st", "cosprod_last_st"]
+                   "cosprod_last_fl03", "cosprod_last_fl1", "cosprod_st", "cosprod_last_st", "cosprod_esc", "cosprod_last_esc"]
 # gradient-floor heads (attenuation test): suffix -> floor on |product of the other factors|
 GRAD_FLOORS = {"_fl03": 0.3, "_fl1": 1.0}
 
@@ -74,6 +74,8 @@ class HybridClassifier(nn.Module):
                                        decouple_grad=head.endswith("_sg"))
         elif head in ("cosprod_st", "cosprod_last_st"):
             self.head = CosProductHead(b, num_classes, n_var_layers, last_only=head == "cosprod_last_st", st_tanh=True)
+        elif head in ("cosprod_esc", "cosprod_last_esc"):
+            self.head = CosProductHead(b, num_classes, n_var_layers, last_only=head == "cosprod_last_esc", st_tanh="esc")
         elif head.startswith(("cosprod_fl", "cosprod_last_fl")):
             self.head = CosProductHead(b, num_classes, n_var_layers, last_only=head.startswith("cosprod_last"),
                                        grad_floor=GRAD_FLOORS[head[head.rindex("_"):]])

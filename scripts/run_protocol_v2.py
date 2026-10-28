@@ -284,6 +284,11 @@ NIGHT26_ARCH = {
     "cifar_readout": [dict(head="quantum", no_entangle=True, readout=r) for r in ("zz", "zzz")],
 }
 SATUP_WEIGHT = 10.0
+# Escape-only straight-through (2026-10-27): replaces the diverged pi_tanh_st circuit cells; same design.
+ESC_CELLS = [dict(head="quantum", encoding="pi_tanh_esc"),
+             dict(head="quantum", encoding="pi_tanh_esc", entangle_last_only=True),
+             dict(head="quantum", encoding="pi_tanh_esc", no_entangle=True),
+             dict(head="cosprod_esc"), dict(head="cosprod_last_esc")]
 
 
 def _night26_selected() -> list[tuple[dict, float]]:
@@ -543,6 +548,18 @@ def _grid(name: str) -> list[dict]:
         for opts in ST_CELLS:
             for sd in ALL_SEEDS:
                 items.append(dict(_C4000, **opts, lr=1e-2, seed=sd))
+    elif name == "cifar_esc":
+        for opts in ESC_CELLS:
+            for sd in ALL_SEEDS:
+                items.append(dict(_C4000, **opts, lr=1e-2, seed=sd))
+    elif name == "cifar_dyn":
+        # Training dynamics (plan A5): the three ring-family baselines, checkpoints every 5 epochs.
+        for opts in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
+            for sd in SEEDS:
+                items.append(dict(_C4000, head="quantum", **opts, lr=1e-2, seed=sd, save_every=5))
+    elif name == "night27":
+        for g in ("cifar_esc", "cifar_dyn"):
+            items += [dict(it, _grid=g) for it in _grid(g)]
     elif name in NIGHT26_ARCH:
         for opts in NIGHT26_ARCH[name]:
             for lr in NIGHT26_LRS:
@@ -730,7 +747,8 @@ def main():
                                          "cifar_floor_seeds", "cifar_q12", "cifar_q12_ext",
                                          "cifar_q12_seeds", "cifar_mech2", "cifar_mech2_seeds", "cifar_mech3",
                                          "cifar_mech3_seeds", "cifar_lastring_retest", "cifar_st", "cifar_cz",
-                                         "cifar_lin", "cifar_readout", "cifar_satup", "night26", "night26_seeds"], required=True)
+                                         "cifar_lin", "cifar_readout", "cifar_satup", "night26", "night26_seeds",
+                                         "cifar_esc", "cifar_dyn", "night27"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

@@ -56,7 +56,7 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
     p.add_argument("--head", choices=["linear", "mlp", "quantum", "cos", "cossin", "cosprod", "cosprod_last", "cosprod_pairs_last",
                                        "cosprod_win2", "cosprod_win3", "cosprod_win4", "cosprod_star2", "cosprod_star3",
                                        "cosprod_gap4", "cosprod_sg", "cosprod_last_sg", "cosprod_fl03", "cosprod_fl1",
-                                       "cosprod_last_fl03", "cosprod_last_fl1", "cosprod_st", "cosprod_last_st"],
+                                       "cosprod_last_fl03", "cosprod_last_fl1", "cosprod_st", "cosprod_last_st", "cosprod_esc", "cosprod_last_esc"],
                    default="quantum")
     p.add_argument("--reupload_mode", choices=["none", "light", "strong"], default="none")
     p.add_argument("--bottleneck_dim", type=int, default=8)
@@ -109,11 +109,13 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
     p.add_argument("--reg_weight", type=float, default=0.0)
     p.add_argument(
         "--encoding",
-        choices=["pi_tanh", "half", "half_sym", "phase", "pi_tanh_st", "lin"],
+        choices=["pi_tanh", "half", "half_sym", "phase", "pi_tanh_st", "lin", "pi_tanh_esc"],
         default="pi_tanh",
         help="Quantum head angle map (torch sim only): pi*tanh z; (pi/2)*tanh z + pi/2 (monotone "
         "under <Z>); (pi/2)*tanh z; or phase: H then RZ(pi*tanh z).",
     )
+    p.add_argument("--save_every", type=int, default=0,
+                   help="Also save the model every N epochs as ckpt_ep<N>.pt (training dynamics); 0 = off.")
     p.add_argument("--readout", choices=["z", "zz", "zzz"], default="z",
                    help="Quantum head observables (torch sim only): <Z_k>, <Z_k Z_k+1> or <Z_k Z_k+1 Z_k+2>.")
     p.add_argument("--no_entangle", action="store_true", help="Quantum head without CNOT rings (torch sim only).")
@@ -339,6 +341,8 @@ def run_training(args: argparse.Namespace) -> Path:
         if is_best:
             best_val_acc = va_acc
             torch.save(model.state_dict(), checkpoint_path)
+        if getattr(args, "save_every", 0) and epoch % args.save_every == 0:
+            torch.save(model.state_dict(), out_dir / f"ckpt_ep{epoch}.pt")
 
         row = {
             "epoch": epoch,

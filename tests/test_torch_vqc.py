@@ -65,6 +65,38 @@ def test_phase_encoding_matches_pennylane():
         assert torch.allclose(ts(x), ref, atol=1e-10), (ent, (ts(x) - ref).abs().max())
 
 
+
+def test_escape_straight_through_and_cz_last():
+    """pi_tanh_esc: forward equals pi_tanh; backward is the plain gradient times sech^2 for outward
+    steps and without it for inward ones. cz_last equals the no-CNOT circuit (diagonal before Z)."""
+    torch.manual_seed(4)
+    a = TorchStatevectorVQC(8, 4, "none").double()
+    b = TorchStatevectorVQC(8, 4, "none", encoding="pi_tanh_esc").double()
+    s = TorchStatevectorVQC(8, 4, "none", encoding="pi_tanh_st").double()
+    for m in (b, s):
+        with torch.no_grad():
+            m.weights.copy_(a.weights)
+    x = (torch.randn(6, 8, dtype=torch.float64) * 2).requires_grad_(True)
+    xb, xs = (x.detach().clone().requires_grad_(True) for _ in range(2))
+    assert torch.allclose(a(x), b(xb), atol=1e-12)
+    a(x).sum().backward()
+    b(xb).sum().backward()
+    s(xs).sum().backward()
+    inward = xs.grad * x.detach() > 0
+    assert inward.any() and (~inward).any()
+    assert torch.allclose(xb.grad, torch.where(inward, xs.grad, x.grad), atol=1e-10)
+    c1 = TorchStatevectorVQC(8, 4, "none", entangle="cz").double()
+    c2 = TorchStatevectorVQC(8, 4, "none", entangle="cz_last").double()
+    with torch.no_grad():
+        c2.weights.copy_(c1.weights)
+    z = torch.randn(5, 8, dtype=torch.float64)
+    c0 = TorchStatevectorVQC(8, 4, "none", entangle=False).double()
+    with torch.no_grad():
+        c0.weights.copy_(c1.weights)
+    assert not torch.allclose(c1(z), c0(z), atol=1e-6)
+    assert torch.allclose(c2(z), c0(z), atol=1e-10)
+
+
 if __name__ == "__main__":
     test_forward_and_grad_match_pennylane()
     test_phase_encoding_matches_pennylane()
