@@ -283,3 +283,19 @@ Linear probe on test, lr 1e-2 (selected in the middle of the grid for every tune
 
 - **H_precede and H_budget are not applicable as written.** Both assumed S *rises* with training. Instead, every head saturates early (S ≈ 0.4–0.8 by epoch 5), and the heads then differ in how far they *desaturate*: no CNOT to 0.02, default to 0.30, last ring to 0.46. All half-way epochs fall at the first checkpoint (epoch 5), so the 5-epoch resolution cannot order them. Inconclusive, not refuted.
 - **Descriptive reading (not pre-registered).** The cost comes from failing to leave an early saturated state, not from being driven into saturation. That fits the escape-only result: allowing inward steps removes saturation entirely (S → 0). The probe gap peaks at epochs 15–20 (−7.9 / −18.8) and then partly closes as S slowly falls, so the endpoint gap is a snapshot of an incomplete escape. The middle-zone deficit appears at the same time and persists after S stops falling (last ring M 0.48 vs 0.85), which is where the signal-budget component lives.
+
+## Escape-only replication and dense early dynamics, predictions written 2026-10-28 before any run
+**Why, disclosed:** on seeds 0–4 the escape-only default-ring gain was +1.48, 0.02 below the committed +1.5. That outcome stands as scored above and is not re-scored. This is a separate test on fresh seeds, chosen because the margin was this small. The dense-dynamics run follows the finding that every head was already saturated at the first 5-epoch checkpoint.
+
+**(A) `cifar_esc_rep`: escape-only straight-through on fresh seeds 5–9.** Same design as the escape-only section above (CIFAR-10/4,000, lr 1e-2, π·tanh forward). Both arms run on seeds 5–9 for the default ring and no CNOT. The unregularized last-ring arm comes from `cifar_lastring_retest` (same seeds and recipe: 59.49, 64.40, 61.89, 52.78, 61.66), so only its escape-only arm runs here. 25 runs.
+- **Manipulation check and guard:** as before (S down ≥ 30%; clean train ≥ baseline − 10).
+- **H_trap-rep:** on seeds 5–9 alone, the paired gain is ≥ +1.5 on the default ring and ≥ +3 on the last ring, each positive in ≥ 4 of 5 seeds, and the no-CNOT gain is below half the last-ring gain.
+- **Refutation:** check and guard pass, and both circuit gains are below +1.
+- **Secondary, reported but not a criterion:** the pooled 10-seed paired gains.
+- **My expectation, stated in advance:** the last-ring and specificity parts pass again. For the default ring my estimate is a gain of about +1.5 ± 1. That is roughly an even chance of clearing +1.5, so either outcome is plausible.
+
+**(B) `cifar_dyn2`: checkpoints after each of epochs 1–10 (and every 5 after).** Same runs as `cifar_dyn` (no CNOT, default and last ring, seeds 0–2; training is deterministic, so epochs 5, 10, … reproduce `cifar_dyn`). Measured per checkpoint: linear probe, S, M (`scripts/dynamics_probe.py`).
+- **H_trap-timing:** for the last ring, the saturation gap S_last − S_noent reaches ≥ 0.10 no later than the epoch at which the probe gap (noent − last, same seed and epoch) first reaches half its maximum over all checkpoints, in ≥ 2 of 3 seeds.
+- **Recorded as not separable:** M ≈ 1 − S − Z0, and Z0 is small, so an M-before-S ordering cannot be told apart from S. No M hypothesis is set.
+- **Descriptive:** the epoch of peak S for each head. Whether the no-CNOT head ever reaches the ring heads' S, or separates from the first epoch.
+- **My expectation, stated in advance:** the S gap opens at epochs 1–2, before the probe gap reaches half its peak (around epoch 5–10). The no-CNOT head peaks lower (S ≈ 0.5) than the last ring (≈ 0.8).

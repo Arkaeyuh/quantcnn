@@ -42,11 +42,16 @@ tool for reading what an intermediate layer encodes \citep{alain2017}. We apply 
 to the quantum-head setting, where the head is a fixed-form circuit rather than a learned
 classical layer.
 
+\paragraph{Vanishing gradients through products and saturating maps.}
+Barren plateaus make circuit gradients vanish as qubit count grows \citep{mcclean2018}, faster for costs
+built from global observables, products over many qubits, than for local ones \citep{cerezo2021cost}.
+Our signal budget (\cref{prop:budget}) is a related effect at eight qubits and zero rotations: high-order
+products constrain the network that feeds the circuit, not the circuit's own parameters. Saturating
+maps are a classical source of vanishing gradients; we test their role with a straight-through
+estimator \citep{bengio2013}, restricted to inward steps.
+
 \paragraph{Position of this work.}
-That entanglement often does not help, and that trigonometric surrogates can stand in for
-simple circuits, are known. What is new here is (i) a measurement of the bottleneck a
-quantum classifier head induces under supervised joint training, with a probe shared across
-quantum and classical heads, and (ii) a
-structural variable, the order of the zero-rotation cosine products, that orders the
-representation cost across circuit and classical heads and survives an intervention that
-retains entangling gates while lowering order.
+That entanglement often does not help, and that trigonometric surrogates can stand in for simple
+circuits, are known. New here are (i) a probe, shared across heads, of the bottleneck a quantum head
+induces under joint training, (ii) product order, which orders this cost across layouts, gate families
+and readouts, and (iii) a tested mechanism for it.

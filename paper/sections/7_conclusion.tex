@@ -1,9 +1,8 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-A quantum classifier head trained jointly with a CNN changes the representation the CNN
-learns. With every head tuned on validation data and every backbone read by the same linear probe,
-the default ring-entangled VQC head lowers CIFAR-10 probe accuracy by 4.7 points, and the drop tracks
+A quantum classifier head trained jointly with a CNN changes the representation the CNN learns:
+under one common probe, the default ring-entangled VQC head lowers CIFAR-10 probe accuracy by 4.7 points, and the drop tracks
 the product order of the head, with predictions recorded in advance: across CNOT layouts, encodings,
 a CZ ring and multi-qubit readouts, order rather than entanglement carries the cost. High-order
 products must push their inputs out of the middle of the encoding; the bottleneck saturates early and

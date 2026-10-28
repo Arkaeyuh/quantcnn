@@ -116,6 +116,8 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
     )
     p.add_argument("--save_every", type=int, default=0,
                    help="Also save the model every N epochs as ckpt_ep<N>.pt (training dynamics); 0 = off.")
+    p.add_argument("--save_dense_until", type=int, default=0,
+                   help="Also save the model after every epoch up to this one (with --save_every).")
     p.add_argument("--readout", choices=["z", "zz", "zzz"], default="z",
                    help="Quantum head observables (torch sim only): <Z_k>, <Z_k Z_k+1> or <Z_k Z_k+1 Z_k+2>.")
     p.add_argument("--no_entangle", action="store_true", help="Quantum head without CNOT rings (torch sim only).")
@@ -341,7 +343,8 @@ def run_training(args: argparse.Namespace) -> Path:
         if is_best:
             best_val_acc = va_acc
             torch.save(model.state_dict(), checkpoint_path)
-        if getattr(args, "save_every", 0) and epoch % args.save_every == 0:
+        if (getattr(args, "save_every", 0) and epoch % args.save_every == 0) or \
+                epoch <= getattr(args, "save_dense_until", 0):
             torch.save(model.state_dict(), out_dir / f"ckpt_ep{epoch}.pt")
 
         row = {

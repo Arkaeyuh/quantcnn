@@ -9,9 +9,8 @@ with the default VQC head and $74.5\pm0.5$ on backbones trained with a linear he
 difference of $-4.7\pm0.9$ points that is negative for all five seeds. The probe reads the
 VQC-trained bottleneck better than the VQC head itself does ($67.8\pm1.3$ test): replacing
 the VQC head by the probe raises accuracy by about 2.0 points, and a 4.7-point gap remains
-between the two backbones under the common probe. The gap is larger with less data (CIFAR-10:
-$-11.2\pm4.0$ and $-11.1\pm1.5$ at 1,000 and 2,000 images) and smaller on MNIST ($-7.9\pm4.2$,
-$-2.2\pm0.8$ and $-1.0\pm0.5$ at 250, 500 and 1,000; 3 seeds each). A narrow classical head
+between the two backbones under the common probe. The gap is larger with less data ($-11.2$ and $-11.1$ at 1,000 and
+2,000 images) and smaller on MNIST ($-7.9$ to $-1.0$; 3 seeds each). A narrow classical head
 lowers probe accuracy as well: MLP-8 backbones probe $3.6\pm0.6$ points below linear-head
 backbones on CIFAR-10/4,000, $1.0\pm0.9$ above the VQC. The gap is not an artifact of linear
 decoding: a two-layer MLP probe on the same bottlenecks recovers at most 0.4 points more than
@@ -28,9 +27,8 @@ Deleting every CNOT and keeping the rest of the head unchanged raises probe accu
 $73.6\pm0.5$ and test accuracy to $73.1\pm0.5$ (5 seeds). Against the default VQC this is
 $+3.8\pm1.2$ probe and $+5.2\pm1.4$ test points, positive for every seed, and the ring-free
 head now probes $2.8\pm0.6$ points above MLP-8. It leaves $0.8\pm0.5$ probe and $1.4\pm0.5$
-test points to the linear head. MNIST shows the same direction: ring removal gains
-$2.8\pm0.4$ and $1.4\pm0.4$ probe points at 500 and 1,000 images, and the ring-free head's
-test accuracy (94.5, 96.4) equals the linear head's (94.3, 96.4) to within 0.2 points.
+test points to the linear head. On MNIST, ring removal gains 2.8 and 1.4 probe
+points at 500 and 1,000 images.
 
 \subsection{Product order tracks the gap}
 \label{sec:order}
@@ -77,10 +75,9 @@ classical head on their products ($71.2\pm1.3$).
 Order needs neither CNOTs, entanglement nor a saturating encoding (\cref{tab:generality};
 pre-registered, 5 seeds). A ring of CZ gates after every layer entangles, but CZ commutes with $Z$,
 so its order is 1: it probes $3.4\pm0.8$ points above the default CNOT ring (every seed) and
-$0.4\pm0.8$ below the ring-free head. Conversely, measuring $\langle Z_kZ_{k+1}\rangle$ or
-$\langle Z_kZ_{k+1}Z_{k+2}\rangle$ on the ring-free circuit, which has no entangling gate, makes
-every readout an exact product of 2 or 3 per-coordinate sinusoids at any rotation; these heads probe
-at 70.3 and 67.4, against 70.4 and 67.3 predicted by the ring-family fit. With the unbounded encoding
+$0.4\pm0.8$ below the ring-free head. Conversely, two- and three-qubit $Z$ readouts of the
+ring-free circuit, which has no entangling gate, probe at 70.3 and 67.4, against 70.4 and 67.3 from
+the ring-family fit. With the unbounded encoding
 $\enc{j}=z_j$, which cannot saturate, four layouts keep their order ranking and 68\% of the
 $\pi\tanh$ slope.
 
@@ -153,14 +150,10 @@ $1.9\pm0.4$ at 10,000, but smaller sets then also get fewer optimizer updates. A
 approximately matched number of updates (about 3,800) the default circuit costs $6.6\pm1.7$,
 $5.7\pm0.7$ and $7.2\pm2.1$ points at 1,000, 4,000 and 10,000 images, and the ring-free head
 stays within 0.5 points of linear (seeds 0--2; \cref{tab:ptbudget}); re-selecting the learning
-rates gives $8.3\pm2.1$ and $7.7\pm1.9$ at 1,000 and 10,000 images, with the ring-free head $1.4\pm1.2$ and $0.7\pm0.2$
-below linear. Training budget therefore
-accounts for much of the size dependence at fixed epochs; with one matched budget and a
-schedule that changes with the epoch count, data size and budget are not fully separated.
+rates gives similar costs. Training budget therefore
+accounts for much of the size dependence, though the two are not fully separated.
 
-On this backbone the high-order heads are unstable across runs, and the classical head on the
-default products probes above the circuit at the main-grid rates; lockstep training from copied
-weights traces this to learning-rate selection (\cref{app:ptcontrols}).
+High-order heads are unstable on this backbone (\cref{app:ptcontrols}).
 
 \subsection{Why order costs: a signal budget and a saturation trap}
 \label{sec:saturation}
@@ -182,7 +175,8 @@ the encoding.
 Let $r_k=\prod_{j\in\Sk}\cos\enc{j}$ with $|\Sk|=m$, $\enc{j}=\pi\tanh z_j$ and independent factors, and
 let $\mathbb{E}|r_k|\ge a>0$. Then some $j\in\Sk$ has
 $\Pr\big(\delta<|\tanh z_j|<1-\delta\big)\le(1-a^{1/m})/(1-\cos\pi\delta)$ for every
-$\delta\in(0,\tfrac12)$; if the factors are identically distributed, every $j\in\Sk$ does.
+$\delta\in(0,\tfrac12)$; if the factors are identically distributed, every $j\in\Sk$ does. Without
+independence, every $j\in\Sk$ satisfies the bound with $a$ in place of $a^{1/m}$.
 \end{proposition}
 As $m$ grows, $a^{1/m}\to1$, so the inputs of high-order readouts gather at $z\approx0$ or at
 saturation, where a coordinate carries little graded information (\cref{app:budget}). On the trained
@@ -194,7 +188,7 @@ Saturated coordinates are hard to leave, because $\mathrm{sech}^2$ removes their
 head saturates early in training ($S=0.44$--$0.77$ at epoch 5, 3 seeds); the ring-free head then
 desaturates to 0.02, while the default and last-ring heads stall at 0.30 and 0.46 and their probe gaps
 peak at epochs 15--20 (\cref{app:dynamics}). We tested this trap with a pre-registered intervention
-that leaves the forward pass unchanged: an escape-only straight-through estimator that, in the backward
+that leaves the forward pass unchanged: an escape-only straight-through estimator \citep{bengio2013} that, in the backward
 pass only, drops $\mathrm{sech}^2(z_j)$ when the descent step moves $z_j$ toward 0, so saturated
 coordinates can leave but are not pushed further out.\footnote{A plain straight-through estimator made every
 circuit diverge; we redesigned it after seeing this, as the pre-registration states (\cref{app:dynamics}).} It removes saturation in every head ($S\le0.004$) and raises

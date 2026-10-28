@@ -350,14 +350,23 @@ $\mathbb{E}|c_j|\le1-(1-\cos\pi\delta)\Pr(\delta<t_j<1-\delta)$. Rearranging giv
 identically distributed factors every $\mathbb{E}|c_j|$ equals the largest.
 \end{proof}
 
+\paragraph{Without independence.} Since $|c_i|\le1$, $|r_k|\le|c_j|$ for every $j\in\Sk$, so
+$\mathbb{E}|c_j|\ge a$ and the bound holds for every input with $a$ in place of $a^{1/m}$; this
+version needs no assumption on the joint distribution but loses the dependence on order. Some
+assumption is needed for that dependence: if all inputs of a support are equal, $r_k=c^m$ and
+$\mathbb{E}|c|^m\ge a$ allows a middle-zone mass up to $(1-a)/(1-\cos^m\pi\delta)$, which tends to
+$1-a$ rather than to 0 as $m$ grows. (Generalized H\"older,
+$\mathbb{E}\prod_j|c_j|\le\prod_j(\mathbb{E}|c_j|^m)^{1/m}$, gives this bound for some $j$ under any
+dependence.) The order dependence therefore rests on the factors being close to independent, which
+the trained bottlenecks are: the measured $\mathbb{E}[\prod_i\cos^2\enc{i}]$ matches the independence
+product to within 0.02 (\cref{app:attenuation}).
+
 The proposition says the middle zone must empty as order grows; it does not say at which end the
 coordinates gather. At $z\approx0$ a coordinate gives $c=+1$, and at saturation $c=-1$ with
 $\mathrm{sech}^2z\approx0$. A coordinate pinned at one end carries little information, so an
 informative coordinate in a high-order support is pushed toward a near-binary code. The same argument
 holds for any encoding whose factors are bounded by 1 and are flat only at the ends, including
-$\enc{j}=z_j$ restricted to one period. Independence is an assumption: on the trained bottlenecks the
-measured $\mathbb{E}[\prod_i\cos^2\enc{i}]$ follows the independence product closely
-(\cref{app:attenuation}), but a bound without it is open.
+$\enc{j}=z_j$ restricted to one period.
 
 \paragraph{Where the trained coordinates sit.} On the test embeddings of the archived heads (CIFAR-10,
 4,000 images, seeds 0--4), the middle-zone fraction $M$ and the mean factor magnitude

@@ -557,6 +557,22 @@ def _grid(name: str) -> list[dict]:
         for opts in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
             for sd in SEEDS:
                 items.append(dict(_C4000, head="quantum", **opts, lr=1e-2, seed=sd, save_every=5))
+    elif name == "cifar_esc_rep":
+        # Fresh-seed replication of the escape-only test (2026-10-28): both arms on seeds 5-9, except the
+        # unregularized last ring, which cifar_lastring_retest already ran on these seeds.
+        for opts in (dict(head="quantum"), dict(head="quantum", encoding="pi_tanh_esc"),
+                     dict(head="quantum", no_entangle=True), dict(head="quantum", encoding="pi_tanh_esc", no_entangle=True),
+                     dict(head="quantum", encoding="pi_tanh_esc", entangle_last_only=True)):
+            for sd in RETEST_SEEDS:
+                items.append(dict(_C4000, **opts, lr=1e-2, seed=sd))
+    elif name == "cifar_dyn2":
+        # cifar_dyn with a checkpoint after every one of the first 10 epochs (same seeds, deterministic).
+        for opts in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
+            for sd in SEEDS:
+                items.append(dict(_C4000, head="quantum", **opts, lr=1e-2, seed=sd, save_every=5, save_dense_until=10))
+    elif name == "night28":
+        for g in ("cifar_esc_rep", "cifar_dyn2"):
+            items += [dict(it, _grid=g) for it in _grid(g)]
     elif name == "night27":
         for g in ("cifar_esc", "cifar_dyn"):
             items += [dict(it, _grid=g) for it in _grid(g)]
@@ -748,7 +764,8 @@ def main():
                                          "cifar_q12_seeds", "cifar_mech2", "cifar_mech2_seeds", "cifar_mech3",
                                          "cifar_mech3_seeds", "cifar_lastring_retest", "cifar_st", "cifar_cz",
                                          "cifar_lin", "cifar_readout", "cifar_satup", "night26", "night26_seeds",
-                                         "cifar_esc", "cifar_dyn", "night27"], required=True)
+                                         "cifar_esc", "cifar_dyn", "night27",
+                                         "cifar_esc_rep", "cifar_dyn2", "night28"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

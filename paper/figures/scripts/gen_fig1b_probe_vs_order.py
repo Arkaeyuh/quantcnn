@@ -6,7 +6,9 @@ head trained end to end on the same zero-rotation products) at its validation-se
 lr; mean +- SD over seeds (5, or 3 where marked). Product order is mean |S_k| from
 ``cnot_ring_supports``. Open diamonds: the second family of CNOT layouts
 (``results/family_probe.csv``, 5 seeds), predicted before training from the dotted linear fit
-over the ring-family circuits. From repository root::
+over the ring-family circuits. Open triangles: order without CNOTs (2026-10-28, pre-registered,
+5 seeds): a CZ ring (entangling, order 1) and the CNOT-free circuit read out with Z_kZ_k+1 (order 2)
+or Z_kZ_k+1Z_k+2 (order 3). From repository root::
 
     PYTHONPATH=. .venv/bin/python paper/figures/scripts/gen_fig1b_probe_vs_order.py
 """
@@ -45,6 +47,10 @@ HEADS = {
 FAMILY = {"star": (4, False, "star"), "chain": (4, False, "chain"), "star_in_last": (4, True, "star_in"),
           "ladder2_last": (4, True, "ladder2"), "brick": (4, False, "brick"), "chain_last": (4, True, "chain")}
 FIT = (76.69, -3.22)
+# Order without CNOTs: probe key -> (label, order, x jitter, label offset, alignment)
+NO_CNOT = {"quantum+cz": ("CZ ring", 1.0, 1.1, (5, 4), "left"),
+           "quantum+noent+rozz": ("$Z_kZ_{k+1}$", 2.0, 1.0, (4, 7), "left"),
+           "quantum+noent+rozzz": ("$Z_kZ_{k+1}Z_{k+2}$", 3.0, 1.0, (4, -6), "left")}
 
 
 def order(structure) -> float:
@@ -85,15 +91,29 @@ def main():
         if key == "brick":
             ax.annotate("brickwork", (x, y), xytext=(4, 3), textcoords="offset points", ha="left",
                         va="center", fontsize=6.5, color=CIRCUIT)
+    nc = {}
+    for f in ("cz", "readout", "night26_seeds"):
+        for r in csv.DictReader(Path(f"results/{f}_probe.csv").open()):
+            if r["source_head"] in NO_CNOT and r["source_lr"] == "0.01":
+                nc.setdefault(r["source_head"], {})[r["seed"]] = float(r["probe_test_acc"])
+    for key, (label, o, dx, off, ha) in NO_CNOT.items():
+        v = list(nc[key].values())
+        assert len(v) == 5, key
+        x, y = o * dx, st.mean(v)
+        ax.errorbar(x, y, yerr=st.stdev(v), fmt="^", ms=4.2, color=CIRCUIT, mfc="white", mew=1.0,
+                    elinewidth=0.8, capsize=1.8, zorder=3)
+        ax.annotate(label, (x, y), xytext=off, textcoords="offset points", ha=ha, va="center",
+                    fontsize=6.5, color=CIRCUIT)
     ax.set_xlabel(r"product order at zero rotations, mean $|S_k|$")
     ax.set_ylabel("backbone linear-probe test acc. (%)")
     ax.set_xscale("log")
-    ax.set_xticks([1, 1.5, 2.5, 5.25], ["1", "1.5", "2.5", "5.25"])
+    ax.set_xticks([1, 1.5, 2, 2.5, 3, 5.25], ["1", "1.5", "2", "2.5", "3", "5.25"])
     ax.minorticks_off()
     ax.set_xlim(0.5, 7.0)
     ax.plot([], [], "o", color=CIRCUIT, ms=4.2, label="VQC head")
     ax.plot([], [], "s", color=CLASSICAL, mfc="white", ms=4.2, label="classical head, same products")
     ax.plot([], [], "D", color=CIRCUIT, mfc="white", ms=3.6, label="VQC, second family (out of sample)")
+    ax.plot([], [], "^", color=CIRCUIT, mfc="white", ms=4.2, label="VQC, CZ ring or multi-qubit readout")
     ax.legend(loc="lower left", frameon=False, handletextpad=0.3, borderaxespad=0.2)
     save_fig(fig, "fig1b_probe_vs_order")
 
