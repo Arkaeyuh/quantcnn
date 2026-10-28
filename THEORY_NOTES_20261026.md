@@ -109,3 +109,18 @@ right main-text story.
    version, since a reviewer will ask about the independence assumption.
 3. Make the toy closer to the CNN (BatchNorm before the bottleneck, more classes per readout) only if
    the CNN tests leave the question open.
+
+## Update 2026-10-28: what the CNN tests say (scored in predictions/prospective_predictions.md)
+- **Order is general.** CZ ring (order 1, entangling) ≈ no CNOT; ZZ/ZZZ readouts without entanglement land on the
+  ring-family fit; φ = z (no saturating map) keeps 68% of the order slope. The budget, not the encoding, is the
+  first cause.
+- **The trap is real and order-dependent.** Escape-only straight-through takes S to ≈ 0 in every head and recovers
+  +6.8 (last ring), +1.5 (default), +0.9 (no CNOT). The order cost left with S ≈ 0 (74.5 / 71.3 / 66.9) is the
+  budget component.
+- **Dynamics: saturation is an early state that order prevents escaping.** All heads saturate by epoch 5;
+  no CNOT desaturates to 0.02, high-order heads stall at 0.30 / 0.46. This replaces "high order drives saturation"
+  with "high order blocks desaturation". The extremality argument still applies, since a coordinate inside a
+  high-order product gets attenuated gradient (prop:atten) on top of sech², so it has less signal to leave with.
+- **Main-text story:** order costs signal (proposition), and at high order this cost compounds with the saturation trap
+  (the trap's half, shown causally by the escape-only intervention). Induced saturation (satup) is confounded by lost fit
+  and is not evidence either way.

@@ -252,3 +252,34 @@ This manipulates saturation in the other direction: it is induced in a head that
 - **H_precede (saturation mediates):** on the last ring, the epoch at which S first reaches half its final value comes no later than the epoch at which the probe gap to no CNOT (same seed, same epoch) first reaches half its final value, in ≥ 2 of 3 seeds.
 - **H_budget (middle-zone emptying comes first):** M's half-way drop (relative to no CNOT) precedes S's half-way rise.
 - These are not exclusive. Both are reported, along with the curves.
+
+## Outcomes: mechanism and generality tests (scored 2026-10-28 against the sections above)
+Linear probe on test, lr 1e-2 (selected in the middle of the grid for every tuned cell), 5 seeds unless noted. Paired = same seed against the archived baselines (8-qubit sources only: `backbone`, `circuit`, `entangle`, `cosprod`, `seeds` probe files; the `cifar_dyn` reruns reproduce them to 0.01).
+
+| Test | Result | Verdict |
+|---|---|---|
+| (2) CZ ring | 73.17 vs default 69.77: paired +3.40, 5/5 positive; 0.44 below no CNOT (73.61) | **H_order passes**; H_entanglement fails |
+| (4) readouts | zz 70.29 (fit 70.4), zzz 67.38 (fit 67.3); 73.61 > 70.29 > 67.38 | **H_order-observable passes** |
+| (3) φ = z | 72.54 / 71.67 / 69.80 / 63.71 at orders 1 / 1.5 / 2.5 / 5.25; slope −2.10 (MLP probe −2.02); ordered | **H_order-general passes** (68% of the π·tanh slope; predicted 60–90%) |
+| (1) plain ST, circuits | diverged (probe 23–31) | **inconclusive** (guard fails) |
+| (1) plain ST, product heads | default 67.84 (−0.95 vs 68.79); last ring 60.55 (+5.73) | secondary: last ring passes, default fails |
+| escape-only ST, circuits | S → 0.000–0.001 on all; default +1.48 (5/5), last ring +6.83 (5/5), no CNOT +0.89 (< half of 6.83) | check and guard pass; **H_trap not met as written** (default 0.02 below +1.5); last-ring criterion and specificity pass; not refuted |
+| escape-only ST, product heads | default +2.72 (5/5), last ring +11.34 (5/5) | secondary: **both pass** |
+| (5) induced saturation | k = 2: 59.83 ± 22.2, S 0.403, ratio 1.52; k = 4: 61.50 ± 10.1, S 0.529, ratio 0.80 (reference extrapolated past S = 0.494) | **H_sat-sufficient passes as written, but confounded**: see below |
+
+**Induced saturation, the confound.** No training guard was written for (5). The penalty damaged fit: clean train 71.5 (k = 2) and 72.9 (k = 4) against 96.6 for the baseline, so both would fail the "baseline − 10" guard used in (1). One k = 2 seed (s1) never trained: its backbone gradient fell to ~1e-3 by epoch 10 and the head stayed at chance (probe 20.5). Without that seed, the k = 2 drop is −3.94 and the ratio 0.43. This test therefore cannot separate saturation from lost fit, and it will be reported that way. A rerun would need a guard and a smaller λ, pre-registered as new.
+
+**Reading.** Order carries a probe cost that does not need CNOTs (readouts, CZ), entangling gates (readouts) or a saturating encoding (φ = z). Removing the saturation trap (escape-only ST) removes saturation entirely and recovers about half of the last-ring cost (+6.8 of 13.5) but little of the default ring's (+1.5 of 3.8). With S ≈ 0, the escape-only heads still order by order: 74.50 / 71.25 / 66.93. Saturation therefore amplifies the cost at high order, and the remainder is order itself, as the signal-budget proposition (THEORY_NOTES_20261026.md) and the toy model predict. Against my stated expectations: the escape-only test came out stronger than expected; CZ (73.17), zz, zzz and the φ = z slope landed inside their expected ranges; induced saturation is uninterpretable rather than right or wrong.
+
+**Dynamics (`cifar_dyn`, 3 seeds; `scripts/dynamics_probe.py` → `results/dyn_curves.csv`).** The reruns reproduce the archived per-seed probes exactly. Seed means:
+
+| epoch | no CNOT S | default S | last ring S | default gap | last-ring gap | last-ring M (no CNOT M) |
+|---|---|---|---|---|---|---|
+| 5 | 0.44 | 0.67 | 0.77 | −3.2 | −8.4 | 0.21 (0.51) |
+| 10 | 0.23 | 0.56 | 0.68 | −7.9 | −14.3 | 0.30 (0.69) |
+| 20 | 0.12 | 0.42 | 0.59 | −7.9 | −18.8 | 0.38 (0.80) |
+| 40 | — | 0.34 | 0.48 | −4.9 | −17.2 | 0.48 (0.86) |
+| 80 | 0.02 | 0.30 | 0.46 | −3.6 | −12.7 | 0.48 (0.85) |
+
+- **H_precede and H_budget are not applicable as written.** Both assumed S *rises* with training. Instead, every head saturates early (S ≈ 0.4–0.8 by epoch 5), and the heads then differ in how far they *desaturate*: no CNOT to 0.02, default to 0.30, last ring to 0.46. All half-way epochs fall at the first checkpoint (epoch 5), so the 5-epoch resolution cannot order them. Inconclusive, not refuted.
+- **Descriptive reading (not pre-registered).** The cost comes from failing to leave an early saturated state, not from being driven into saturation. That fits the escape-only result: allowing inward steps removes saturation entirely (S → 0). The probe gap peaks at epochs 15–20 (−7.9 / −18.8) and then partly closes as S slowly falls, so the endpoint gap is a snapshot of an incomplete escape. The middle-zone deficit appears at the same time and persists after S stops falling (last ring M 0.48 vs 0.85), which is where the signal-budget component lives.
