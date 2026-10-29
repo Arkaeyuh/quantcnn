@@ -414,7 +414,13 @@ checkpoint we fit the common linear probe and measured $S$ and $M$ (\cref{tab:dy
 saturates early, and the heads then differ in how far they desaturate. We had pre-registered two
 timing hypotheses that assumed saturation would rise during training (saturation's half-way rise
 preceding the probe gap's, or the middle zone's drop preceding saturation's). Neither applies as
-written: saturation is past its half-way point at the first checkpoint (epoch 5) in every run, while the probe gaps reach half their final size at epoch 5 or 10, so the 5-epoch resolution cannot order them and these tests are inconclusive. The probe
+written: saturation is past its half-way point at the first checkpoint (epoch 5) in every run, while the probe gaps reach half their final size at epoch 5 or 10, so the 5-epoch resolution cannot order them and these tests are inconclusive.
+We then pre-registered a follow-up with a checkpoint after each of epochs 1--10 (same runs, which reproduce
+the 5-epoch checkpoints): the last-ring head's saturation should exceed the ring-free head's by at
+least 0.10 no later than the epoch at which the probe gap first reaches half its maximum, in at least 2
+of 3 seeds. It holds in all three: the saturation gap is already 0.18--0.32 after epoch 1, while the
+probe gap first reaches half its maximum at epochs 8, 2 and 9. Seed-mean saturation peaks after one or
+two epochs, at 0.55 (ring-free), 0.78 (default) and 0.82 (last ring). The probe
 gap peaks at epoch 15 (default) and 35 (last ring) and then partly closes as $S$ slowly falls, consistent with an incomplete escape under this training budget; this agrees with the doubled-budget results of \cref{sec:controls}.
 
 \begin{table}[h]
@@ -454,6 +460,13 @@ seeds, and a ring-free gain below half the last-ring gain. The observed $+1.48$,
 (5 of 5 seeds positive in each) miss the first threshold by 0.02; the refutation condition (gains below
 $+1$ on both circuits) is not met. We had expected weaker results (a default gain of 0 to $+1.5$ and
 saturation falling by less than 30\% on the default circuit).
+Because the default gain missed by so little, we pre-registered a replication on fresh seeds 5--9 with the same design and criteria
+(the unregularized last-ring arm is the retest arm on the same seeds); the seeds 0--4 outcome stands as scored.
+The replication meets every criterion: paired gains of $+3.30\pm3.02$ on the default circuit
+($68.3\to71.6$), $+5.56\pm5.58$ on the last ring ($60.0\to65.6$), each positive in 5 of 5 seeds, and
+$+1.31\pm0.40$ without CNOTs, below half the last-ring gain. Saturation falls to at most $0.0006$ in
+every escape-only head, and clean training accuracy rises in every cell. The MLP probe gives $+2.54$ (default) and $+1.30$ (no CNOT).
+Pooled over the ten seeds, the gains are $+2.39$, $+6.19$ and $+1.10$. We had expected a default gain of about $+1.5\pm1$.
 
 \paragraph{Induced saturation.} To manipulate saturation in the other direction, we added to the
 ring-free circuit's loss a penalty $\lambda\,\mathrm{mean}_{j<k}\,\mathrm{relu}(0.9025-\tanh^2z_j)$ that
