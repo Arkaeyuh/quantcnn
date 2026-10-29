@@ -175,19 +175,22 @@ $\delta\in(0,\tfrac12)$; if the factors are identically distributed, every $j\in
 independence, every $j\in\Sk$ satisfies the bound with $a$ in place of $a^{1/m}$.
 \end{proposition}
 As $m$ grows, $a^{1/m}\to1$, so the inputs of high-order readouts gather at $z\approx0$ or at
-saturation, where a coordinate's factor is locally insensitive to it (\cref{app:budget}). On the trained
+saturation. On the trained
 bottlenecks the middle-zone fraction ($0.1\le|\tanh z|\le0.9$) is 0.84, 0.63 and 0.46 at orders 1, 2.5
 and 5.25, and the lost mass goes to saturation (30--49\% of coordinates for the two ring circuits, 1\%
 without CNOTs), which tracks probe accuracy across the 28 VQC configurations ($\rho=-0.91$; \cref{tab:geometry}).
 
-Saturated coordinates are hard to leave, because $\mathrm{sech}^2$ removes their gradient. Every
+Both ends of the encoding are flat (\cref{prop:flat}, \cref{app:budget}): with $t=|\tanh z|$,
+$|\tfrac{d}{dz}\cos(\pi\tanh z)|\le\pi^2t$ near zero and $\le8\pi^2e^{-4|z|}$ at saturation, the square of $\tanh$'s
+own decay, because $\sin\enc{j}$ vanishes there too; a saturated factor is $-1$ to within $2\pi^2e^{-4|z|}$
+and drops out of its readout. Under \cref{prop:budget}, a high-order readout thus leaves almost every
+input with sensitivity at most $\pi^2\delta$. Every
 head saturates early in training ($S=0.44$--$0.77$ at epoch 5, 3 seeds); the ring-free head then
 desaturates to 0.02, while the default and last-ring heads stall at 0.30 and 0.46 and their probe gaps
 peak at epochs 15 and 35 (\cref{app:dynamics}). We tested this trap with a pre-registered intervention
 that leaves the forward pass unchanged: our escape-only variant of the straight-through estimator \citep{bengio2013}, which, in the backward
 pass only, drops $\mathrm{sech}^2(z_j)$ when the descent step moves $z_j$ toward 0, so saturated
-coordinates can leave while outward steps keep their usual attenuation.\footnote{A plain straight-through estimator made every
-circuit diverge; we redesigned it after seeing this, as the pre-registration states (\cref{app:dynamics}).} It removes saturation in every head (mean $S\le0.005$) and raises
+coordinates can leave while outward steps keep their usual attenuation. (a plain one made every circuit diverge; we redesigned it after seeing this, \cref{app:dynamics}). It removes saturation in every head (mean $S\le0.005$) and raises
 probe accuracy by $6.8\pm2.2$ points on the last-ring circuit and $1.5\pm0.9$ on the default, positive
 in every seed, against $0.9\pm0.5$ without CNOTs (\cref{tab:satmain}). The default gain is 0.02 points
 short of the $+1.5$ we committed, so the hypothesis is not met as written; the last-ring and

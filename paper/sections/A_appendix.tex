@@ -364,6 +364,32 @@ coordinates gather. At $z\approx0$ a coordinate gives $c=+1$, and at saturation 
 $\mathrm{sech}^2z\approx0$. Near either end a coordinate's factor is locally insensitive to it, so graded variation in a high-order support has little effect on the readout. Averaged over a support, the bound gives $\frac1m\sum_j\Pr(\text{middle})\le-\log a/\big(m(1-\cos\pi\delta)\big)$ under independence, so the mean middle-zone mass vanishes as $m$ grows, though a single coordinate need not leave it. The same argument
 holds for any encoding whose factors are bounded by 1 and are flat only at the ends, including $\enc{j}=z_j$, with the zones defined around the extrema of $\cos z$ at multiples of $\pi$.
 
+\begin{proposition}[Flat ends]\label{prop:flat}
+Let $t=|\tanh z|$ and $g(z)=\big|\tfrac{d}{dz}\cos(\pi\tanh z)\big|$. Then $g(z)\le\pi^2t$,
+$g(z)\le2\pi^2(1-t)^2\le8\pi^2e^{-4|z|}$, and $g(z)>\pi\delta\sin\pi\delta$ if $\delta<t<1-\delta$.
+Under the assumptions of \cref{prop:budget} with identically distributed factors,
+$\Pr\big(|\partial r_k/\partial z_j|>\pi^2\delta\big)\le(1-a^{1/m})/(1-\cos\pi\delta)$ for every $j\in\Sk$.
+\end{proposition}
+\begin{proof}[Proof of \cref{prop:flat}]
+$\cos(\pi\tanh z)$ is even in $z$, so take $z\ge0$; then $g(z)=\pi(1-t^2)\sin\pi t$. Near zero,
+$\sin\pi t\le\pi t$ and $1-t^2\le1$, so $g\le\pi^2t$. Near saturation, $\sin\pi t=\sin\pi(1-t)\le\pi(1-t)$ and
+$1-t^2=(1-t)(1+t)\le2(1-t)$, so $g\le2\pi^2(1-t)^2$; and $1-t=2/(e^{2z}+1)\le2e^{-2z}$ gives
+$g\le8\pi^2e^{-4z}$. On $\delta<t<1-\delta$, concavity and symmetry of $\sin\pi t$ on $[0,1]$ give
+$\sin\pi t\ge\sin\pi\delta$, and $1-t^2>1-(1-\delta)^2=\delta(2-\delta)>\delta$. For the last claim,
+$t\le\delta$ gives $g\le\pi^2\delta$ and $t\ge1-\delta$ gives $g\le2\pi^2\delta^2\le\pi^2\delta$ since $\delta<\tfrac12$,
+so $g(z_j)>\pi^2\delta$ only on the middle zone. By \cref{eq:grad} and $|\cos\enc{i}|\le1$,
+$|\partial r_k/\partial z_j|\le g(z_j)$, and \cref{prop:budget} bounds the middle-zone probability.
+\end{proof}
+Two further facts: $1-t\ge e^{-2z}$ for $z\ge0$ gives $\mathrm{sech}^2z=(1-t)(1+t)\ge e^{-2z}$,
+and $1-\cos x\le x^2/2$ with $\cos\pi t=-\cos\pi(1-t)$ gives $|\cos\enc{j}+1|\le\tfrac{\pi^2}{2}(1-t)^2\le2\pi^2e^{-4z}$.
+The flatness at saturation thus has two sources, $\mathrm{sech}^2z$ and $\sin\enc{j}$, each decaying as
+$e^{-2|z|}$. The escape-only estimator of \cref{sec:backbone} removes only the first, so a saturated coordinate's inward gradient still
+decays as $e^{-2|z|}$, the rate of a plain $\tanh$ bottleneck, rather than not at all; it shortens the escape
+rather than making it free. With the non-saturating encoding $\enc{j}=z_j$, $g(z)=|\sin z|$ has no flat tail,
+only isolated zeros at multiples of $\pi$. The bounds concern the readout's local sensitivity, not the loss.
+A coordinate that the budget pushes to either end carries little gradient through its own readouts, but
+the bounds do not show that gradient descent cannot move it there or out again.
+
 \paragraph{Where the trained coordinates sit.} On the test embeddings of the archived heads (CIFAR-10,
 4,000 images, seeds 0--4), the middle-zone fraction $M$ and the mean factor magnitude
 $\mathbb{E}|\cos\enc{j}|$ are 0.84 and 0.61 without CNOTs, 0.63 and 0.73 for the default circuit, and
