@@ -323,3 +323,19 @@ Linear probe on test, lr 1e-2 (selected in the middle of the grid for every tune
 - A head still at a grid edge after the extension step is reported as such, and its comparisons are inconclusive.
 
 **My expectation, stated in advance:** SVHN is easier for this CNN than CIFAR-10 (probe about 85–90%), so the gaps are smaller, closer to MNIST than to CIFAR. Default − no CNOT is about −1.5 to −3, last ring − default about −4 to −10, pairs within 1 of no CNOT, and linear − default about +2 to +4. The ordering holds. The default-ring criterion is the most likely to miss if the gaps compress.
+
+## Outcomes: SVHN (scored 2026-10-29 against the section above)
+**Selection (mean validation accuracy, seeds 0–2):** linear 3e-2 (interior), default ring 3e-3 (interior after extension to 1e-3), last ring 1e-2 (interior), products 3e-3 (interior after extension). **No CNOT and pairs both selected 1e-3, the lowest step tried after the one-step extension, so both are still at a grid edge.** By the pre-registered rule, every comparison involving them is inconclusive.
+
+**Linear probe, 5 seeds at the selected lr (mean ± SD; per seed):** linear 83.00 ± 4.76; no CNOT 81.35 ± 0.92; pairs 82.83 ± 1.08; default ring 55.01 ± 22.77 (77.9, 66.2, 47.1, 19.3, 64.4); last ring 31.50 ± 27.95 (81.5, 19.1, 19.5, 19.2, 18.3); products 68.11 ± 10.10. Mean S: no CNOT 0.03, pairs 0.01, default 0.53, last ring 0.72, products 0.55.
+
+- **H_order-svhn: inconclusive.** Last ring − default = −23.51 ± 24.33 with 4/5 negative, which meets its half. Default − no CNOT = −26.34 ± 22.17 with 5/5 negative, but no CNOT is at an edge.
+- **H_pairs-svhn: inconclusive** because pairs is at an edge. Taken at face value, both parts would pass: pairs − default = +27.82 (5/5), and pairs − no CNOT = +1.48, within 1.5.
+- **H_gap-svhn: passes.** Linear − default = +27.99 ± 20.32, 5/5 positive.
+- **Secondary (products within 2 of the default VQC): misses.** Products − default = +13.10 ± 14.83.
+- **Refutation: not met.** Both gaps are far below −0.5.
+- The MLP probe agrees to within 0.4 points on every contrast.
+
+**My expectation was wrong in kind, not just in size.** I expected compressed gaps (probe 85–90, default − no CNOT −1.5 to −3). Instead the gaps are large and come mostly from **whole-network collapse to the majority class**. A collapsed run has head and probe at 19–20%, so the backbone is dead, not just the head. Collapse at the selected lr is 0/5 for no CNOT and pairs, 1/5 for the default ring, 4/5 for the last ring, and 0/5 for products and linear. It also occurs at higher lrs for every head, linear included (1e-1). On SVHN this recipe sits close to an optimization cliff, and the higher-order heads fall off it more often. This is not the graded representational cost seen on CIFAR-10. Post hoc, not pre-registered: excluding collapsed runs, default − no CNOT is still −5.0, −14.8, −33.5, −17.0 on the four surviving seeds. The single surviving last-ring run (81.5) beats its paired default run (77.9). Linear seeds 3–4 (77.9, 77.8) sit about 8 points below seeds 0–2 without collapsing.
+
+**What this supports:** on SVHN, order-1 heads (no CNOT, pairs) train stably, and the entangling-but-order-1 pairs head matches no CNOT. High-order heads saturate (S 0.53–0.72) and often collapse. **What it does not support:** a graded order cost of the CIFAR-10 kind on SVHN. The no-CNOT and pairs lrs are not bracketed, so the order contrasts cannot be claimed as pre-registered passes.
