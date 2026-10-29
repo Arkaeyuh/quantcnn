@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import torch
 from torch.utils.data import Subset
+from PIL import Image
 from torchvision import datasets, transforms
 
 
@@ -111,14 +112,25 @@ def get_cifar10(
     return train_sub, val_ds
 
 
-class SVHN(datasets.SVHN):
-    """SVHN with the ``train=`` / ``targets`` / ``classes`` interface of MNIST and CIFAR-10, so that
-    ``get_splits`` handles it unchanged (``train=True`` is the official 73,257-image train split)."""
+class SVHN(torch.utils.data.Dataset):
+    """SVHN cropped digits with the ``train=`` / ``targets`` / ``classes`` interface of MNIST and
+    CIFAR-10, so that ``get_splits`` handles it unchanged. Read from ``<root>/svhn_hf/{train,test}.npz``,
+    converted from the Hugging Face mirror ``ufldl-stanford/svhn`` (config ``cropped_digits``; 73,257
+    train and 26,032 test images, labels 0-9) because the original host was unreachable."""
 
     def __init__(self, root, train=True, download=False, transform=None):
-        super().__init__(root, split="train" if train else "test", download=download, transform=transform)
+        d = np.load(f"{root}/svhn_hf/{'train' if train else 'test'}.npz")
+        self.data, self.labels = d["data"], d["labels"]  # (N, 3, 32, 32) uint8, (N,)
         self.targets = self.labels.tolist()
         self.classes = [str(i) for i in range(10)]
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, i):
+        img = Image.fromarray(np.transpose(self.data[i], (1, 2, 0)))
+        return (self.transform(img) if self.transform else img), int(self.labels[i])
 
 
 def get_svhn(

@@ -284,6 +284,29 @@ NIGHT26_ARCH = {
     "cifar_readout": [dict(head="quantum", no_entangle=True, readout=r) for r in ("zz", "zzz")],
 }
 SATUP_WEIGHT = 10.0
+# SVHN (2026-10-29, predictions in predictions/prospective_predictions.md): the headline heads at 4,000 images.
+_S4000 = dict(_C4000, dataset="svhn")
+LR_STEPS = [1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 1.0]
+SVHN_CELLS = [(dict(head="linear"), [1e-2, 3e-2, 1e-1]),
+              (dict(head="quantum", no_entangle=True), NIGHT26_LRS),
+              (dict(head="quantum", entangle_pattern="pairs"), NIGHT26_LRS),
+              (dict(head="quantum"), NIGHT26_LRS),
+              (dict(head="quantum", entangle_last_only=True), NIGHT26_LRS),
+              (dict(head="cosprod"), NIGHT26_LRS)]
+
+
+def _svhn_val_means(opts: dict) -> dict[float, float]:
+    """lr -> mean validation accuracy over seeds 0-2, for every lr of this SVHN cell with all three seeds done."""
+    out = {}
+    for lr in LR_STEPS:
+        v = []
+        for sd in SEEDS:
+            fin = Path("runs") / "protocol_v2" / "svhn" / _slug(dict(_S4000, **opts, lr=lr, seed=sd)) / "final.json"
+            if fin.exists():
+                v.append(json.loads(fin.read_text())["val_acc"])
+        if len(v) == len(SEEDS):
+            out[lr] = sum(v) / len(v)
+    return out
 # Escape-only straight-through (2026-10-27): replaces the diverged pi_tanh_st circuit cells; same design.
 ESC_CELLS = [dict(head="quantum", encoding="pi_tanh_esc"),
              dict(head="quantum", encoding="pi_tanh_esc", entangle_last_only=True),
@@ -570,6 +593,31 @@ def _grid(name: str) -> list[dict]:
         for opts in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
             for sd in SEEDS:
                 items.append(dict(_C4000, head="quantum", **opts, lr=1e-2, seed=sd, save_every=5, save_dense_until=10))
+    elif name == "svhn":
+        for opts, lrs in SVHN_CELLS:
+            for lr in lrs:
+                for sd in SEEDS:
+                    items.append(dict(_S4000, **opts, lr=lr, seed=sd))
+    elif name == "svhn_edge":
+        # One half-decade step beyond the grid for every cell whose best lr (seeds 0-2) is at an edge of the lrs run.
+        for opts, _ in SVHN_CELLS:
+            means = _svhn_val_means(opts)
+            if not means:
+                continue
+            best, tried = max(means, key=means.get), sorted(means)
+            i = LR_STEPS.index(best)
+            step = (LR_STEPS[i - 1] if best == tried[0] and i > 0 else None,
+                    LR_STEPS[i + 1] if best == tried[-1] and i + 1 < len(LR_STEPS) else None)
+            for lr in step:
+                if lr is not None:
+                    for sd in SEEDS:
+                        items.append(dict(_S4000, **opts, lr=lr, seed=sd, _grid="svhn"))
+    elif name == "svhn_seeds":
+        for opts, _ in SVHN_CELLS:
+            means = _svhn_val_means(opts)
+            if means:
+                for sd in EXTRA_SEEDS:
+                    items.append(dict(_S4000, **opts, lr=max(means, key=means.get), seed=sd))
     elif name == "night28":
         for g in ("cifar_esc_rep", "cifar_dyn2"):
             items += [dict(it, _grid=g) for it in _grid(g)]
@@ -765,7 +813,8 @@ def main():
                                          "cifar_mech3_seeds", "cifar_lastring_retest", "cifar_st", "cifar_cz",
                                          "cifar_lin", "cifar_readout", "cifar_satup", "night26", "night26_seeds",
                                          "cifar_esc", "cifar_dyn", "night27",
-                                         "cifar_esc_rep", "cifar_dyn2", "night28"], required=True)
+                                         "cifar_esc_rep", "cifar_dyn2", "night28",
+                                         "svhn", "svhn_edge", "svhn_seeds"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

@@ -306,3 +306,20 @@ Linear probe on test, lr 1e-2 (selected in the middle of the grid for every tune
 **(A) `cifar_esc_rep`, seeds 5–9, linear probe, paired:** default ring 68.30 → 71.60, gain **+3.30 ± 3.02**, 5/5 positive. Last ring 60.04 (retest arm) → 65.60, gain **+5.56 ± 5.58**, 5/5 positive. No CNOT 73.52 → 74.83, gain **+1.31 ± 0.40**, which is below half the last-ring gain (2.78). Manipulation passes: S 0.242 → 0.0001 on the default ring, and ≤ 0.0006 for every escape head. Guard passes: clean train rises in every cell. **H_trap-rep passes on every criterion.** The MLP probe gives +2.54 (default) and +1.30 (no CNOT). Secondary, pooled over 10 seeds: default +2.39, last ring +6.19, no CNOT +1.10. My expectation (default ≈ +1.5 ± 1) was too low.
 
 **(B) `cifar_dyn2`, checkpoints after epochs 1–10:** at epochs 5 and 10 the runs reproduce `cifar_dyn` (S 0.44 for no CNOT at epoch 5). **H_trap-timing passes in 3/3 seeds.** S_last − S_noent ≥ 0.10 already at epoch 1, while the probe gap reaches half its maximum at epochs 8, 2 and 9. Descriptive: the no-CNOT head peaks at S = 0.55 (epoch 2), and the default and last ring at 0.78–0.82 (epochs 1–2). The saturation gap is present from the first epoch, as expected.
+
+## SVHN: the headline heads on a third dataset, predictions written 2026-10-29 10:00 before any run
+**Why:** generality limit 2 (MNIST and CIFAR-10 only). Plan item B4.
+
+**Data:** SVHN cropped digits. The original host was unreachable, so the data come from the Hugging Face mirror `ufldl-stanford/svhn` (`cropped_digits`). It was converted once to `data/svhn_hf/*.npz` and matches the official split sizes (73,257 / 26,032) and class counts. 4,000 stratified training images and 2,000 validation images drawn from the train split; test is the official test split. Augmentation is the CIFAR recipe without horizontal flips.
+
+**Design:** the small CNN and the CIFAR-10/4,000 recipe (80 epochs, clip 2, backbone lr multiplier 0.5, weight decay 1e-4). Six heads: linear; VQC with no CNOT (order 1); pairs after every layer (order 1, entangling); default ring (2.5); ring after the last layer (5.25); classical default products (2.5). Tuning is per head on seeds 0–2, with lrs {3e-3, 1e-2, 3e-2} (linear {1e-2, 3e-2, 1e-1}). Selection is on mean validation accuracy. A head whose best lr is at a grid edge gets one more half-decade step on seeds 0–2 (`svhn_edge`) before selection. Seeds 3–4 then run at the selected lr (`svhn_seeds`). Primary measure: the common linear probe, over 5 seeds at the selected lr; "paired" means same seed. The MLP probe is secondary.
+
+**Criteria:**
+- **H_order-svhn:** default − no CNOT ≤ −1.0 and last ring − default ≤ −1.0 (paired, each negative in ≥ 4 of 5 seeds).
+- **H_pairs-svhn (entangling but order 1):** pairs − default ≥ +1.0 (≥ 4 of 5 positive), and pairs within 1.5 of no CNOT.
+- **H_gap-svhn:** linear − default ≥ +1.0 (≥ 4 of 5 positive).
+- **Secondary:** the default products within 2 points of the default VQC.
+- **Refutation of order on SVHN:** default − no CNOT > −0.5 and last ring − default > −0.5.
+- A head still at a grid edge after the extension step is reported as such, and its comparisons are inconclusive.
+
+**My expectation, stated in advance:** SVHN is easier for this CNN than CIFAR-10 (probe about 85–90%), so the gaps are smaller, closer to MNIST than to CIFAR. Default − no CNOT is about −1.5 to −3, last ring − default about −4 to −10, pairs within 1 of no CNOT, and linear − default about +2 to +4. The ordering holds. The default-ring criterion is the most likely to miss if the gaps compress.
