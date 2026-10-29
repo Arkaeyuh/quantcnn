@@ -76,7 +76,7 @@ MECH_HEAD_LR = {"linear": 3e-2, "quantum": 1e-2}
 MECH_BACKBONE_LRS = [2.5e-3, 5e-3, 1.5e-2, 3e-2, 6e-2]
 EXTRA_SEEDS = [3, 4]
 # (source grid, probe head key, run options) for the cells that get seeds 3-4.
-DEFAULT_EPOCHS = {"mnist": 50, "cifar10": 80}
+DEFAULT_EPOCHS = {"mnist": 50, "cifar10": 80, "svhn": 80}
 # Pretrained ImageNet ResNet-18 fine-tuned at 128 px; backbone lr 0.1x head lr.
 _PRETRAINED = dict(dataset="cifar10", train_subset_size=4000, mlp_hidden=None, epochs=30, gradient_clip_norm=2.0,
                    backbone="resnet18_pt", lr_backbone_multiplier=0.1)

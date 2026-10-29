@@ -60,7 +60,7 @@ def _head_key(meta: dict) -> str:
     head += f"+init{meta['vqc_init_scale']:.3g}" if meta.get("vqc_init_scale", 0.1) != 0.1 else ""
     head += f"+{meta['bottleneck_reg']}{meta['reg_weight']:g}" if meta.get("bottleneck_reg", "none") != "none" else ""
     pretrained = meta.get("backbone") not in (None, "mnist", "cifar10")
-    head += f"+ep{meta['epochs']}" if meta["epochs"] != {"mnist": 50, "cifar10": 80}[meta["dataset"]] and not pretrained else ""
+    head += f"+ep{meta['epochs']}" if meta["epochs"] != {"mnist": 50, "cifar10": 80, "svhn": 80}[meta["dataset"]] and not pretrained else ""
     head += f"+{meta['backbone']}" if pretrained else ""
     mult = meta.get("lr_backbone_multiplier", 0.5)
     return head + (f"@bblr{meta['lr'] * mult:.3g}" if mult != 0.5 and not pretrained else "")

@@ -111,6 +111,41 @@ def get_cifar10(
     return train_sub, val_ds
 
 
+class SVHN(datasets.SVHN):
+    """SVHN with the ``train=`` / ``targets`` / ``classes`` interface of MNIST and CIFAR-10, so that
+    ``get_splits`` handles it unchanged (``train=True`` is the official 73,257-image train split)."""
+
+    def __init__(self, root, train=True, download=False, transform=None):
+        super().__init__(root, split="train" if train else "test", download=download, transform=transform)
+        self.targets = self.labels.tolist()
+        self.classes = [str(i) for i in range(10)]
+
+
+def get_svhn(
+    subset_size: int | None,
+    seed: int,
+    data_root: str = "./data",
+) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
+    # CIFAR-10 augmentation without horizontal flips (digits are not mirror-symmetric).
+    norm = transforms.Normalize((0.4377, 0.4438, 0.4728), (0.1980, 0.2010, 0.1970))
+    tfm_train = transforms.Compose(
+        [
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomRotation(15),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+            transforms.ToTensor(),
+            norm,
+        ]
+    )
+    tfm_test = transforms.Compose([transforms.ToTensor(), norm])
+    train_ds = SVHN(root=data_root, train=True, download=True, transform=tfm_train)
+    val_ds = SVHN(root=data_root, train=False, download=True, transform=tfm_test)
+    if subset_size is None or subset_size >= len(train_ds):
+        return train_ds, val_ds
+    ids = stratified_indices(np.array(train_ds.targets), subset_size, seed)
+    return Subset(train_ds, ids), val_ds
+
+
 def dataset_num_classes(ds: torch.utils.data.Dataset) -> int:
     base = getattr(ds, "dataset", ds)  # unwrap Subset
     if hasattr(base, "classes"):
@@ -139,7 +174,7 @@ def get_splits(
     ``get_mnist``/``get_cifar10``, so it is identical to the subset of the original
     sweeps for a given seed.
     """
-    loader = get_mnist if dataset == "mnist" else get_cifar10
+    loader = {"mnist": get_mnist, "cifar10": get_cifar10, "svhn": get_svhn}[dataset]
     train_full, test_ds = loader(None, seed, data_root=data_root)
     clean_tfm = test_ds.transform
     cls = type(train_full)

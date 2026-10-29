@@ -51,7 +51,7 @@ FIELDNAMES = [
 
 
 def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    p.add_argument("--dataset", choices=["mnist", "cifar10"], default="mnist")
+    p.add_argument("--dataset", choices=["mnist", "cifar10", "svhn"], default="mnist")
     p.add_argument("--backbone", default=None)
     p.add_argument("--head", choices=["linear", "mlp", "quantum", "cos", "cossin", "cosprod", "cosprod_last", "cosprod_pairs_last",
                                        "cosprod_win2", "cosprod_win3", "cosprod_win4", "cosprod_star2", "cosprod_star3",
