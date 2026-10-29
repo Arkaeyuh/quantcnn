@@ -30,7 +30,7 @@ $W[\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}]_j+b$.
 \section{Trained Circuits against the Product Model}
 \label{app:zeroangle}
 
-The identity is exact only at zero rotations, so we fit an affine map from each trained circuit's
+The identity is guaranteed at zero rotations and generally fails at trained ones, so we fit an affine map from each trained circuit's
 zero-rotation readouts to its trained readouts on half of the validation set and evaluate it on
 the other half (\cref{tab:zeroangle}; a frozen circuit gives $R^2=0.997$). For the default and
 last-ring circuits it recovers 87\% and 90\% of the held-out readout variance, and the bottleneck
@@ -69,7 +69,7 @@ ring-free case.
 \section{Order versus Overlap, and Training Budget}
 \label{app:support}
 
-The pattern also replicates on MNIST with 1,000 images, where we fixed the layouts and wrote the predicted ordering in our log before running them (\cref{app:repro}). Probe accuracy is 96.5 without CNOTs, 95.5
+The pattern also replicates on MNIST with 1,000 images, where we fixed the layouts and wrote the predicted ordering in our log before running them, though it was first committed after them (\cref{app:repro}). Probe accuracy is 96.5 without CNOTs, 95.5
 for pairs after the last layer, 95.1 for the default circuit and 91.6 for a ring after the
 last layer; the small pairs-last advantage over the default is $+0.4\pm0.5$ (5 seeds, 4
 positive); the classical head on the default products probes $0.1\pm0.5$ below the default
@@ -383,9 +383,9 @@ $|\partial r_k/\partial z_j|\le g(z_j)$, and \cref{prop:budget} bounds the middl
 Two further facts: $1-t\ge e^{-2z}$ for $z\ge0$ gives $\mathrm{sech}^2z=(1-t)(1+t)\ge e^{-2z}$,
 and $1-\cos x\le x^2/2$ with $\cos\pi t=-\cos\pi(1-t)$ gives $|\cos\enc{j}+1|\le\tfrac{\pi^2}{2}(1-t)^2\le2\pi^2e^{-4z}$.
 The flatness at saturation thus has two sources, $\mathrm{sech}^2z$ and $\sin\enc{j}$, each decaying as
-$e^{-2|z|}$. The escape-only estimator of \cref{sec:backbone} removes only the first, so a saturated coordinate's inward gradient still
-decays as $e^{-2|z|}$, the rate of a plain $\tanh$ bottleneck, rather than not at all; it shortens the escape
-rather than making it free. With the non-saturating encoding $\enc{j}=z_j$, $g(z)=|\sin z|$ has no flat tail,
+$e^{-2|z|}$. The escape-only estimator of \cref{sec:backbone} removes only the first, so for a cosine-product readout a saturated coordinate's inward gradient still
+decays as $e^{-2|z|}$, the rate of a plain $\tanh$ bottleneck, rather than not at all. This holds for the zero-rotation products only: a trained
+circuit readout can contain a component $\beta_j\sin\enc{j}$, whose surrogate inward gradient tends to $\pi|\beta_j|$ rather than to zero. With the non-saturating encoding $\enc{j}=z_j$, $g(z)=|\sin z|$ has no flat tail,
 only isolated zeros at multiples of $\pi$. The bounds concern the readout's local sensitivity, not the loss.
 A coordinate that the budget pushes to either end carries little gradient through its own readouts, but
 the bounds do not show that gradient descent cannot move it there or out again.
@@ -413,8 +413,7 @@ checkpoint every 5 epochs. These runs reproduce the archived per-seed probes exa
 checkpoint we fit the common linear probe and measured $S$ and $M$ (\cref{tab:dynamics}). Every head
 saturates early, and the heads then differ in how far they desaturate. We had pre-registered two
 timing hypotheses that assumed saturation would rise during training (saturation's half-way rise
-preceding the probe gap's, or the middle zone's drop preceding saturation's). Neither applies as
-written: saturation is past its half-way point at the first checkpoint (epoch 5) in every run, while the probe gaps reach half their final size at epoch 5 or 10, so the 5-epoch resolution cannot order them and these tests are inconclusive.
+preceding the probe gap's, or the middle zone's drop preceding saturation's). Saturation is past its half-way point at the first checkpoint (epoch 5) in every run, while the probe gaps reach half their final size at epoch 5 or 10. The first hypothesis, stated as ``no later than'', is therefore met as written in all three seeds, but only because saturation is already high at the first checkpoint, so it does not establish that saturation comes first; the second cannot be scored at this resolution and is inconclusive.
 We then pre-registered a follow-up with a checkpoint after each of epochs 1--10 (same runs, which reproduce
 the 5-epoch checkpoints): the last-ring head's saturation should exceed the ring-free head's by at
 least 0.10 no later than the epoch at which the probe gap first reaches half its maximum, in at least 2
@@ -449,7 +448,7 @@ Epoch & no CNOT & ring & last & ring & last & last (no CNOT) \\
 \paragraph{Straight-through estimators.} A plain straight-through estimator replaces
 $\mathrm{d}\tanh z/\mathrm{d}z$ by 1 in the backward pass and leaves the forward pass unchanged. On the
 classical product heads it raised the last-ring probe by $5.7$ points and lowered the default products'
-by $1.0$. On every circuit it diverged (head-mean validation accuracy 18--25\%, backbone gradient norm up to $2.4\times10^4$): a sinusoidal component $\beta_j\sin\enc{j}$ of a circuit readout keeps a gradient of order $\pi\beta_j$ at saturation while its forward value is flat, which can drive $z_j$ further out without any change in the loss; we take this as the likely cause.
+by $1.0$. On every circuit it diverged (head-mean validation accuracy 18--25\%, backbone gradient norm up to $2.4\times10^4$): a sinusoidal component $\beta_j\sin\enc{j}$ of a circuit readout keeps a gradient of order $\pi\beta_j$ at saturation while its forward value is flat, which can drive $z_j$ further out with only an exponentially small change in the loss; we take this as the likely cause.
 Under the committed training guard these cells are inconclusive. After seeing this we pre-registered
 the escape-only estimator, which uses $\mathrm{d}\tanh z/\mathrm{d}z=1$ only when the descent step
 moves $z$ toward 0 and $\mathrm{sech}^2z$ otherwise, per sample and coordinate. Its manipulation check
@@ -464,7 +463,7 @@ Because the default gain missed by so little, we pre-registered a replication on
 (the unregularized last-ring arm is the retest arm on the same seeds); the seeds 0--4 outcome stands as scored.
 The replication meets every criterion: paired gains of $+3.30\pm3.02$ on the default circuit
 ($68.3\to71.6$), $+5.56\pm5.58$ on the last ring ($60.0\to65.6$), each positive in 5 of 5 seeds, and
-$+1.31\pm0.40$ without CNOTs, below half the last-ring gain. Saturation falls to at most $0.0006$ in
+$+1.31\pm0.40$ without CNOTs, below half the last-ring gain. Seed-mean saturation falls to at most $0.0006$ in
 every escape-only head, and clean training accuracy rises in every cell. The MLP probe gives $+2.54$ (default) and $+1.30$ (no CNOT).
 Pooled over the ten seeds, the gains are $+2.39$, $+6.19$ and $+1.10$. We had expected a default gain of about $+1.5\pm1$.
 
