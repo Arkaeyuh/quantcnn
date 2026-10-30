@@ -452,3 +452,12 @@ For every VQC and products run on SVHN (grids `svhn`, `svhn_seeds` and the new `
   - last ring − no CNOT = 3.
 - **Where the order comes from:** it is carried entirely by the last ring. The default ring does not collapse more often than no CNOT. Its non-collapsed runs are poor, though: validation accuracy 0.26–0.40, against 0.61–0.86 for no CNOT.
 - **Against my expectation:** no CNOT and pairs collapsed 2/6 each, above my expected 0–1.
+
+**Addendum (2026-10-30, after claim audit run 6; not pre-registered).**
+- **What was wrong with the committed measurement:** `scripts/init_gradients.py` evaluated the untrained network with BatchNorm in eval mode. The untouched running statistics (mean 0, variance 1) shrink the bottleneck to near zero, which is not the "network as in training" the prediction described. Training uses batch statistics.
+- **Rerun with batch statistics** (`--train_mode`, batches of 32; `results/init_gradients_svhn_trainbn.csv`):
+  - The bottleneck is wider: mean |tanh z| 0.23, z SD 0.32, c 0.60 (inside my expected 0.3–0.7).
+  - J/Ĵ by seed-mean: no CNOT 1.01, pairs 0.99, default 0.94, last ring 1.02. Per seed: 0.89–1.13.
+  - J: no CNOT 23.6, pairs 23.3, default 24.8, last ring 16.7.
+  - The last ring is lowest in 5/5 seeds. The default ring is above no CNOT in 4/5 seeds.
+- **How this changes the scores:** under the measurement the prediction intended, H_init-match would pass and H_init-order would still fail, because default ≈ no CNOT. The scored outcomes above stand as committed (both FAIL). This rerun is reported as a post-hoc correction of the measurement.

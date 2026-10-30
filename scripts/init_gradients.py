@@ -31,15 +31,18 @@ LAYOUTS = {"noent": (False, [[k] for k in range(8)]),
            "last": ("last", cnot_ring_supports(8, 4, last_only=True))}
 
 
-def measure(dataset: str, layout: str, seed: int, val_size: int = 2000) -> dict:
+def measure(dataset: str, layout: str, seed: int, val_size: int = 2000, train_mode: bool = False) -> dict:
     set_seed(seed)
     splits = get_splits(dataset, 4000, seed, val_size, data_root="./data")
     ent, supports = LAYOUTS[layout]
     model = HybridClassifier(num_classes=dataset_num_classes(splits["train"]), bottleneck_dim=8, backbone="cifar10",
-                             head="quantum", in_channels=3, quantum_sim="torch", entangle=ent).eval()
+                             head="quantum", in_channels=3, quantum_sim="torch", entangle=ent)
+    # eval mode (the pre-registered measurement) normalizes with the untouched BatchNorm running statistics;
+    # train mode uses batch statistics over batches of 32, as the first training steps do
+    model.train(train_mode)
     xs = torch.stack([splits["val"][i][0] for i in range(len(splits["val"]))])
     with torch.no_grad():
-        z = torch.cat([model.backbone(x) for x in xs.split(256)]).double()
+        z = torch.cat([model.backbone(x) for x in xs.split(32 if train_mode else 256)]).double()
     vqc = model.head.vqc
     zr = z.clone().float().requires_grad_(True)
     r = vqc(zr)  # (n, 8) readouts <Z_k>
@@ -48,7 +51,7 @@ def measure(dataset: str, layout: str, seed: int, val_size: int = 2000) -> dict:
     c = torch.cos(phi).pow(2).mean(0)
     g = (math.pi ** 2 * torch.cosh(z).pow(-4) * torch.sin(phi).pow(2)).mean(0)
     J_hat = sum(g[j] * math.prod(c[i] for i in S if i != j) for S in supports for j in S)
-    return dict(dataset=dataset, layout=layout, seed=seed, order=sum(map(len, supports)) / 8, J=J.mean().item(),
+    return dict(dataset=dataset, layout=layout, seed=seed, bn_mode="train" if train_mode else "eval", order=sum(map(len, supports)) / 8, J=J.mean().item(),
                 J_hat=float(J_hat), c_mean=c.mean().item(), abs_tanh_mean=torch.tanh(z).abs().mean().item(),
                 z_sd=z.std().item())
 
@@ -58,8 +61,9 @@ def main():
     ap.add_argument("--dataset", default="svhn")
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ap.add_argument("--out", required=True)
+    ap.add_argument("--train_mode", action="store_true", help="BatchNorm batch statistics (post-hoc check)")
     a = ap.parse_args()
-    rows = [measure(a.dataset, lay, sd) for lay in LAYOUTS for sd in a.seeds]
+    rows = [measure(a.dataset, lay, sd, train_mode=a.train_mode) for lay in LAYOUTS for sd in a.seeds]
     with open(a.out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader()
