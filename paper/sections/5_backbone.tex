@@ -40,7 +40,7 @@ Order also carries over to layouts it was not fit on. For six CNOT layouts outsi
 family, chosen by order alone, we predicted probe accuracy from the ring-family fit before
 training. The association holds (Spearman $-0.89$, against a threshold of $-0.8$ set in advance;
 five of six within 4 points), with two rank reversals. The largest miss, brickwork at 5 points
-above its prediction, is the layout trained furthest from its product model. Order extends to any
+above its prediction, is the layout trained furthest from its product model. Order extends beyond zero
 rotations: expanding each readout operator $U(\theta)^\dagger Z_kU(\theta)=\sum_Pc_PP$ in Pauli strings,
 the \emph{effective order} is the $c_P^2$-weighted mean number of inputs touched by the strings visible on
 the encoded state, which equals $\order$ at $\theta=0$ (\cref{app:efforder}). At its trained rotations
@@ -144,8 +144,8 @@ stays within 0.5 points of linear (seeds 0--2; \cref{tab:ptbudget}); re-selectin
 rates gives similar costs. Training budget therefore
 accounts for much of the size dependence, though the two are not fully separated.
 
-High-order heads are unstable here (\cref{app:ptcontrols}). Pre-registered tests keep the ordering in every seed
-(\cref{app:extensions}): on SVHN (default $12.8\pm3.8$ below ring-free, 10 seeds), with data re-uploading, and on a
+High-order heads are unstable here (\cref{app:ptcontrols}); pre-registered tests keep the ordering in every seed
+(\cref{app:extensions}): on SVHN (10 seeds), with data re-uploading, and on a
 pretrained MobileNetV3-Small, where the cost is small (default $1.6\pm0.8$ below linear) and one criterion misses.
 
 \subsection{Why order costs: a signal budget and a saturation trap}
@@ -177,7 +177,7 @@ without CNOTs), which tracks probe accuracy across the 28 VQC configurations ($\
 
 Both ends of the encoding are flat (\cref{prop:flat}): with $t=|\tanh z|$,
 $|\tfrac{d}{dz}\cos(\pi\tanh z)|\le\pi^2t$ near zero and $\le8\pi^2e^{-4|z|}$ at saturation, the square of $\tanh$'s
-decay, because $\sin\enc{j}$ vanishes there too. Under \cref{prop:budget} with fixed $a$ and $\delta$, the probability that an
+decay, because $\sin\enc{j}$ vanishes there too. Under \cref{prop:budget} with identically distributed factors and fixed $a$ and $\delta$, the probability that an
 input's sensitivity exceeds $\pi^2\delta$ vanishes as order grows. Every
 head saturates early in training ($S=0.44$--$0.77$ at epoch 5, 3 seeds); the ring-free head then
 desaturates to 0.02, while the default and last-ring heads stall at 0.30 and 0.46 and their probe gaps

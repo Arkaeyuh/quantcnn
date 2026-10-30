@@ -60,7 +60,7 @@ First, on the small CNN the products, even after remapping, lose task-relevant d
 accuracy drops by 6--12 points (by under 1 point on the pretrained backbone). Second, gradient alignment depends on the remapping: with the trained
 readout applied directly to the zeroed circuit, the median loss-gradient cosine is 0.59 for
 the default circuit, and $-0.08$ for its seed 4 (0.96 after remapping); after remapping it is
-0.79--0.87 for every entangling small-CNN circuit in this table (0.91--0.98 on the pretrained backbone), with 3--7\% of samples negative on average (18\% in
+0.79--0.87 for every trained entangling small-CNN circuit in this table (0.91--0.98 on the pretrained backbone), with 3--7\% of samples negative on average (18\% in
 the worst run). Zeroing the
 rotations without remapping costs 14--23 accuracy points on average for the two ring circuits
 and 31--43 for the pairs and CNOT-free circuits, which mostly reflects the unrefitted readout. Low-order circuits drift further, as \cref{sec:sinusoid} explains for the
@@ -317,7 +317,7 @@ Third, the same anti-saturation penalty on the 8-qubit circuits passes its manip
 (saturation 0.30 to 0.002 and 0.49 to 0.005, against thresholds of 0.18 and 0.30), improves fit, and
 raises probe accuracy on the default and last-ring circuits, positive in every seed under the linear
 probe, as predicted, with a small gain on the ring-free circuit ($+0.6\pm0.8$, within the specificity
-criterion); the MLP probe gives $+1.6$, $+7.7$ and $+0.4$ (one negative default seed). The gains recover
+criterion); the MLP probe gives $+1.6$, $+7.7$ and $+0.4$ against its extended-grid baselines (one negative default seed). The gains recover
 about 44\% and 59\% of the two circuits' gaps to the unregularized ring-free head; the rest remains
 unexplained, and the refutation condition (gains below $+1$ on both) is not met.
 
@@ -490,12 +490,12 @@ not comparable to the $\pi\tanh$ heads', because nothing bounds the scale of $z$
 
 \input{figures/tableA_effective_order}
 
-Product order is defined at zero rotations. \Cref{tab:efforder} extends it to any rotations by
+Product order is defined at zero rotations. \Cref{tab:efforder} extends it to any rotations with a nonzero readout by
 expanding each readout operator in Pauli strings and counting, with weight $c_P^2$, the inputs
 that each string visible on the encoded state touches; the test suite checks that the expansion
 reproduces the simulator's readouts and input dependences exactly, and that it equals
 \cref{eq:identity} at $\theta=0$. Three observations follow. First, layouts with a single
-CNOT layer after the last rotations cannot change their effective order at any rotations,
+CNOT layer after the last rotations cannot change their effective order at any rotations where the readout is nonzero,
 because single-qubit rotations do not change which qubits a string acts on; only every-layer
 layouts can move, and of these brickwork moves most, from 3.5 to 2.6 at its trained rotations,
 below the distance-2 ring's 3.0, which restores that pair's probe ranking and shrinks its
@@ -538,7 +538,7 @@ bit-identical, while the frozen circuit and the products head, whose outputs agr
 \section{SVHN, Data Re-uploading and a Second Pretrained Backbone}
 \label{app:extensions}
 
-Three further tests had predictions and pass criteria committed before their runs (\cref{tab:extensions}).
+Three further tests had predictions and pass criteria committed before their additional runs (\cref{tab:extensions}); as committed, the second SVHN test reuses the first test's runs wherever a head's selected rate is unchanged (20 of its 60 scored runs).
 Each head's learning rate was selected on the mean validation accuracy of seeds 0--2, with one half-decade
 step added at any grid edge; every selected rate is interior. The primary measure is the common linear
 probe; the MLP probe changes no verdict.
@@ -557,17 +557,17 @@ circuit, within the committed two points.
 
 \paragraph{Data re-uploading.} With the encoding applied before each of the four variational layers the
 zero-rotation identity no longer holds, and we predicted only that the single-encoding ordering would
-carry over. It does: default $-$ no CNOT $-10.0\pm3.2$ and last ring $-$ default $-9.7\pm7.2$ (every seed
+carry over. It does: default $-$ no CNOT $-10.0\pm3.2$ and last ring $-$ default $-9.7\pm7.1$ (every seed
 negative), and the four layouts rank exactly by their single-encoding orders (Spearman $-1$). Re-uploading
 lowers every layout against its single-encoding counterpart (unpaired; no CNOT $-5.6$, pairs after the
-last layer $-5.0$, default $-11.8$, last ring $-11.8$), the entangled layouts about twice as much, and
+last layer $-4.9$, default $-11.8$, last ring $-11.8$), the two ring layouts about twice as much, and
 saturation again rises with order.
 
 \paragraph{MobileNetV3-Small.} On a second ImageNet-pretrained backbone, with the ResNet-18 recipe, the
-direction repeats but the cost is much smaller. The pairs circuit is $1.5\pm0.6$ above the default and
-$0.6\pm0.6$ above the ring-free head, and the linear head $1.6\pm0.8$ above the default, every seed (pass).
+direction repeats but the cost is much smaller. The pairs circuit is $1.5\pm0.6$ above the default and the linear head $1.6\pm0.8$ above it, every seed, and
+pairs is $0.6\pm0.6$ above the ring-free head (4 of 5 seeds; pass).
 The order test fails on one part: default $-$ no CNOT is $-0.9\pm1.0$, negative in every seed but short of
-the committed $-1.0$, while last ring $-$ default is $-5.5\pm5.9$ (every seed). The default circuit
+the committed $-1.0$, while last ring $-$ default is $-5.5\pm5.8$ (every seed). The default circuit
 saturates little on this backbone ($S=0.13$, against 0.30--0.49 for ring circuits on the small CNN).
 
 \input{figures/tableA_extensions}
@@ -724,7 +724,7 @@ entangling example of \cref{app:identity}, the equality of the zero-rotation cir
 products head, and the effective-order expansion of \cref{app:efforder} against the simulator.
 The predicted orderings for the MNIST replication and the predictions and pass criteria for the
 second family of layouts were written in the project's log before those runs; the log entries are
-copied verbatim into the repository, whose first timestamp for them postdates the runs. The
+copied verbatim into the repository, whose first timestamp for them postdates the runs, so the earlier dates are our own report. The
 predictions for the two encoding arms (\cref{app:encoding,app:phase}) were committed before their runs. Seeds control
 data subsets, initialization and data order. Experiments ran on one Apple M3 Max. The reviews
 and the claim and citation audits of this paper were run with the ARIS workflow
