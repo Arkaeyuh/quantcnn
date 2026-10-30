@@ -666,6 +666,9 @@ def _grid(name: str) -> list[dict]:
         for (opts, _), key in zip(SVHN_CELLS, ["linear", "noent", "pairs", "default", "entlast", "cosprod"]):
             for lr in SVHN_EXT[key]:
                 items += [dict(_S4000, **opts, lr=lr, seed=sd, _grid="svhn") for sd in SEEDS]
+    elif name == "svhn_collapse":
+        # Collapse by order at an lr not run before (2026-10-30, predictions in predictions/prospective_predictions.md).
+        items += [dict(_S4000, **opts, lr=5e-3, seed=sd) for opts, _ in SVHN_CELLS[1:5] for sd in range(6)]
     elif name == "cifar_reup":
         items += [dict(_C4000, **opts, lr=lr, seed=sd) for opts in REUP_CELLS for lr in NIGHT26_LRS for sd in SEEDS]
     elif name == "cifar_mnv3":
@@ -880,7 +883,7 @@ def main():
                                          "cifar_esc_rep", "cifar_dyn2", "night28",
                                          "svhn", "svhn_edge", "svhn_seeds",
                                          "svhn_ext", "cifar_reup", "cifar_mnv3", "night29a", "night29b",
-                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds"], required=True)
+                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds", "svhn_collapse"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

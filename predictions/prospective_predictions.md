@@ -403,3 +403,31 @@ Probe: linear 86.08±0.63, no CNOT 85.40±0.58 (S .18), pairs 86.04±0.33 (S .15
 - **H_gap-mnv3: PASS.** linear − default +1.56 (5/5); |linear − no CNOT| = 0.68 ≤ 1.0.
 - **Refutation: not met** (both differences are below −0.5).
 - **Against my expectation:** the pattern's direction repeats, but it is much weaker than on the ResNet-18 and than I predicted (default 1.6 below linear vs my 3–8; last ring 7.1 below vs 10–20). The pretrained MobileNet saturates the default VQC far less (S .13).
+
+## SVHN collapse: sensitivity at initialization, gradient death and order, predictions written 2026-10-30 12:54 before any run or measurement
+**Why:** the first SVHN test's gaps were driven by collapse to the majority class (head validation accuracy < 25%). The open question is whether product order causes it.
+**What I have already seen (disclosed):**
+- **Collapse counts:** while planning this, I printed the collapse counts by head and lr for the existing SVHN runs (`runs/protocol_v2/svhn*`). Collapse there is mostly a learning-rate effect: at 1e-2 the no-CNOT head collapses 3/3, at 3e-3 only default 1/5 and last ring 1/3, at 3e-2 everything. So I make no predictions about collapse counts on those runs.
+- **Per-epoch logs:** while locating the data I opened one collapsed run's per-epoch log (default, lr 1e-2, seed 0). Its backbone gradient norm fell from 0.43 at epoch 1 to 0.08 at epoch 2.
+- **Not looked at:** the per-epoch logs of all other runs, and any measurement at initialization.
+
+**Theory (lemma):** at zero rotations with independent coordinates, differentiating `eq:identity` gives, for j ∈ S_k,
+E[(∂⟨Z_k⟩/∂z_j)²] = π² E[sech⁴ z_j sin² φ_j] ∏_{i∈S_k∖{j}} c_i, with c_i = E[cos² φ_i] ≤ 1.
+So each input's readout sensitivity is attenuated by a product of |S_k|−1 factors c_i. Summing over readouts gives the predicted total sensitivity Ĵ = Σ_k Σ_{j∈S_k} π² E[sech⁴ z_j sin² φ_j] ∏_{i∈S_k∖{j}} c_i, computed from the empirical marginals of the initial bottleneck.
+
+### (1) Sensitivity at initialization (`scripts/init_gradients.py`, SVHN, seeds 0–4, validation split, network built exactly as in training)
+J = the sample mean of Σ_k Σ_j (∂⟨Z_k⟩/∂z_j)², measured with autograd through the circuit at its initialized rotations (U(−0.1, 0.1)). Layouts: no CNOT, pairs, default ring, last ring.
+- **H_init-match:** for every layout, the seed-mean J / Ĵ lies in [0.75, 1.33].
+- **H_init-order:** J(no CNOT) > J(default) > J(last ring) in every one of the 5 seeds.
+- **My expectation:** c between 0.3 and 0.7; ratios within 10%; the order holds.
+
+### (2) Collapse as gradient death (existing and new SVHN runs, per-epoch `backbone_gnorm`)
+For every VQC and products run on SVHN (grids `svhn`, `svhn_seeds` and the new `svhn_collapse`), define ρ = the mean backbone gradient norm over epochs 2–10 divided by its epoch-1 value.
+- **H_gdeath:** the AUC of −ρ for separating collapsed from non-collapsed runs is ≥ 0.9, and the median ρ of collapsed runs is ≤ 0.5 × the median ρ of non-collapsed runs.
+- **Refutation:** AUC ≤ 0.6.
+
+### (3) Collapse by order at an untried lr (`svhn_collapse`: lr 5e-3, seeds 0–5; no CNOT, pairs, default ring, last ring; SVHN recipe)
+- **H_collapse-order:** collapse counts (of 6) satisfy no CNOT ≤ default ≤ last ring and pairs ≤ default, with last ring − no CNOT ≥ 2.
+- **Refutation:** count(no CNOT) ≥ count(last ring).
+- **Inconclusive** if all 24 runs collapse or none do.
+- **My expectation:** no CNOT 0–1, pairs 0–1, default 2–4, last ring 3–5.
