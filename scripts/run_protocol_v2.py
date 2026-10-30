@@ -619,6 +619,13 @@ def _grid(name: str) -> list[dict]:
         for opts in ESC_CELLS:
             for sd in ALL_SEEDS:
                 items.append(dict(_C4000, **opts, lr=1e-2, seed=sd))
+    elif name == "cifar_escgate":
+        # Saturation-gated escape-only control (2026-10-30 predictions): the inward boost only on saturated
+        # (|tanh z| > 0.9) or only on unsaturated coordinates, three ring-family layouts, seeds 0-4.
+        for enc in ("pi_tanh_escsat", "pi_tanh_escmid"):
+            for lay in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
+                for sd in ALL_SEEDS:
+                    items.append(dict(_C4000, head="quantum", encoding=enc, **lay, lr=1e-2, seed=sd))
     elif name == "cifar_dyn":
         # Training dynamics (plan A5): the three ring-family baselines, checkpoints every 5 epochs.
         for opts in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
@@ -880,7 +887,7 @@ def main():
                                          "cifar_mech3_seeds", "cifar_lastring_retest", "cifar_st", "cifar_cz",
                                          "cifar_lin", "cifar_readout", "cifar_satup", "night26", "night26_seeds",
                                          "cifar_esc", "cifar_dyn", "night27",
-                                         "cifar_esc_rep", "cifar_dyn2", "night28",
+                                         "cifar_esc_rep", "cifar_dyn2", "night28", "cifar_escgate",
                                          "svhn", "svhn_edge", "svhn_seeds",
                                          "svhn_ext", "cifar_reup", "cifar_mnv3", "night29a", "night29b",
                                          "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds", "svhn_collapse"], required=True)

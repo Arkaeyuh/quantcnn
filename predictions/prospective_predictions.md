@@ -521,3 +521,29 @@ Data: 61 runs, 13 cells; cell values are seed means.
 - **Readouts of order ≥ 4:**
   - E|r_k| (cell means of the smallest such readout) is 0.16–0.24, and 0.02 for the order-8 readout of star_in_last.
   - The bound with that a is non-vacuous only for δ above 0.20–0.29 (cell means), and at most 0.31 in any run.
+
+## Saturation-gated escape-only control, predictions written 2026-10-30 before any run
+**Why:** kill-argument run 3 (2026-10-30) left one point unresolved. Escape-only (`pi_tanh_esc`) drops sech² on every inward step, not only on saturated coordinates: the boost is 1/(1−t²), 1.33× at |tanh z| = 0.5 and 5.3× at 0.9. So its gain does not show that releasing *saturated* coordinates is the route.
+
+**What I have already seen (disclosed):** the full escape-only results on seeds 0–4 (`results/esc_probe.csv`) and the plain baselines.
+- Paired linear-probe gains: last ring +6.8 ± 2.2, default +1.5 ± 0.9, no CNOT +0.9 ± 0.5.
+- Escape-only probes: 74.5, 71.3 and 66.9.
+
+**Design (`cifar_escgate`, CIFAR-10/4,000, small CNN, recipe as `cifar_esc`, lr 1e-2, seeds 0–4):**
+- **Variants:** two gated versions of escape-only (`GatedEscapeTanh`). The inward step drops sech² only where |tanh z| > 0.9 (`pi_tanh_escsat`, saturated-only) or only where |tanh z| ≤ 0.9 (`pi_tanh_escmid`, unsaturated-only). Elsewhere the true gradient is kept.
+- **Layouts:** no CNOT, default ring and last ring. 30 runs in total.
+- **Primary measure:** common linear probe (test).
+- **Gains:** gain_sat and gain_mid are paired by seed against the plain baseline of the same layout and seeds, as in the escape-only test. "Full" means the escape-only gains above.
+
+**Hypotheses:**
+- **H_sat-route:** saturated-only recovers most of the last-ring gain: gain_sat(last) ≥ 4.5 (two thirds of 6.8), positive in ≥ 4 of 5 seeds.
+- **H_mid-small:** unsaturated-only recovers little: gain_mid(last) ≤ 2.3 (one third of 6.8), and gain_sat(last) > gain_mid(last) in ≥ 4 of 5 seeds.
+- **Secondary:**
+  - default ring: gain_sat ≥ 0.75 (half of 1.5);
+  - no CNOT: both gains ≤ 1.5;
+  - saturation S of each variant;
+  - clean training accuracy, to check whether fit tracks the gains.
+- **Refutation (saturation is not the route):** gain_mid(last) ≥ gain_sat(last), or gain_sat(last) ≤ 2.3.
+- **Otherwise:** mixed, and reported as such.
+
+**My expectation:** saturated-only gives 4–7 points on the last ring with S well below the plain head's but above full escape-only's ≈ 0. Coordinates that escape below 0.9 lose the boost and may drift back. Unsaturated-only gives 0–2.

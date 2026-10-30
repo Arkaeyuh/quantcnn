@@ -42,7 +42,8 @@ import torch
 import torch.nn as nn
 
 
-ENCODINGS = ("pi_tanh", "half", "half_sym", "phase", "pi_tanh_st", "lin", "pi_tanh_esc")
+ENCODINGS = ("pi_tanh", "half", "half_sym", "phase", "pi_tanh_st", "lin", "pi_tanh_esc", "pi_tanh_escsat",
+             "pi_tanh_escmid")
 READOUTS = {"z": 1, "zz": 2, "zzz": 3}  # readout -> weight of the measured Z string
 PATTERNS = ("ring", "pairs", "chain", "brick", "star", "star_in", "ladder2")
 class EscapeTanh(torch.autograd.Function):
@@ -59,6 +60,25 @@ class EscapeTanh(torch.autograd.Function):
     def backward(ctx, g):
         x, t = ctx.saved_tensors
         return torch.where(g * x > 0, g, g * (1 - t * t))
+
+
+class GatedEscapeTanh(torch.autograd.Function):
+    """``EscapeTanh`` restricted by saturation (2026-10-30 control): the inward step drops sech^2 only where
+    |tanh z| > 0.9 (``sat=True``) or only where |tanh z| <= 0.9 (``sat=False``); elsewhere sech^2 is kept."""
+
+    @staticmethod
+    def forward(ctx, x, sat):
+        t = torch.tanh(x)
+        ctx.save_for_backward(x, t)
+        ctx.sat = sat
+        return t
+
+    @staticmethod
+    def backward(ctx, g):
+        x, t = ctx.saved_tensors
+        saturated = t.abs() > 0.9
+        boost = (g * x > 0) & (saturated if ctx.sat else ~saturated)
+        return torch.where(boost, g, g * (1 - t * t)), None
 
 
 ENTANGLE = (True, False, "last", "cz", "cz_last") + tuple(p for name in PATTERNS[1:] for p in (name, f"{name}_last"))
@@ -194,6 +214,8 @@ class TorchStatevectorVQC(nn.Module):
             phi = math.pi * (torch.tanh(x).detach() + x - x.detach())
         elif self.encoding == "pi_tanh_esc":
             phi = math.pi * EscapeTanh.apply(x)
+        elif self.encoding in ("pi_tanh_escsat", "pi_tanh_escmid"):
+            phi = math.pi * GatedEscapeTanh.apply(x, self.encoding == "pi_tanh_escsat")
         elif self.encoding == "lin":
             phi = x
         elif self.encoding == "half":

@@ -109,7 +109,7 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
     p.add_argument("--reg_weight", type=float, default=0.0)
     p.add_argument(
         "--encoding",
-        choices=["pi_tanh", "half", "half_sym", "phase", "pi_tanh_st", "lin", "pi_tanh_esc"],
+        choices=["pi_tanh", "half", "half_sym", "phase", "pi_tanh_st", "lin", "pi_tanh_esc", "pi_tanh_escsat", "pi_tanh_escmid"],
         default="pi_tanh",
         help="Quantum head angle map (torch sim only): pi*tanh z; (pi/2)*tanh z + pi/2 (monotone "
         "under <Z>); (pi/2)*tanh z; or phase: H then RZ(pi*tanh z).",
