@@ -1,0 +1,71 @@
+\documentclass[11pt,letterpaper]{article}
+
+% Publication-neutral, single-column research preprint.
+% The original ICML manuscript remains in main.tex.
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb,amsfonts,amsthm,mathtools}
+\usepackage{braket}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,shapes.geometric}
+
+% Preserve the paper's existing \citep and \citet calls.
+% plainnat prints author--year citations and an author--year bibliography.
+\usepackage[authoryear,round]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage[capitalize,noabbrev]{cleveref}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\input{math_commands}
+
+\title{Products of Cosines: How the Entangling Layers of Quantum Classifier Heads\\
+Shape the CNN Representations Trained Through Them}
+% Set the public-facing author and affiliation before distribution.
+\author{Alexander Greene}
+\date{Research preprint \textemdash\ October 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\input{sections/0_abstract}
+\end{abstract}
+
+\noindent\textbf{Keywords:} Quantum Machine Learning; Variational Quantum Circuits;
+Representation Learning; Hybrid Models.
+
+\input{sections/1_introduction}
+\input{sections/2_related_work}
+\input{sections/3_setup}
+\input{sections/4_tuning}
+\input{sections/5_backbone}
+\input{sections/6_discussion}
+\input{sections/7_conclusion}
+
+% Retained verbatim from the ICML manuscript for research-content parity.
+\section*{Impact Statement}
+This paper presents work whose goal is to advance the field of Machine Learning, specifically
+the evaluation of hybrid quantum--classical classifiers. Its practical consequence is
+methodological: comparisons between quantum and classical heads should tune each head
+separately and measure the representation the head induces. There are many potential
+societal consequences of our work, none which we feel must be specifically highlighted here.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\clearpage
+\appendix
+\input{sections/A_appendix}
+
+\end{document}
