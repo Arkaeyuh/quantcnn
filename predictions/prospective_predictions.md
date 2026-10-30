@@ -431,3 +431,24 @@ For every VQC and products run on SVHN (grids `svhn`, `svhn_seeds` and the new `
 - **Refutation:** count(no CNOT) ≥ count(last ring).
 - **Inconclusive** if all 24 runs collapse or none do.
 - **My expectation:** no CNOT 0–1, pairs 0–1, default 2–4, last ring 3–5.
+
+### Outcomes: SVHN collapse (scored 2026-10-30 with `scripts/score_svhn_collapse.py`)
+**(1) Sensitivity at initialization: both fail.**
+- **H_init-match: FAIL.** Seed-mean J/Ĵ: no CNOT 1.95, pairs 1.40, default 1.04, last ring 1.92. Only the default ring lies in [0.75, 1.33].
+- **H_init-order: FAIL, reversed.** J: no CNOT 2.37, pairs 1.71, default 3.08, last ring 10.63. The predicted order holds in 0/5 seeds; the last ring has the largest J in all five.
+- **My expectation was wrong on c.** The initial bottleneck sits near zero (mean |tanh z| 0.03, z SD 0.04), so c ≈ 0.98, not 0.3–0.7. With no attenuation at initialization, a higher order only adds product terms. The ±0.1 rotations are as large as the encoded angles here, which a zero-rotation model cannot capture.
+- **Reading:** order does not suppress gradient signal at initialization. Any attenuation has to develop during training, as the bottleneck moves outward.
+
+**(2) Gradient death: H_gdeath PASS.**
+- **Data:** 141 SVHN VQC and products runs, 41 of them collapsed.
+- **Separation:** AUC of −ρ is 0.944. Median ρ is 0.124 for collapsed runs and 0.764 for non-collapsed runs (ratio 0.16 ≤ 0.5).
+- **Within each layout:** AUC 0.91–1.00 (no CNOT 1.00, pairs 0.91, default 0.94, last ring 0.95, products 0.92).
+- **Caveat:** this is an association measured over the same epochs in which collapse happens. It does not show which comes first.
+
+**(3) Collapse by order at lr 5e-3: H_collapse-order PASS (weakly), not refuted.**
+- **Counts of 6:** no CNOT 2, pairs 2, default 2, last ring 5.
+  - no CNOT ≤ default ≤ last ring holds.
+  - pairs ≤ default holds.
+  - last ring − no CNOT = 3.
+- **Where the order comes from:** it is carried entirely by the last ring. The default ring does not collapse more often than no CNOT. Its non-collapsed runs are poor, though: validation accuracy 0.26–0.40, against 0.61–0.86 for no CNOT.
+- **Against my expectation:** no CNOT and pairs collapsed 2/6 each, above my expected 0–1.
