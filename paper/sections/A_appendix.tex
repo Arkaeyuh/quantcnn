@@ -570,6 +570,24 @@ The order test fails on one part: default $-$ no CNOT is $-0.9\pm1.0$, negative 
 the committed $-1.0$, while last ring $-$ default is $-5.5\pm5.8$ (every seed). The default circuit
 saturates little on this backbone ($S=0.13$, against 0.30--0.49 for ring circuits on the small CNN).
 
+\paragraph{What collapse is.} A fourth committed test asked whether order causes the SVHN collapses (the
+collapse counts of the runs above were seen before it was written, and it predicts nothing about them).
+Two predictions about the initialized network fail. Differentiating \cref{eq:identity} at zero rotations
+predicts that each input's readout sensitivity is attenuated by a product of $|S_k|-1$ factors
+$c_i=\mathbb{E}[\cos^2\varphi_i]$, so that higher order means less gradient. At initialization, however, the
+bottleneck sits near zero (mean $|\tanh z|=0.03$, $c\approx0.98$). Measured sensitivity then grows with
+order rather than shrinking: summed squared readout gradients are 2.4, 3.1 and 10.6 for no CNOT, default
+and last ring, the last ring largest in all 5 seeds. The zero-rotation prediction is within 25\% only for
+the default ring, because the $\pm0.1$ initial rotations are as large as the encoded angles. Order
+therefore does not starve the backbone at the start; any attenuation develops as the bottleneck moves
+outward. Collapse itself is gradient death. Over all 141 SVHN circuit and products runs (41 collapsed),
+the ratio of the mean backbone gradient norm over epochs 2--10 to its epoch-1 value separates collapsed
+from other runs with AUC 0.94 (0.91--1.00 within each layout); the medians are 0.12 and 0.76. This is an
+association over the epochs in which collapse happens, not a test of which comes first. At an untried
+rate ($5\times10^{-3}$, 6 seeds), collapses number 2, 2, 2 and 5 for no CNOT, pairs, default and last ring.
+This meets the committed ordering, but only the last ring stands out, and the default ring's
+non-collapsed runs reach 26--40\% validation accuracy, against 61--86\% for no CNOT.
+
 \input{figures/tableA_extensions}
 
 \section{Exploratory Sweep with One Shared Recipe}
