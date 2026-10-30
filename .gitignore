@@ -37,6 +37,7 @@ PAPER_PLAN.md
 PAPER_PLAN_*.md
 
 # internal audit report (kept local)
+**/*_AUDIT*.md
 EXPERIMENT_AUDIT.md
 EXPERIMENT_AUDIT.json
 paper/CITATION_AUDIT.md
