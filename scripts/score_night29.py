@@ -40,7 +40,7 @@ def pair(ph, a, b, seeds, sub=None):
     ss = [s for s in seeds if sub is None or s in sub]
     d = [ph[a][s] - ph[b][s] for s in ss]
     m = st.mean(d) if d else float("nan")
-    print(f"  {a}-{b}: {m:+.2f}  pos {sum(x>0 for x in d)}/{len(d)} neg {sum(x<0 for x in d)}/{len(d)}  {[round(x,1) for x in d]}")
+    print(f"  {a}-{b}: {m:+.2f}±{st.stdev(d):.2f}  pos {sum(x>0 for x in d)}/{len(d)} neg {sum(x<0 for x in d)}/{len(d)}  {[round(x,1) for x in d]}")
     return m, sum(x > 0 for x in d), sum(x < 0 for x in d), len(d)
 
 def verdict(name, ok): print(f"  >> {name}: {'PASS' if ok else 'FAIL'}")

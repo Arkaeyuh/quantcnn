@@ -535,6 +535,43 @@ bit-identical, while the frozen circuit and the products head, whose outputs agr
 
 \input{figures/tableA_pretrained_controls}
 
+\section{SVHN, Data Re-uploading and a Second Pretrained Backbone}
+\label{app:extensions}
+
+Three further tests had predictions and pass criteria committed before their runs (\cref{tab:extensions}).
+Each head's learning rate was selected on the mean validation accuracy of seeds 0--2, with one half-decade
+step added at any grid edge; every selected rate is interior. The primary measure is the common linear
+probe; the MLP probe changes no verdict.
+
+\paragraph{SVHN.} A first test (5 seeds) left the no-CNOT and pairs heads at the lower edge of their grids,
+so its order comparisons were inconclusive; its gaps were driven by runs that collapsed to the majority
+class (head validation accuracy below 25\%), in four of five last-ring seeds. A second, separately
+committed test extended the grids downward and used 10 seeds. At the newly selected rates no run
+collapses, and the order holds seed by seed: default $-$ no CNOT $-12.8\pm3.8$ and last ring $-$ default
+$-18.1\pm9.5$, every seed negative, while the pairs circuit, which entangles at order 1, probes
+$13.6\pm3.4$ points above the default (every seed) and $0.9\pm1.8$ above the ring-free head. The linear
+head is $14.9\pm4.3$ above the default. These pass; the prediction that collapses would persist and
+order the heads (no CNOT $\le$ default $\le$ last ring, with at least three more for the last ring than
+for no CNOT) fails, because there are none. The classical products head is $1.6\pm9.2$ below the default
+circuit, within the committed two points.
+
+\paragraph{Data re-uploading.} With the encoding applied before each of the four variational layers the
+zero-rotation identity no longer holds, and we predicted only that the single-encoding ordering would
+carry over. It does: default $-$ no CNOT $-10.0\pm3.2$ and last ring $-$ default $-9.7\pm7.2$ (every seed
+negative), and the four layouts rank exactly by their single-encoding orders (Spearman $-1$). Re-uploading
+lowers every layout against its single-encoding counterpart (unpaired; no CNOT $-5.6$, pairs after the
+last layer $-5.0$, default $-11.8$, last ring $-11.8$), the entangled layouts about twice as much, and
+saturation again rises with order.
+
+\paragraph{MobileNetV3-Small.} On a second ImageNet-pretrained backbone, with the ResNet-18 recipe, the
+direction repeats but the cost is much smaller. The pairs circuit is $1.5\pm0.6$ above the default and
+$0.6\pm0.6$ above the ring-free head, and the linear head $1.6\pm0.8$ above the default, every seed (pass).
+The order test fails on one part: default $-$ no CNOT is $-0.9\pm1.0$, negative in every seed but short of
+the committed $-1.0$, while last ring $-$ default is $-5.5\pm5.9$ (every seed). The default circuit
+saturates little on this backbone ($S=0.13$, against 0.30--0.49 for ring circuits on the small CNN).
+
+\input{figures/tableA_extensions}
+
 \section{Exploratory Sweep with One Shared Recipe}
 \label{app:sweep}
 

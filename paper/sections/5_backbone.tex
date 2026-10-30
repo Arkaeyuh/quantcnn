@@ -7,17 +7,13 @@
 On CIFAR-10 with 4,000 images, the common probe reaches $69.8\pm1.0$ on backbones trained
 with the default VQC head and $74.5\pm0.5$ on backbones trained with a linear head, a paired
 difference of $-4.7\pm0.9$ points that is negative for all five seeds. The probe reads the
-VQC-trained bottleneck better than the VQC head itself does ($67.8\pm1.3$ test): replacing
-the VQC head by the probe raises accuracy by about 2.0 points, and a 4.7-point gap remains
-between the two backbones under the common probe. The gap is larger with less data ($-11.2$ and $-11.1$ at 1,000 and
+VQC-trained bottleneck better than the VQC head itself does ($67.8\pm1.3$ test). The gap is larger with less data ($-11.2$ and $-11.1$ at 1,000 and
 2,000 images) and smaller on MNIST ($-7.9$ to $-1.0$; 3 seeds each). A narrow classical head
 lowers probe accuracy as well: MLP-8 backbones probe $3.6\pm0.6$ points below linear-head
 backbones on CIFAR-10/4,000, $1.0\pm0.9$ above the VQC. The gap is not an artifact of linear
 decoding: a two-layer MLP probe on the same bottlenecks recovers at most 0.4 points more than
 the linear probe for any head, and puts the default VQC $4.8\pm0.9$ points below the linear
-head (\cref{app:mechanism}), also when its learning-rate grid is extended downward. The gap
-therefore persists under the tested linear and two-layer MLP probes; we do not claim more
-about the information the bottleneck contains. The rest of this section shows that the VQC's share
+head (\cref{app:mechanism}), also when its learning-rate grid is extended downward. The rest of this section shows that the VQC's share
 of the gap depends on its CNOT structure, which no classical head has.
 
 \subsection{Removing the CNOT rings recovers most of the gap}
@@ -53,8 +49,7 @@ brickwork's effective order is 2.6 rather than 3.5, below the distance-2 ring's 
 as predicted ($-0.94$); under a phase encoding, whose zero-rotation readouts vanish, probe accuracy
 follows the circuits' $R_y$ order ($-0.99$, \cref{app:encoding,app:phase}). At 12 qubits the
 ordering holds as predicted, with the default ring again 4.0 points below the ring-free one
-(\cref{app:width}). Order is a useful
-but coarse descriptor.
+(\cref{app:width}).
 
 Two interventions test the products directly. First, classical heads trained end to end on a
 circuit's zero-rotation products, with no circuit, land at the circuit's order on the trend:
@@ -134,7 +129,7 @@ optimization.
 \label{sec:pretrained}
 
 
-Hybrid image classifiers are often built on a pretrained network. We repeat the key heads on
+We repeat the key heads on
 an ImageNet-pretrained ResNet-18 fine-tuned through each head, its classifier replaced by the
 8-dimensional bottleneck (\cref{tab:pretrained}). The ordering carries over: at 4,000 images
 the ring-free and pairs circuits probe within 0.2 points of the linear head, the default
@@ -149,7 +144,9 @@ stays within 0.5 points of linear (seeds 0--2; \cref{tab:ptbudget}); re-selectin
 rates gives similar costs. Training budget therefore
 accounts for much of the size dependence, though the two are not fully separated.
 
-High-order heads are unstable on this backbone (\cref{app:ptcontrols}).
+High-order heads are unstable here (\cref{app:ptcontrols}). Pre-registered tests keep the ordering in every seed
+(\cref{app:extensions}): on SVHN (default $12.8\pm3.8$ below ring-free, 10 seeds), with data re-uploading, and on a
+pretrained MobileNetV3-Small, where the cost is small (default $1.6\pm0.8$ below linear) and one criterion misses.
 
 \subsection{Why order costs: a signal budget and a saturation trap}
 \label{sec:saturation}
