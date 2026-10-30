@@ -461,3 +461,32 @@ For every VQC and products run on SVHN (grids `svhn`, `svhn_seeds` and the new `
   - J: no CNOT 23.6, pairs 23.3, default 24.8, last ring 16.7.
   - The last ring is lowest in 5/5 seeds. The default ring is above no CNOT in 4/5 seeds.
 - **How this changes the scores:** under the measurement the prediction intended, H_init-match would pass and H_init-order would still fail, because default ≈ no CNOT. The scored outcomes above stand as committed (both FAIL). This rerun is reported as a post-hoc correction of the measurement.
+
+## Decoder compensation: do trained heads keep readout magnitude? Predictions written 2026-10-30 before any measurement
+**Why:** an adversarial review (kill-argument, 2026-10-30) noted that the signal budget (`prop:budget`) is conditional on E|r_k| ≥ a with a fixed as order grows. A learned linear decoder could instead let readouts shrink and scale them back up. For example, factors y/2 and ½ give r = 2⁻ᵐy, and a decoder weight of 2ᵐ recovers the logits. Nothing in the paper shows which of the two the trained models do.
+
+**What I have already seen (disclosed):**
+- Probe accuracy, saturation S, PRn and CPRn for these runs (`results/bottleneck_geometry.csv`).
+- Middle-zone fractions of 0.84, 0.63 and 0.46 at orders 1, 2.5 and 5.25.
+- The zero-angle checks (`results/zero_angle_check*.csv`).
+
+**Not looked at:** any readout magnitude, decoder weight or logit scale.
+
+**Design (`scripts/readout_magnitude.py`):**
+- **Runs:** the 61 eight-qubit π·tanh runs of `results/bottleneck_geometry.csv`, group q8. That is 13 layouts at orders 1–5.25: 5 seeds each, except L1 and L2 with 3. CIFAR-10/4,000, small CNN, selected lr, best checkpoint, test split.
+- **Per run:**
+  - A = mean over readouts k of E|⟨Z_k⟩|, where ⟨Z_k⟩ is the trained circuit's actual output on the test embeddings.
+  - W = mean over k of the Euclidean norm of decoder column k (`head.proj.weight[:, k]`).
+  - L = mean over k of ‖w_k‖ · sd(⟨Z_k⟩), the logit scale each readout contributes.
+- **Descriptive only:**
+  - Â, the independence zero-rotation prediction ∏_{j∈S_k} E|cos φ_j|, averaged over k.
+  - The bound of `prop:budget` (δ = 0.1) with a set to each readout's measured E|⟨Z_k⟩|, and the fraction of readouts of order ≥ 4 for which it is below 1 (non-vacuous).
+- Cell values are seed means, and Spearman correlations are over the 13 cell means.
+
+**Hypotheses:**
+- **H_floor (premise holds):** A(ring, last) ≥ 0.5 × A(no CNOT), and every cell mean A is ≥ 0.3.
+- **H_nocomp (no compensation by the decoder):** Spearman(order, W) ≤ 0.5, and W(ring, last) / W(no CNOT) ≤ 1.5.
+- **Refutation (compensation operates):** Spearman(order, A) ≤ −0.8 and Spearman(order, W) ≥ 0.8. If so, the paper must say that the budget's premise does not hold in these models.
+- **Otherwise:** mixed, and reported as such.
+
+**My expectation:** saturation is how a high-order readout keeps its magnitude, because factors near ±1 give |cos| ≈ 1. So I expect A to stay roughly flat (0.4–0.7 across cells), W not to grow with order, and both H_floor and H_nocomp to pass. Â should fall less steeply than the product of per-coordinate middle-zone factors would suggest.
