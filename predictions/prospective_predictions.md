@@ -490,3 +490,25 @@ For every VQC and products run on SVHN (grids `svhn`, `svhn_seeds` and the new `
 - **Otherwise:** mixed, and reported as such.
 
 **My expectation:** saturation is how a high-order readout keeps its magnitude, because factors near ±1 give |cos| ≈ 1. So I expect A to stay roughly flat (0.4–0.7 across cells), W not to grow with order, and both H_floor and H_nocomp to pass. Â should fall less steeply than the product of per-coordinate middle-zone factors would suggest.
+
+### Outcomes: decoder compensation (scored 2026-10-30 with `scripts/score_readout_magnitude.py`)
+Data: 61 runs, 13 cells; cell values are seed means.
+
+- **H_floor: PASS.**
+  - Readout magnitude A falls only modestly with order: no CNOT 0.66, default 0.51, last ring 0.52, minimum cell 0.39 (L2).
+  - A(last)/A(no CNOT) = 0.79 ≥ 0.5, and every cell is ≥ 0.3.
+  - The decline is monotone, though: Spearman(order, A) = −0.88.
+- **H_nocomp: PASS, and the decoder moves the other way.**
+  - Decoder column norms *shrink* with order: Spearman(order, W) = −0.54, and W(last)/W(no CNOT) = 0.71 (5.72 → 4.05).
+  - The logit scale per readout falls too: L goes from 4.02 to 2.31, with Spearman(order, L) = −0.91, the same as the probe's −0.91.
+  - So nothing scales the shrinking readouts back up. High-order heads have smaller readouts *and* smaller decoder weights.
+- **Refutation (compensation operates): not met.** A falls, but W does not rise.
+- **Descriptive results:**
+  - **Â (zero-rotation independence product):** it tracks A (Spearman with order −0.90) and sits 0.03–0.21 below it. The trained readouts are a little larger than independent products would give.
+  - **The bound is vacuous at δ = 0.1 (against my implicit expectation).** At the measured magnitudes, `prop:budget` gives a value below 1 for **none** of the readouts of order ≥ 4, in every cell where they exist. At m = 4–8 and a = 0.3–0.5, the bound is 1.7–5.3 at δ = 0.1 and only becomes non-vacuous for δ ≥ 0.2–0.3 (0.2–0.6 at δ = 0.3). That limits it to the central zone 0.3 < |tanh z| < 0.7.
+- **My expectation:**
+  - A flat at 0.4–0.7: roughly right, but A is monotone in order, not flat.
+  - W not growing: right, and W actually falls.
+- **Reading:**
+  - The premise of the budget holds empirically in these models: readout magnitude stays bounded away from 0, and the decoder does not compensate.
+  - At these orders and magnitudes the proposition constrains only the central part of the encoding. It is an asymptotic statement, not a tight quantitative account of the measured middle-zone fractions.
