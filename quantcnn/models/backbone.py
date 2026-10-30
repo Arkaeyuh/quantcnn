@@ -76,10 +76,7 @@ class PretrainedResNet18(nn.Module):
 
     def __init__(self, bottleneck_dim: int, resolution: int = 128) -> None:
         super().__init__()
-        from torchvision.models import ResNet18_Weights, resnet18
-
-        self.net = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
-        self.net.fc = nn.Linear(512, bottleneck_dim)
+        self.net = self._build_net(bottleneck_dim)
         self.resolution = resolution
         shape = (1, 3, 1, 1)
         self.register_buffer("c_mean", torch.tensor(self.CIFAR_MEAN).view(shape), persistent=False)
@@ -87,7 +84,31 @@ class PretrainedResNet18(nn.Module):
         self.register_buffer("i_mean", torch.tensor(self.IMAGENET_MEAN).view(shape), persistent=False)
         self.register_buffer("i_std", torch.tensor(self.IMAGENET_STD).view(shape), persistent=False)
 
+    @staticmethod
+    def _build_net(bottleneck_dim: int) -> nn.Module:
+        from torchvision.models import ResNet18_Weights, resnet18
+
+        net = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
+        net.fc = nn.Linear(512, bottleneck_dim)
+        return net
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = (x * self.c_std + self.c_mean - self.i_mean) / self.i_std
         x = nn.functional.interpolate(x, size=self.resolution, mode="bilinear", align_corners=False)
         return self.net(x)
+
+
+class PretrainedMobileNetV3Small(PretrainedResNet18):
+    """ImageNet-pretrained MobileNetV3-Small, with the same input mapping as ``PretrainedResNet18``.
+
+    The whole classifier is replaced by a linear projection from the pooled 576 features to the
+    bottleneck, as the ResNet's ``fc`` is.
+    """
+
+    @staticmethod
+    def _build_net(bottleneck_dim: int) -> nn.Module:
+        from torchvision.models import MobileNet_V3_Small_Weights, mobilenet_v3_small
+
+        net = mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.IMAGENET1K_V1)
+        net.classifier = nn.Linear(576, bottleneck_dim)
+        return net

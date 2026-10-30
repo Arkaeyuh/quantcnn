@@ -295,18 +295,62 @@ SVHN_CELLS = [(dict(head="linear"), [1e-2, 3e-2, 1e-1]),
               (dict(head="cosprod"), NIGHT26_LRS)]
 
 
-def _svhn_val_means(opts: dict) -> dict[float, float]:
-    """lr -> mean validation accuracy over seeds 0-2, for every lr of this SVHN cell with all three seeds done."""
+def _val_means(grid: str, base: dict, opts: dict) -> dict[float, float]:
+    """lr -> mean validation accuracy over seeds 0-2, for every lr of this cell of ``grid`` with all three seeds done."""
     out = {}
     for lr in LR_STEPS:
         v = []
         for sd in SEEDS:
-            fin = Path("runs") / "protocol_v2" / "svhn" / _slug(dict(_S4000, **opts, lr=lr, seed=sd)) / "final.json"
+            fin = Path("runs") / "protocol_v2" / grid / _slug(dict(base, **opts, lr=lr, seed=sd)) / "final.json"
             if fin.exists():
                 v.append(json.loads(fin.read_text())["val_acc"])
         if len(v) == len(SEEDS):
             out[lr] = sum(v) / len(v)
     return out
+
+
+def _svhn_val_means(opts: dict) -> dict[float, float]:
+    return _val_means("svhn", _S4000, opts)
+
+
+def _edge_steps(grid: str, base: dict, cells: list[dict]) -> list[dict]:
+    """One half-decade step beyond the lrs run (seeds 0-2, into ``grid``) for every cell whose best lr is at an edge."""
+    items = []
+    for opts in cells:
+        means = _val_means(grid, base, opts)
+        if not means:
+            continue
+        best, tried = max(means, key=means.get), sorted(means)
+        i = LR_STEPS.index(best)
+        for lr in (LR_STEPS[i - 1] if best == tried[0] and i > 0 else None,
+                   LR_STEPS[i + 1] if best == tried[-1] and i + 1 < len(LR_STEPS) else None):
+            if lr is not None:
+                items += [dict(base, **opts, lr=lr, seed=sd, _grid=grid) for sd in SEEDS]
+    return items
+
+
+def _selected_seeds(grid: str, base: dict, cells: list[dict], seeds: list[int], dest: str) -> list[dict]:
+    """``seeds`` at each cell's selected lr (best mean validation accuracy over seeds 0-2 in ``grid``), into ``dest``."""
+    items = []
+    for opts in cells:
+        means = _val_means(grid, base, opts)
+        if means:
+            items += [dict(base, **opts, lr=max(means, key=means.get), seed=sd, _grid=dest) for sd in seeds]
+    return items
+
+
+# Night of 2026-10-29 (predictions in predictions/prospective_predictions.md).
+# SVHN: lrs below the first grid for every head, then one more edge step, then seeds 3-9 at the selected lr.
+SVHN_EXT = {"linear": [3e-3], "noent": [3e-4], "pairs": [3e-4], "default": [3e-4], "entlast": [1e-3, 3e-4],
+            "cosprod": [3e-4]}
+# Re-uploading ("strong": the encoding before every variational layer) on the four ring-family layouts.
+_LAYOUTS = [dict(no_entangle=True), dict(entangle_pattern="pairs_last"), {}, dict(entangle_last_only=True)]
+REUP_CELLS = [dict(head="quantum", reupload_mode="strong", **lay) for lay in _LAYOUTS]
+# Second pretrained backbone: ImageNet MobileNetV3-Small, the cifar_pretrained heads plus pairs.
+_MNV3 = dict(_PRETRAINED, backbone="mobilenetv3s_pt")
+MNV3_CELLS = [dict(head="linear"), dict(head="quantum", no_entangle=True), dict(head="quantum", entangle_pattern="pairs"),
+              dict(head="quantum"), dict(head="quantum", entangle_last_only=True)]
+MNV3_LRS = [1e-3, 3e-3, 1e-2]
 # Escape-only straight-through (2026-10-27): replaces the diverged pi_tanh_st circuit cells; same design.
 ESC_CELLS = [dict(head="quantum", encoding="pi_tanh_esc"),
              dict(head="quantum", encoding="pi_tanh_esc", entangle_last_only=True),
@@ -618,6 +662,25 @@ def _grid(name: str) -> list[dict]:
             if means:
                 for sd in EXTRA_SEEDS:
                     items.append(dict(_S4000, **opts, lr=max(means, key=means.get), seed=sd))
+    elif name == "svhn_ext":
+        for (opts, _), key in zip(SVHN_CELLS, ["linear", "noent", "pairs", "default", "entlast", "cosprod"]):
+            for lr in SVHN_EXT[key]:
+                items += [dict(_S4000, **opts, lr=lr, seed=sd, _grid="svhn") for sd in SEEDS]
+    elif name == "cifar_reup":
+        items += [dict(_C4000, **opts, lr=lr, seed=sd) for opts in REUP_CELLS for lr in NIGHT26_LRS for sd in SEEDS]
+    elif name == "cifar_mnv3":
+        items += [dict(_MNV3, **opts, lr=lr, seed=sd) for opts in MNV3_CELLS for lr in MNV3_LRS for sd in SEEDS]
+    elif name == "night29a":
+        for g in ("svhn_ext", "cifar_reup", "cifar_mnv3"):
+            items += [dict(it, _grid=it.get("_grid", g)) for it in _grid(g)]
+    elif name == "night29b":
+        items += _edge_steps("svhn", _S4000, [o for o, _ in SVHN_CELLS])
+        items += _edge_steps("cifar_reup", _C4000, REUP_CELLS)
+        items += _edge_steps("cifar_mnv3", _MNV3, MNV3_CELLS)
+    elif name == "night29c":
+        items += _selected_seeds("svhn", _S4000, [o for o, _ in SVHN_CELLS], list(range(3, 10)), "svhn_seeds")
+        items += _selected_seeds("cifar_reup", _C4000, REUP_CELLS, EXTRA_SEEDS, "cifar_reup_seeds")
+        items += _selected_seeds("cifar_mnv3", _MNV3, MNV3_CELLS, EXTRA_SEEDS, "cifar_mnv3_seeds")
     elif name == "night28":
         for g in ("cifar_esc_rep", "cifar_dyn2"):
             items += [dict(it, _grid=g) for it in _grid(g)]
@@ -753,6 +816,7 @@ def _slug(it: dict) -> str:
     head += f"_{it['bottleneck_reg']}{it['reg_weight']:g}" if it.get("bottleneck_reg", "none") != "none" else ""
     head += f"_ep{it['epochs']}" if it["epochs"] != DEFAULT_EPOCHS[it["dataset"]] and not it.get("backbone") else ""
     head += f"_{it['backbone']}" if it.get("backbone") else ""
+    head += f"_ru{it['reupload_mode']}" if it.get("reupload_mode", "none") != "none" else ""
     mult = it.get("lr_backbone_multiplier", DEFAULT_BB_MULT)
     head += f"_bbm{mult:g}" if mult != DEFAULT_BB_MULT else ""
     return f"{it['dataset']}_subset{it['train_subset_size']}_{head}_lr{it['lr']:g}_s{it['seed']}"
@@ -769,7 +833,7 @@ def _run(it: dict, root: str, val_size: int, threads: int) -> str:
     args = deepcopy(default_train_args())
     for k, v in it.items():
         setattr(args, k, v)
-    args.reupload_mode = "none"
+    args.reupload_mode = it.get("reupload_mode", "none")
     args.val_size = val_size
     args.quantum_sim = "torch"
     args.weight_decay = 1e-4
@@ -814,7 +878,9 @@ def main():
                                          "cifar_lin", "cifar_readout", "cifar_satup", "night26", "night26_seeds",
                                          "cifar_esc", "cifar_dyn", "night27",
                                          "cifar_esc_rep", "cifar_dyn2", "night28",
-                                         "svhn", "svhn_edge", "svhn_seeds"], required=True)
+                                         "svhn", "svhn_edge", "svhn_seeds",
+                                         "svhn_ext", "cifar_reup", "cifar_mnv3", "night29a", "night29b",
+                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

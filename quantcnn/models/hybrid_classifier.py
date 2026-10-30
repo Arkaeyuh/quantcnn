@@ -6,7 +6,7 @@ from typing import Literal
 
 import torch.nn as nn
 
-from quantcnn.models.backbone import CifarCNN, PretrainedResNet18, SmallCNN
+from quantcnn.models.backbone import CifarCNN, PretrainedMobileNetV3Small, PretrainedResNet18, SmallCNN
 from quantcnn.models.classical_heads import DESIGNED_SUPPORTS, CosProductHead, LinearHead, MLPHead, TrigFeatureHead
 from quantcnn.models.quantum_head import (
     QuantumClassifierHead,
@@ -53,6 +53,8 @@ class HybridClassifier(nn.Module):
             self.backbone = CifarCNN(b, in_channels=in_channels)
         elif bk == "resnet18_pt":
             self.backbone = PretrainedResNet18(b)
+        elif bk == "mobilenetv3s_pt":
+            self.backbone = PretrainedMobileNetV3Small(b)
         else:
             raise ValueError(backbone)
 

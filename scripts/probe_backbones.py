@@ -62,6 +62,7 @@ def _head_key(meta: dict) -> str:
     pretrained = meta.get("backbone") not in (None, "mnist", "cifar10")
     head += f"+ep{meta['epochs']}" if meta["epochs"] != {"mnist": 50, "cifar10": 80, "svhn": 80}[meta["dataset"]] and not pretrained else ""
     head += f"+{meta['backbone']}" if pretrained else ""
+    head += f"+ru{meta['reupload_mode']}" if meta.get("reupload_mode", "none") != "none" else ""
     mult = meta.get("lr_backbone_multiplier", 0.5)
     return head + (f"@bblr{meta['lr'] * mult:.3g}" if mult != 0.5 and not pretrained else "")
 
@@ -131,7 +132,7 @@ def main():
         for (n, head), (lr, runs) in cells:
             if a.heads != ["all"] and head not in a.heads:
                 continue
-            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"], ["cifar_family_seeds"], ["cifar_half_seeds"], ["cifar_phase_seeds"], ["cifar_floor_seeds"], ["cifar_q12_seeds"], ["cifar_mech2_seeds"], ["cifar_mech3_seeds"], ["cifar_lastring_retest"], ["cifar_st"], ["cifar_satup"], ["night26_seeds"], ["cifar_esc"], ["cifar_esc_rep"], ["svhn_seeds"]), (ds, n, head, lr)
+            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"], ["cifar_family_seeds"], ["cifar_half_seeds"], ["cifar_phase_seeds"], ["cifar_floor_seeds"], ["cifar_q12_seeds"], ["cifar_mech2_seeds"], ["cifar_mech3_seeds"], ["cifar_lastring_retest"], ["cifar_st"], ["cifar_satup"], ["night26_seeds"], ["cifar_esc"], ["cifar_esc_rep"], ["svhn_seeds"], ["cifar_reup_seeds"], ["cifar_mnv3_seeds"]), (ds, n, head, lr)
             for run in runs:
                 meta = json.loads((run / "meta.json").read_text())
                 if meta["dataset"] != ds:
@@ -142,7 +143,7 @@ def main():
                 model = HybridClassifier(10, int(meta.get("bottleneck_dim", 8)), meta["backbone"], meta["head"],
                                          1 if ds == "mnist" else 3,
                                          mlp_hidden=meta.get("mlp_hidden"), n_var_layers=meta.get("n_var_layers", 4),
-                                         reupload_mode="none",
+                                         reupload_mode=meta.get("reupload_mode", "none"),
                                          quantum_sim="torch", pre_norm=meta.get("pre_norm", "none"),
                                          encoding=meta.get("encoding", "pi_tanh"),
                                          entangle=meta.get("entangle", True))

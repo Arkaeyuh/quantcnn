@@ -341,3 +341,36 @@ Linear probe on test, lr 1e-2 (selected in the middle of the grid for every tune
 **What this supports:** on SVHN, order-1 heads (no CNOT, pairs) train stably, and the entangling-but-order-1 pairs head matches no CNOT. High-order heads saturate (S 0.53–0.72) and often collapse. **What it does not support:** a graded order cost of the CIFAR-10 kind on SVHN. The no-CNOT and pairs lrs are not bracketed, so the order contrasts cannot be claimed as pre-registered passes.
 
 **Correction from the third claim audit (2026-10-29).** The `cifar_dyn` H_precede was scored above as inconclusive. As committed it says "no later than", and it is met as written in 3/3 seeds: S passes half its final value at epoch 5 in every run, and the probe gap does so at epochs 10, 5 and 10. That pass comes only from saturation already being high at the first checkpoint, so it does not establish precedence. H_budget stays inconclusive. Also: the S ≤ 0.0006 for the escape-only replication heads is a bound on seed means; single runs reach 0.0013.
+
+## Night of 2026-10-29: SVHN extension, re-uploading, second pretrained backbone, predictions written 2026-10-29 21:05 before any run
+One queue (`scripts/night29_orchestrator.py`). Stage 1 tunes all three grids (`night29a`). Stage 2 takes one half-decade edge step for every cell whose best lr (mean validation accuracy, seeds 0–2) is at an edge of the lrs run (`night29b`). Stage 3 runs more seeds at each selected lr (`night29c`). Then linear and MLP probes. "Paired" means same seed. The primary measure is the common linear probe; the MLP probe is secondary. **A cell still at an edge after stage 2 is reported as such, and its comparisons are inconclusive.**
+
+### (A) SVHN extension (`svhn`, `svhn_seeds`)
+**Why:** the SVHN outcome above left no CNOT and pairs at the lower grid edge, and the gaps were driven by collapse to the majority class. The outcome above stands and is not re-scored. This is a separate test with more lrs and more seeds.
+**Design:** the same recipe and heads. New lrs on seeds 0–2: linear 3e-3; no CNOT, pairs, default ring and products 3e-4; last ring 1e-3 and 3e-4. Then one more edge step. Selection uses every lr run for the cell. Seeds 3–9 then run at the selected lr, reusing seeds 3–4 where the selection is unchanged. Scoring uses 10 seeds (0–9) at the selected lr. **Collapse** is defined as head validation accuracy < 25% (majority class 19.6%).
+- **H_order-svhn2:** default − no CNOT ≤ −1.0 and last ring − default ≤ −1.0, each negative in ≥ 8 of 10 seeds.
+- **H_pairs-svhn2:** pairs − default ≥ +1.0 (≥ 8/10 positive), and |pairs − no CNOT| ≤ 1.5.
+- **H_gap-svhn2:** linear − default ≥ +1.0 (≥ 8/10 positive).
+- **H_collapse:** collapse counts at the selected lr (of 10) satisfy no CNOT ≤ default ≤ last ring and pairs ≤ default, with last ring − no CNOT ≥ 3.
+- **H_graded (a cost beyond collapse):** over the seeds where neither arm collapsed, mean default − no CNOT ≤ −1.0 and mean last ring − default ≤ −1.0. Each part is scored only if ≥ 5 such seeds exist, and is inconclusive otherwise.
+- **Secondary:** products within 2 points of the default VQC.
+- **Refutation of order:** default − no CNOT > −0.5 and last ring − default > −0.5.
+- **My expectation:** no CNOT and pairs select 3e-4 or 1e-3, interior after the extension. The default and last ring keep collapsing in 20–60% of seeds at every lr. H_order, H_gap and H_collapse pass. H_graded passes for default − no CNOT (about −5) and is inconclusive for last ring − default, because too few last-ring seeds survive.
+
+### (B) Re-uploading on CIFAR-10 (`cifar_reup`, `cifar_reup_seeds`)
+**Why:** plan item B3. Many QML heads re-upload the input, and the paper's results cover single encoding only.
+**Design:** CIFAR-10/4,000, small CNN, the standard recipe. `reupload_mode=strong`: the encoding R_Y(π tanh z) is applied before every one of the 4 variational layers. Four layouts: no CNOT, pairs after the last layer, ring after every layer (default) and ring after the last layer only. Under single encoding their product orders are 1, 1.5, 2.5 and 5.25. lr {3e-3, 1e-2, 3e-2} × seeds 0–2, an edge step, then seeds 3–4 at the selected lr. Under re-uploading the zero-rotation product identity no longer holds, so I have no derived order for these circuits. The prediction is that the single-encoding ordering carries over.
+- **H_reup-order:** default − no CNOT ≤ −1.0 and last ring − default ≤ −1.0 (paired, each negative in ≥ 4 of 5 seeds).
+- **H_reup-rank:** Spearman correlation between the four layouts' mean probe and their single-encoding orders ≤ −0.8 (at most one adjacent swap).
+- **Refutation:** default − no CNOT > −0.5 and last ring − default > −0.5.
+- **Descriptive:** each re-uploaded layout against its single-encoding counterpart, unpaired: no CNOT 73.6, default 69.8, last ring 60.1. Mean S per head.
+- **My expectation:** the ordering carries over. Re-uploading lowers every layout by 1–4 points, because the repeated encoding raises the frequency of each coordinate's factor. No CNOT about 70–73.
+
+### (C) Second pretrained backbone: MobileNetV3-Small (`cifar_mnv3`, `cifar_mnv3_seeds`)
+**Why:** plan item B5. The paper has one pretrained backbone (ResNet-18).
+**Design:** ImageNet MobileNetV3-Small (torchvision IMAGENET1K_V1). Its classifier is replaced by a linear map from the pooled 576 features to the 8-dimensional bottleneck. Inputs are mapped exactly as for the ResNet-18 (ImageNet normalization, 128 px). The recipe is the ResNet's: CIFAR-10/4,000, 30 epochs, backbone lr 0.1× the head's, clip 2. Heads: linear, no CNOT, pairs, default ring, last ring. lr {1e-3, 3e-3, 1e-2} × seeds 0–2, an edge step, then seeds 3–4 at the selected lr.
+- **H_order-mnv3:** default − no CNOT ≤ −1.0 and last ring − default ≤ −1.0 (paired, each negative in ≥ 4 of 5).
+- **H_pairs-mnv3:** pairs − default ≥ +1.0 (≥ 4/5 positive), and |pairs − no CNOT| ≤ 1.5.
+- **H_gap-mnv3:** linear − default ≥ +1.0 (≥ 4/5 positive), and no CNOT within 1.0 of linear (mean).
+- **Refutation:** default − no CNOT > −0.5 and last ring − default > −0.5.
+- **My expectation:** the ResNet-18 pattern repeats with a weaker backbone. Linear probe about 84–88. No CNOT and pairs within 0.5 of linear, the default ring 3–8 below and the last ring 10–20 below. High-order heads may be unstable, as on the ResNet.
