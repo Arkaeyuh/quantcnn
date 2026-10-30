@@ -342,7 +342,7 @@ Linear probe on test, lr 1e-2 (selected in the middle of the grid for every tune
 
 **Correction from the third claim audit (2026-10-29).** The `cifar_dyn` H_precede was scored above as inconclusive. As committed it says "no later than", and it is met as written in 3/3 seeds: S passes half its final value at epoch 5 in every run, and the probe gap does so at epochs 10, 5 and 10. That pass comes only from saturation already being high at the first checkpoint, so it does not establish precedence. H_budget stays inconclusive. Also: the S ≤ 0.0006 for the escape-only replication heads is a bound on seed means; single runs reach 0.0013.
 
-## Night of 2026-10-29: SVHN extension, re-uploading, second pretrained backbone, predictions written 2026-10-29 21:05 before any run
+## Night of 2026-10-29: SVHN extension, re-uploading, second pretrained backbone, predictions written 2026-10-29 20:26 before any run
 One queue (`scripts/night29_orchestrator.py`). Stage 1 tunes all three grids (`night29a`). Stage 2 takes one half-decade edge step for every cell whose best lr (mean validation accuracy, seeds 0–2) is at an edge of the lrs run (`night29b`). Stage 3 runs more seeds at each selected lr (`night29c`). Then linear and MLP probes. "Paired" means same seed. The primary measure is the common linear probe; the MLP probe is secondary. **A cell still at an edge after stage 2 is reported as such, and its comparisons are inconclusive.**
 
 ### (A) SVHN extension (`svhn`, `svhn_seeds`)
