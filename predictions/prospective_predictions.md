@@ -512,3 +512,12 @@ Data: 61 runs, 13 cells; cell values are seed means.
 - **Reading:**
   - The premise of the budget holds empirically in these models: readout magnitude stays bounded away from 0, and the decoder does not compensate.
   - At these orders and magnitudes the proposition constrains only the central part of the encoding. It is an asymptotic statement, not a tight quantitative account of the measured middle-zone fractions.
+
+**Addendum (2026-10-30, after kill-argument run 2; post hoc, not pre-registered).**
+- **What was wrong:** the scored A is the trained circuit's actual output magnitude, not the proposition's E|r_k| for the zero-rotation products. Trained rotations can make the two diverge: with R_y(−π/2) before the last ring at tanh z = ½, every output is 1 and every product is 0. The H_nocomp result stands, because the decoder sees the actual outputs. H_floor as scored does not verify the proposition's premise.
+- **Recomputed on the same 61 runs** (`results/readout_magnitude_zero.csv`, with the scored columns unchanged): the per-sample zero-rotation products r_k = ∏_{j∈S_k} cos φ_j.
+  - Mean over readouts of E|r_k|: no CNOT 0.61, default 0.47, last ring 0.44, minimum cell 0.29 (brick). Spearman with order is −0.88.
+  - It is within 0.04 of the product of marginals Â.
+- **Readouts of order ≥ 4:**
+  - E|r_k| (cell means of the smallest such readout) is 0.16–0.24, and 0.02 for the order-8 readout of star_in_last.
+  - The bound with that a is non-vacuous only for δ above 0.20–0.29 (cell means), and at most 0.31 in any run.

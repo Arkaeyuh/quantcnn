@@ -8,7 +8,13 @@ each run this records
   L      mean over k of ||w_k|| * sd(<Z_k>), the logit scale each readout contributes,
 and, descriptively, A_hat = mean over k of prod_{j in S_k} E|cos phi_j| (zero rotations, independent
 factors) and the fraction of readouts of order >= 4 whose signal-budget bound (delta = 0.1, a = their
-measured E|<Z_k>|) is below 1. From repository root::
+measured E|<Z_k>|) is below 1.
+
+Added after scoring (post hoc): the proposition's own quantity, the zero-rotation product
+r0_k = prod_{j in S_k} cos phi_j per sample. A0 is the mean over k of E|r0_k|; for the readouts of order >= 4,
+A0_high_min and A_hat_high_min are the smallest E|r0_k| and prod_j E|cos phi_j|, and delta_crit0_max and
+delta_crit_hat_max the largest delta = arccos(a^(1/m)) / pi above which the bound with that a is below 1.
+From repository root::
 
     PYTHONPATH=. .venv/bin/python -m scripts.readout_magnitude --out results/readout_magnitude.csv
 """
@@ -59,9 +65,18 @@ def measure(run: Path, seed: int, device) -> dict:
     middle = ((t > DELTA) & (t < 1 - DELTA)).double().mean(0)
     high = [k for k, S in enumerate(sup) if len(S) >= 4]
     bound = [(1 - amp[k].item() ** (1 / len(sup[k]))) / (1 - math.cos(math.pi * DELTA)) for k in high]
+    cos = torch.cos(math.pi * torch.tanh(z.double()))
+    a0 = torch.stack([cos[:, S].prod(1).abs().mean() for S in sup])
+    crit = lambda a, m: math.acos(a ** (1 / m)) / math.pi
+    nan = float("nan")
+    extra = dict(A0=a0.mean().item(),
+                 A0_high_min=min(a0[k].item() for k in high) if high else nan,
+                 A_hat_high_min=min(a_hat[k].item() for k in high) if high else nan,
+                 delta_crit0_max=max(crit(a0[k].item(), len(sup[k])) for k in high) if high else nan,
+                 delta_crit_hat_max=max(crit(a_hat[k].item(), len(sup[k])) for k in high) if high else nan)
     return dict(A=amp.mean().item(), W=w.mean().item(), L=(w * q.std(0)).mean().item(), A_hat=a_hat.mean().item(),
                 A_min=amp.min().item(), middle=middle.mean().item(), n_high=len(high),
-                bound_nonvacuous=(sum(b < 1 for b in bound) / len(bound)) if high else float("nan"))
+                bound_nonvacuous=(sum(b < 1 for b in bound) / len(bound)) if high else float("nan"), **extra)
 
 
 def main():

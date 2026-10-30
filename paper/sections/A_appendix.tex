@@ -366,21 +366,30 @@ holds for any encoding whose factors are bounded by 1 and are flat only at the e
 
 \paragraph{Premise and tightness.}
 \label{app:compensation}
-The proposition is conditional on $\mathbb{E}|r_k|\ge a$ with $a$ fixed as order grows, and a learned
-linear decoder could instead let readouts shrink and scale them back up: factors $y/2$ and $\tfrac12$
-give $r_k=2^{-m}y$, which a weight of $2^m$ restores. A pre-registered measurement on the 61 trained
-8-qubit runs behind \cref{tab:geometry} (13 layouts, orders 1--5.25, test split, the trained circuit's
-actual outputs) finds no such compensation. Mean readout magnitude $\mathbb{E}|\ZZ{k}|$ is 0.66 without
-CNOTs, 0.51 for the default ring and 0.52 for the last ring, and at least 0.39 in every layout, although
-it is negatively correlated with order (Spearman $-0.88$ over layouts). The mean norm of the decoder column
-attached to each readout shrinks rather than grows (5.72 to 4.05; Spearman $-0.54$), so the logit scale
-each readout contributes falls with order (4.02 to 2.31, Spearman $-0.91$, as for probe accuracy over the
-same layouts). The zero-rotation independence product $\prod_{j\in\Sk}\mathbb{E}|\cos\enc{j}|$ lies 0.04--0.21
-below the measured magnitudes. The bound itself is loose at these orders: with $a$ set to each readout's
-measured magnitude it exceeds 1 at $\delta=0.1$ for every readout of order at least 4, and for $m=4$--8
-and $a=0.3$--0.5 it is 1.7--5.3 at $\delta=0.1$ but 0.20--0.63 at $\delta=0.3$. It is non-vacuous only for $\delta$ above 0.13--0.23 (for example on $0.3<|\tanh z|<0.7$), so it
-constrains the centre of the encoding, not the whole graded zone; it predicts the direction of the depletion in
-\cref{tab:geometry}, not its size. Nor does depletion by itself imply lost task information: the bound
+The proposition is conditional on $\mathbb{E}|r_k|\ge a$ for the zero-rotation products $r_k$, with $a$
+fixed as order grows, and two things could defeat its use here. First, a learned linear decoder could
+let readouts shrink and scale them back up: factors $y/2$ and $\tfrac12$ give $r_k=2^{-m}y$, which a
+weight of $2^m$ restores. A pre-registered measurement on the 61 trained 8-qubit runs behind
+\cref{tab:geometry} (13 layouts, orders 1--5.25, test split) finds no such compensation in the circuits'
+actual outputs, which are what the decoder sees. Their mean magnitude $\mathbb{E}|\ZZ{k}|$ is 0.66
+without CNOTs, 0.51 for the default ring, 0.52 for the last ring and at least 0.39 in every layout
+(Spearman $-0.88$ with order), and the mean norm of the decoder column attached to each readout shrinks
+rather than grows (5.72 to 4.05; Spearman $-0.54$), so the logit scale each readout contributes falls
+with order (4.02 to 2.31, Spearman $-0.91$, as for probe accuracy over the same layouts). Second, actual
+outputs are not the proposition's object: trained rotations can make them large while the zero-rotation
+products vanish ($R_y(-\pi/2)$ on every qubit before the last ring maps the encoded state at
+$\tanh z_j=\tfrac12$ to $|0\rangle^{\otimes8}$, so every output is 1 and every product 0). After the
+pre-registered analysis we therefore computed the proposition's own quantity on the same bottlenecks,
+the per-sample products $r_k=\prod_{j\in\Sk}\cos\enc{j}$. Averaged over readouts, $\mathbb{E}|r_k|$ is 0.61
+without CNOTs, 0.47 for the default ring, 0.44 for the last ring and at least 0.29 in every layout, and it
+is within 0.04 of the product of marginals $\prod_{j\in\Sk}\mathbb{E}|\cos\enc{j}|$, consistent with
+near-independence at this moment. The bound is nonetheless loose at these orders. For readouts of order
+at least 4, $\mathbb{E}|r_k|$ is 0.16--0.24 (layout means of the smallest such readout; 0.02 for the
+order-8 readout of the star-into-last layout), and the bound with that $a$ falls below 1 only for
+$\delta$ above 0.20--0.29 (layout means; at most 0.31 in any run). It constrains roughly the centre
+$0.3<|\tanh z|<0.7$, not the whole graded zone, and gives the direction of the depletion in
+\cref{tab:geometry}, not its size. All of these are measured at the end of training; how they evolve
+during training is not measured. Nor does depletion by itself imply lost task information: the bound
 allows one graded, informative coordinate per support, and the link between depletion and probe accuracy
 rests on the measurements of \cref{tab:geometry} and on the escape-only intervention, not on the
 proposition.
