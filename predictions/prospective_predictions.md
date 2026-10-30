@@ -374,3 +374,32 @@ One queue (`scripts/night29_orchestrator.py`). Stage 1 tunes all three grids (`n
 - **H_gap-mnv3:** linear − default ≥ +1.0 (≥ 4/5 positive), and no CNOT within 1.0 of linear (mean).
 - **Refutation:** default − no CNOT > −0.5 and last ring − default > −0.5.
 - **My expectation:** the ResNet-18 pattern repeats with a weaker backbone. Linear probe about 84–88. No CNOT and pairs within 0.5 of linear, the default ring 3–8 below and the last ring 10–20 below. High-order heads may be unstable, as on the ResNet.
+
+### Outcomes: night of 2026-10-29 (scored 2026-10-30 with `scripts/score_night29.py`)
+The queue ended at 04:17 with every stage exiting 0. **Every selected lr is interior** (the edge steps added SVHN default 1e-4 and MobileNet no CNOT / last ring 3e-2, none of which won), so no comparison is inconclusive for edge reasons. Numbers are the common linear probe (MLP probe in brackets where it changes a verdict or is notably different). Paired differences: mean, sign counts.
+
+**(A) SVHN, 10 seeds.** Selected lrs: linear 3e-2, no CNOT 1e-3, pairs 1e-3, default 3e-4, last ring 1e-3, products 3e-3.
+Probe: linear 83.35±5.13, no CNOT 81.22±1.98 (S .02), pairs 82.09±1.34 (S .02), default 68.47±2.81 (S .25), last ring 50.36±9.07 (S .55), products 66.85±7.90 (S .57).
+- **H_order-svhn2: PASS.** default − no CNOT −12.75 (10/10 negative); last ring − default −18.11 (10/10). [MLP −12.99, −17.72, 10/10 each.]
+- **H_pairs-svhn2: PASS.** pairs − default +13.63 (10/10 positive); pairs − no CNOT +0.87.
+- **H_gap-svhn2: PASS.** linear − default +14.88 (10/10).
+- **H_collapse: FAIL.** No run collapsed at any selected lr (counts 0 for every head), so last ring − no CNOT = 0 < 3. At the new lower lrs the collapse that drove the first SVHN outcome disappears.
+- **H_graded: PASS on both parts.** With no collapses, all 10 seeds count: default − no CNOT −12.75, last ring − default −18.11. The cost is graded, not a collapse artifact.
+- **Secondary (products within 2 of default): PASS.** products − default −1.62 (6/10 positive; per-seed spread −19 to +9).
+- **Refutation: not met.**
+- **Against my expectation:** I expected the default and last ring to keep collapsing in 20–60% of seeds and H_graded last ring − default to be inconclusive. Both were wrong: 0 collapses, and the order holds seed by seed among non-collapsed runs.
+
+**(B) Re-uploading on CIFAR-10, 5 seeds.** All four layouts select 1e-2 (interior).
+Probe: no CNOT 68.02±2.08 (S .18), pairs 66.22±2.02 (S .22), default 58.01±4.03 (S .53), last ring 48.29±4.57 (S .61).
+- **H_reup-order: PASS.** default − no CNOT −10.01 (5/5 negative); last ring − default −9.72 (5/5). [MLP −9.86, −9.60.]
+- **H_reup-rank: PASS.** Spearman ρ = −1.00: the ranking is exactly the single-encoding order.
+- **Refutation: not met.**
+- **Descriptive (unpaired, vs single encoding):** no CNOT 68.0 vs 73.6 (−5.6), default 58.0 vs 69.8 (−11.8), last ring 48.3 vs 60.1 (−11.8). Re-uploading costs more than my 1–4 points and costs the entangled layouts about twice as much as no CNOT. Saturation rises with layout order as under single encoding.
+
+**(C) MobileNetV3-Small, 5 seeds.** Selected: linear 3e-3, no CNOT 1e-2, pairs 3e-3, default 3e-3, last ring 1e-2 (all interior).
+Probe: linear 86.08±0.63, no CNOT 85.40±0.58 (S .18), pairs 86.04±0.33 (S .15), default 84.51±0.72 (S .13), last ring 78.99±5.93 (S .33).
+- **H_order-mnv3: FAIL (near miss on one part).** default − no CNOT −0.89, 5/5 negative, short of the −1.0 threshold [MLP −0.86, 4/5]. last ring − default −5.53 (5/5) passes its part.
+- **H_pairs-mnv3: PASS.** pairs − default +1.53 (5/5 positive); pairs − no CNOT +0.64.
+- **H_gap-mnv3: PASS.** linear − default +1.56 (5/5); |linear − no CNOT| = 0.68 ≤ 1.0.
+- **Refutation: not met** (both differences are below −0.5).
+- **Against my expectation:** the pattern's direction repeats, but it is much weaker than on the ResNet-18 and than I predicted (default 1.6 below linear vs my 3–8; last ring 7.1 below vs 10–20). The pretrained MobileNet saturates the default VQC far less (S .13).

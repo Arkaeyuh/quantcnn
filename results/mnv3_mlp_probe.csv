@@ -1,0 +1,16 @@
+dataset,train_subset_size,source_head,source_lr,seed,source_test_acc,probe_lr,probe_val_acc,probe_train_acc,probe_test_acc,sat_090_z,sat_090_head_input
+cifar10,4000,linear+mobilenetv3s_pt,0.003,0,85.89,0.01,86.45,100.0,85.22,71.6,71.6
+cifar10,4000,linear+mobilenetv3s_pt,0.003,1,86.5,0.003,87.0,99.75,86.19,70.79,70.79
+cifar10,4000,linear+mobilenetv3s_pt,0.003,2,86.45,0.003,87.5,99.925,86.09,70.61,70.61
+cifar10,4000,quantum+entlast+mobilenetv3s_pt,0.01,0,67.89,0.01,71.0,80.6,70.56,31.67,31.67
+cifar10,4000,quantum+entlast+mobilenetv3s_pt,0.01,1,82.84,0.001,84.15,96.625,83.81,46.54,46.54
+cifar10,4000,quantum+entlast+mobilenetv3s_pt,0.01,2,81.18,0.001,83.05,93.0,81.61,46.61,46.61
+cifar10,4000,quantum+mobilenetv3s_pt,0.003,0,84.41,0.001,85.0,98.475,84.28,13.64,13.64
+cifar10,4000,quantum+mobilenetv3s_pt,0.003,1,85.06,0.003,86.0,98.95,84.93,14.63,14.63
+cifar10,4000,quantum+mobilenetv3s_pt,0.003,2,84.42,0.001,86.65,99.2,84.58,12.14,12.14
+cifar10,4000,quantum+noent+mobilenetv3s_pt,0.01,0,85.25,0.003,86.0,100.0,84.57,17.64,17.64
+cifar10,4000,quantum+noent+mobilenetv3s_pt,0.01,1,86.18,0.003,85.2,99.975,84.92,19.63,19.63
+cifar10,4000,quantum+noent+mobilenetv3s_pt,0.01,2,85.79,0.001,87.0,99.95,85.77,16.6,16.6
+cifar10,4000,quantum+pairs+mobilenetv3s_pt,0.003,0,85.36,0.001,86.3,99.75,85.21,17.32,17.32
+cifar10,4000,quantum+pairs+mobilenetv3s_pt,0.003,1,86.37,0.001,87.05,99.9,86.1,14.37,14.37
+cifar10,4000,quantum+pairs+mobilenetv3s_pt,0.003,2,85.91,0.001,87.25,99.6,85.82,15.97,15.97
