@@ -62,7 +62,7 @@ Our contributions are:
         but has product order 1 recovers $3.1\pm1.2$ points over the default. Entangling gates alone do not set the size of the cost here: a CZ ring, which entangles at order 1, probes 0.4 points below the ring-free head, and two- and three-body readouts of a circuit with no entangling gate land about 0.1 points from the order trend (\cref{tab:generality}).
         Without entangling gates and with single-qubit readouts the head is exactly a classical per-coordinate sinusoidal model, and
         classical heads of that form come within 0.3--0.9 probe points of it.
-  \item \textbf{A mechanism} (\cref{sec:saturation}). We prove that, for independent inputs, a high-order product readout that keeps its magnitude must push its inputs out of the graded middle of the encoding (a signal budget),
+  \item \textbf{A mechanism} (\cref{sec:saturation}). We prove that, for independent inputs, a high-order product readout that keeps its magnitude must drive the mean mass of its inputs in the graded middle of the encoding toward zero as order grows (a signal budget),
         and find that the CNNs' bottlenecks saturate early and stay saturated at high order. A
         pre-registered intervention that leaves the forward pass unchanged but lets saturated
         coordinates escape recovers 6.8 of the 13.5 last-ring points; the order cost that remains, and an unbounded encoding that keeps two thirds of the slope, are consistent with the budget.

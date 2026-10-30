@@ -21,8 +21,8 @@ For the ring-free circuit and any rotation angles, qubit $j$ starts from Bloch v
 $(\sin\enc{j},0,\cos\enc{j})$ after encoding and then undergoes a fixed rotation $M_j\in
 \mathrm{SO}(3)$ determined by its trained $R_yR_z$ layers. Hence
 $\ZZ{j}=(M_j)_{zx}\sin\enc{j}+(M_j)_{zz}\cos\enc{j}$, which is \cref{eq:ringfree} with
-$\beta_j=(M_j)_{zx}$ and $\alpha_j=(M_j)_{zz}$. The test suite checks the formula against the simulator (tolerance
-$10^{-10}$). Since the readout layer is linear, the ring-free head is
+$\beta_j=(M_j)_{zx}$ and $\alpha_j=(M_j)_{zz}$. The test suite checks the formula against the simulator (absolute tolerance
+$10^{-10}$, relative $10^{-5}$). Since the readout layer is linear, the ring-free head is
 $W[\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}]_j+b$.
 
 \input{figures/tableA_supports}
@@ -583,7 +583,7 @@ exploratory; mean final-epoch accuracy is within 1.35 points of best-epoch accur
 configurations and no ordering of heads changes (\texttt{scripts/make\_tables.py} on the
 released per-epoch logs in \texttt{results/raw}). \Cref{tab:mnist,tab:cifar} give the results.
 Re-uploading lowered accuracy in every setting under this recipe (\textsc{none} $>$
-\textsc{light} $>$ \textsc{strong}); it was not part of the tuned protocol.
+\textsc{light} $>$ \textsc{strong}); it was not part of the initial tuned protocol (a separately tuned re-uploading test is in \cref{app:extensions}).
 
 \begin{table}[h]
 \centering
@@ -718,8 +718,8 @@ The repository contains per-epoch metrics and metadata for every training run, t
 trained-circuit measurements, and the scripts that regenerate every number, table and figure
 from them (\texttt{scripts/summarize\_v2.py}, \texttt{scripts/zero\_angle\_check.py},
 \texttt{paper/figures/scripts/}). The PyTorch statevector simulator is tested against
-PennyLane (tolerance $10^{-6}$ in outputs and input gradients, $10^{-5}$ in rotation
-gradients); the test suite also checks the zero-rotation identity, the ring-free form, the
+PennyLane (absolute tolerance $10^{-6}$ in outputs and input gradients, $10^{-5}$ in rotation
+gradients; relative $10^{-5}$); the test suite also checks the zero-rotation identity, the ring-free form, the
 entangling example of \cref{app:identity}, the equality of the zero-rotation circuit and the
 products head, and the effective-order expansion of \cref{app:efforder} against the simulator.
 The predicted orderings for the MNIST replication and the predictions and pass criteria for the
