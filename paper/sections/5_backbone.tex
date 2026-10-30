@@ -97,9 +97,7 @@ $W[\alpha_j\cos\enc{j}+\beta_j\sin\enc{j}]_j+b$ for every setting of its rotatio
 \Cref{tab:ringfree} compares it with classical heads of this form trained under the same
 protocol. The cos-only restriction trails it by $0.3\pm0.6$ probe and $0.6\pm0.7$ test points
 with mixed signs, and the unrestricted cos+sin extension by 0.9 and 1.3 (3 seeds). The match
-holds at the level of the function class, not the parameters: the trained ring-free circuit
-has mean absolute $R_y$ angle 0.41 rad and uses the sine component (logit-Jacobian
-cosine 0.41 against the cos-only model, \cref{app:zeroangle}).
+is of function class, not parameters (\cref{app:zeroangle}).
 
 \subsection{Controls that do not recover the gap}
 \label{sec:controls}
@@ -108,12 +106,10 @@ cosine 0.41 against the cos-only model, \cref{app:zeroangle}).
 
 \Cref{tab:controls} (\cref{app:controls}) tests alternative explanations on CIFAR-10/4,000. Lowering or raising the
 backbone learning rate with the head learning rate fixed leaves a gap of 4.9--8.6 points at
-every rate where the VQC trains, and the VQC collapses at the two highest rates. The
-backbone's gradient norm is larger, not smaller, with the VQC head. Freezing the circuit's
-rotations at initialization, which keeps the head close to its zero-rotation model, does
-not recover the probe ($-1.6\pm0.7$ against the trained circuit). BatchNorm before the encoding
+every rate where the VQC trains, and the VQC collapses at the two highest rates. Freezing the circuit's
+rotations at initialization does not recover the probe ($-1.6\pm0.7$ against the trained circuit). BatchNorm before the encoding
 and two alternative encodings, one of which breaks the sign symmetry of
-$\cos(\pi\tanh z)$, recover at most 0.7 probe points. Lowering product order recovers by far the most.
+$\cos(\pi\tanh z)$, recover at most 0.7 probe points.
 
 Higher-order circuits also fit their training data less well under the 80-epoch budget
 (clean training accuracy 96.6\% without CNOTs, 89.2\% for the default circuit and 65.6\% for a
@@ -134,8 +130,7 @@ an ImageNet-pretrained ResNet-18 fine-tuned through each head, its classifier re
 8-dimensional bottleneck (\cref{tab:pretrained}). The ordering carries over: at 4,000 images
 the ring-free and pairs circuits probe within 0.2 points of the linear head, the default
 circuit $7.2\pm2.3$ below it and the last-ring circuit $18.0\pm4.7$ below (5 seeds, every seed
-negative); on the three seeds probed with both, an MLP probe gives the same default gap
-($-5.8$ vs $-5.7$). At a fixed 30
+negative). At a fixed 30
 epochs the cost falls with training size, from $22.3\pm2.9$ points at 1,000 images to
 $1.9\pm0.4$ at 10,000, but smaller sets then also get fewer optimizer updates. At an
 approximately matched number of updates (about 3,800) the default circuit costs $6.6\pm1.7$,
@@ -174,11 +169,12 @@ saturation. On the trained
 bottlenecks the middle-zone fraction ($0.1\le|\tanh z|\le0.9$) is 0.84, 0.63 and 0.46 at orders 1, 2.5
 and 5.25, and the lost mass goes to saturation (30--49\% of coordinates for the two ring circuits, 1\%
 without CNOTs), which tracks probe accuracy across the 28 VQC configurations ($\rho=-0.91$; \cref{tab:geometry}).
+Its premise holds in the trained heads (readout magnitude 0.66 to 0.52; decoder weights shrink rather than
+compensate), but at these orders the bound is loose: it gives the direction of the depletion, not its size (\cref{app:compensation}).
 
 Both ends of the encoding are flat (\cref{prop:flat}): with $t=|\tanh z|$,
 $|\tfrac{d}{dz}\cos(\pi\tanh z)|\le\pi^2t$ near zero and $\le8\pi^2e^{-4|z|}$ at saturation, the square of $\tanh$'s
-decay, because $\sin\enc{j}$ vanishes there too. Under \cref{prop:budget} with identically distributed factors and fixed $a$ and $\delta$, the probability that an
-input's sensitivity exceeds $\pi^2\delta$ vanishes as order grows. Every
+decay, because $\sin\enc{j}$ vanishes there too (\cref{prop:flat} bounds the resulting loss of sensitivity). Every
 head saturates early in training ($S=0.44$--$0.77$ at epoch 5, 3 seeds); the ring-free head then
 desaturates to 0.02, while the default and last-ring heads stall at 0.30 and 0.46 and their probe gaps
 peak at epochs 15 and 35 (\cref{app:dynamics}). We tested this trap with a pre-registered intervention
