@@ -1,0 +1,31 @@
+name: Build portfolio preprint
+
+on:
+  push:
+    branches: [portfolio-academic-preprint]
+    paths:
+      - 'paper/**'
+      - '.github/workflows/build-preprint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile preprint PDF
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: preprint.tex
+          working_directory: paper
+          latexmk_use_xelatex: false
+          args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
+      - name: Upload portfolio PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: quantcnn-portfolio-preprint
+          path: paper/preprint.pdf
+          if-no-files-found: error
