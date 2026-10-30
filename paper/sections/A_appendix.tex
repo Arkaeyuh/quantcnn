@@ -153,7 +153,7 @@ the other inputs' gradients unattenuated but receive almost none themselves.
 
 \input{figures/tableA_gradrank_init}
 
-\Cref{tab:mlpprobe} refits the five-seed headline backbones of \cref{fig:hero}b with a two-layer MLP probe
+\Cref{tab:mlpprobe} refits the five-seed headline backbones of \cref{fig:hero}b with a two-hidden-layer MLP probe
 under the same validation protocol as the linear probe; MNIST with 1,000 images gives the same
 picture (the MLP probe is within 0.5 points of the linear probe for every head). With the
 original grid the MLP probe selected its lowest learning rate ($10^{-3}$) for the linear- and
@@ -219,7 +219,7 @@ brickwork's effective order at its trained rotations is 2.6 rather than 3.5 (\cr
 effective rank of \cref{tab:gradrank} (star 7.1, chain 5.7, star-shaped ring 6.5, distance-2
 ring 4.6, brickwork 4.7, chain after the last layer 3.5) ranks the six layouts exactly as their
 probe accuracy does, including both reversals, but captures little of brickwork's advantage:
-its rank exceeds the distance-2 ring's by only $0.1\pm0.6$, against a 4-point probe gap. A two-layer MLP probe gives the same pattern (brickwork 70.2, open chain
+its rank exceeds the distance-2 ring's by only $0.1\pm0.6$, against a 4-point probe gap. A two-hidden-layer MLP probe gives the same pattern (brickwork 70.2, open chain
 after the last layer 58.8).
 
 \section{Product Order under a Second Encoding}
@@ -381,12 +381,12 @@ products vanish ($R_y(-\pi/2)$ on every qubit before the last ring maps the enco
 $\tanh z_j=\tfrac12$ to $|0\rangle^{\otimes8}$, so every output is 1 and every product 0). After the
 pre-registered analysis we therefore computed the proposition's own quantity on the same bottlenecks,
 the per-sample products $r_k=\prod_{j\in\Sk}\cos\enc{j}$. Averaged over readouts, $\mathbb{E}|r_k|$ is 0.61
-without CNOTs, 0.47 for the default ring, 0.44 for the last ring and at least 0.29 in every layout, and it
-is within 0.04 of the product of marginals $\prod_{j\in\Sk}\mathbb{E}|\cos\enc{j}|$, consistent with
+without CNOTs, 0.47 for the default ring, 0.44 for the last ring and at least 0.29 in every layout, and its layout means are
+within 0.04 of the product of marginals $\prod_{j\in\Sk}\mathbb{E}|\cos\enc{j}|$ (individual runs within 0.07), consistent with
 near-independence at this moment. The bound is nonetheless loose at these orders. For readouts of order
 at least 4, $\mathbb{E}|r_k|$ is 0.16--0.24 (layout means of the smallest such readout; 0.02 for the
 order-8 readout of the star-into-last layout), and the bound with that $a$ falls below 1 only for
-$\delta$ above 0.20--0.29 (layout means; at most 0.31 in any run). It constrains roughly the centre
+$\delta$ above 0.20--0.29 (layout means of each run's largest per-readout threshold; at most 0.31 in any run). It constrains roughly the centre
 $0.3<|\tanh z|<0.7$, not the whole graded zone, and gives the direction of the depletion in
 \cref{tab:geometry}, not its size. All of these are measured at the end of training; how they evolve
 during training is not measured. Nor does depletion by itself imply lost task information: the bound

@@ -11,7 +11,7 @@ VQC-trained bottleneck better than the VQC head itself does ($67.8\pm1.3$ test).
 2,000 images) and smaller on MNIST ($-7.9$ to $-1.0$; 3 seeds each). A narrow classical head
 lowers probe accuracy as well: MLP-8 backbones probe $3.6\pm0.6$ points below linear-head
 backbones on CIFAR-10/4,000, $1.0\pm0.9$ above the VQC. The gap is not an artifact of linear
-decoding: a two-layer MLP probe on the same bottlenecks recovers at most 0.4 points more than
+decoding: a two-hidden-layer MLP probe on the same bottlenecks recovers at most 0.4 points more than
 the linear probe for any head, and puts the default VQC $4.8\pm0.9$ points below the linear
 head (\cref{app:mechanism}), also when its learning-rate grid is extended downward. The rest of this section shows that the VQC's share
 of the gap depends on its CNOT structure, which no classical head has.
@@ -166,7 +166,7 @@ independence, every $j\in\Sk$ satisfies the bound with $a$ in place of $a^{1/m}$
 \end{proposition}
 As $m$ grows, $a^{1/m}\to1$, so high-order inputs gather at $z\approx0$ or at
 saturation. On the trained
-bottlenecks the middle-zone fraction ($0.1\le|\tanh z|\le0.9$) is 0.84, 0.63 and 0.46 at orders 1, 2.5
+bottlenecks the middle-zone fraction ($0.1<|\tanh z|<0.9$) is 0.84, 0.63 and 0.46 at orders 1, 2.5
 and 5.25, and the lost mass goes to saturation (30--49\% of coordinates for the two ring circuits, 1\%
 without CNOTs), which tracks probe accuracy across the 28 VQC configurations ($\rho=-0.91$; \cref{tab:geometry}).
 On these bottlenecks the products keep their magnitude (mean $\mathbb{E}|r_k|$ 0.61 to 0.44; the decoder does not
