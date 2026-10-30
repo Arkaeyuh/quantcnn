@@ -575,7 +575,7 @@ collapse counts of the runs above were seen before it was written, and it predic
 Differentiating \cref{eq:identity} at zero rotations, with independent coordinates, gives each input's
 readout sensitivity a factor $\prod_{i\in S_k\setminus\{j\}}c_i$ with $c_i=\mathbb{E}[\cos^2\varphi_i]\le1$:
 higher order adds derivative paths but attenuates each one. The committed measurement on the untrained
-network fails both predictions (sensitivity within 25\% of this prediction for every layout; no CNOT
+network fails both predictions (seed-mean ratio of measured to predicted sensitivity in $[0.75,1.33]$ for every layout; no CNOT
 $>$ default $>$ last ring in every seed). That measurement, however, ran BatchNorm in evaluation mode, where the
 untouched running statistics leave the bottleneck near zero (mean $|\tanh z|=0.03$), not with the batch
 statistics of the first training steps. Repeated with batch statistics (batches of 32; not committed in
@@ -604,6 +604,12 @@ accuracy. Because the test split took part in checkpoint selection, these number
 exploratory; mean final-epoch accuracy is within 1.35 points of best-epoch accuracy in all 30
 configurations and no ordering of heads changes (\texttt{scripts/make\_tables.py} on the
 released per-epoch logs in \texttt{results/raw}). \Cref{tab:mnist,tab:cifar} give the results.
+\Cref{tab:cifar} is the last of three completed 80-epoch CIFAR-10 sweeps, all released. One of the
+other two used weight decay $10^{-3}$; the other has identical recorded settings but, judging from its
+much larger train--test gaps, predates the random rotation and colour jitter in the augmentation
+(augmentation was not then recorded in run metadata, so this is an inference). We report the last
+because it matches the final pipeline. All three give the same ordering of heads at every size, and the
+weaker-augmentation sweep favours the VQC head more (62.9\% against 58.9\% at 4,000 images).
 Re-uploading lowered accuracy in every setting under this recipe (\textsc{none} $>$
 \textsc{light} $>$ \textsc{strong}); it was not part of the initial tuned protocol (a separately tuned re-uploading test is in \cref{app:extensions}).
 
