@@ -372,14 +372,14 @@ give $r_k=2^{-m}y$, which a weight of $2^m$ restores. A pre-registered measureme
 8-qubit runs behind \cref{tab:geometry} (13 layouts, orders 1--5.25, test split, the trained circuit's
 actual outputs) finds no such compensation. Mean readout magnitude $\mathbb{E}|\ZZ{k}|$ is 0.66 without
 CNOTs, 0.51 for the default ring and 0.52 for the last ring, and at least 0.39 in every layout, although
-it falls steadily with order (Spearman $-0.88$ over layouts). The mean norm of the decoder column
+it is negatively correlated with order (Spearman $-0.88$ over layouts). The mean norm of the decoder column
 attached to each readout shrinks rather than grows (5.72 to 4.05; Spearman $-0.54$), so the logit scale
 each readout contributes falls with order (4.02 to 2.31, Spearman $-0.91$, as for probe accuracy over the
 same layouts). The zero-rotation independence product $\prod_{j\in\Sk}\mathbb{E}|\cos\enc{j}|$ lies 0.04--0.21
 below the measured magnitudes. The bound itself is loose at these orders: with $a$ set to each readout's
 measured magnitude it exceeds 1 at $\delta=0.1$ for every readout of order at least 4, and for $m=4$--8
-and $a=0.3$--0.5 it is 1.7--5.3 at $\delta=0.1$ but 0.20--0.63 at $\delta=0.3$. It therefore constrains
-only the central zone $0.3<|\tanh z|<0.7$; it predicts the direction of the depletion in
+and $a=0.3$--0.5 it is 1.7--5.3 at $\delta=0.1$ but 0.20--0.63 at $\delta=0.3$. It is non-vacuous only for $\delta$ above 0.13--0.23 (for example on $0.3<|\tanh z|<0.7$), so it
+constrains the centre of the encoding, not the whole graded zone; it predicts the direction of the depletion in
 \cref{tab:geometry}, not its size. Nor does depletion by itself imply lost task information: the bound
 allows one graded, informative coordinate per support, and the link between depletion and probe accuracy
 rests on the measurements of \cref{tab:geometry} and on the escape-only intervention, not on the
@@ -764,7 +764,7 @@ validation.
 
 \paragraph{Reproducibility.}
 The repository contains per-epoch metrics and metadata for every training run, the probe, frozen-head and
-trained-circuit measurements, and the scripts that regenerate every number, table and figure
+trained-circuit measurements, and the scripts that compute every number and generate most tables and figures
 from them (\texttt{scripts/summarize\_v2.py}, \texttt{scripts/zero\_angle\_check.py},
 \texttt{paper/figures/scripts/}). The PyTorch statevector simulator is tested against
 PennyLane (absolute tolerance $10^{-6}$ in outputs and input gradients, $10^{-5}$ in rotation
