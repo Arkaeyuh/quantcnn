@@ -286,6 +286,7 @@ NIGHT26_ARCH = {
 SATUP_WEIGHT = 10.0
 CLAMP_PILOT_WEIGHTS = [3.0, 10.0]
 CLAMP_PILOT_SEEDS = [20, 21, 22]
+CLAMP_PILOT2_WEIGHTS = [0.3, 1.0]
 # SVHN (2026-10-29, predictions in predictions/prospective_predictions.md): the headline heads at 4,000 images.
 _S4000 = dict(_C4000, dataset="svhn")
 LR_STEPS = [1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 1.0]
@@ -628,6 +629,11 @@ def _grid(name: str) -> list[dict]:
             for lay in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
                 for sd in ALL_SEEDS:
                     items.append(dict(_C4000, head="quantum", encoding=enc, **lay, lr=1e-2, seed=sd))
+    elif name == "cifar_clamp_pilot2":
+        # Second, disclosed pilot (2026-10-31): the first failed its training guard in every plain+clamp cell, so
+        # weaker clamps, same layouts, k and seeds.
+        items += [dict(it, reg_weight=w) for it in _grid("cifar_clamp_pilot") if it["reg_weight"] == CLAMP_PILOT_WEIGHTS[0]
+                  for w in CLAMP_PILOT2_WEIGHTS]
     elif name == "cifar_clamp_pilot":
         # Pilot for the saturation-clamp factorial (2026-10-31): pick the clamp's k and weight so the clamped
         # arms sit near the plain heads' saturation. Seeds 20-22, outside every scored cohort; only S and clean
@@ -913,7 +919,7 @@ def main():
                                          "cifar_esc_rep", "cifar_dyn2", "night28", "cifar_escgate",
                                          "svhn", "svhn_edge", "svhn_seeds",
                                          "svhn_ext", "cifar_reup", "cifar_mnv3", "night29a", "night29b",
-                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds", "svhn_collapse", "cifar_escgate_rep", "night31", "cifar_reup_seeds2", "cifar_mnv3_seeds2", "cifar_clamp_pilot"], required=True)
+                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds", "svhn_collapse", "cifar_escgate_rep", "night31", "cifar_reup_seeds2", "cifar_mnv3_seeds2", "cifar_clamp_pilot", "cifar_clamp_pilot2"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

@@ -643,3 +643,19 @@ The queue ended at 06:46: all 75 runs, 3 linear probes, 2 MLP probes and 3 expor
 - clean training accuracy is at most 10 points below the unclamped arm with the same estimator (plain: last 65.6, default 89.2; escape-only: last 78.1, default 93.1), for both the plain+clamp and the escape+clamp arm.
 
 If neither λ qualifies for a layout, I report that and redesign the clamp (other k, or λ) as a second disclosed pilot before writing any predictions.
+
+### Pilot 1 outcome (2026-10-31 16:31, `results/clamp_pilot.csv`; validation-split S and clean training accuracy only)
+| layout | arm | λ | S (clamped / rest) | train acc |
+|---|---|---|---|---|
+| default, k=3 | plain + clamp | 3 | 0.50 (1.00 / 0.20) | 78.5 |
+| | plain + clamp | 10 | 0.79 (0.98 / 0.68) | 19.5 |
+| | escape + clamp | 3 | 0.375 (1.00 / 0.00) | 93.4 |
+| | escape + clamp | 10 | 0.375 (1.00 / 0.00) | 90.7 |
+| last, k=4 | plain + clamp | 3 | 0.77 (0.98 / 0.55) | 41.5 |
+| | plain + clamp | 10 | 0.82 (1.00 / 0.64) | 25.5 |
+| | escape + clamp | 3 | 0.50 (1.00 / 0.00) | 74.7 |
+| | escape + clamp | 10 | 0.50 (1.00 / 0.00) | 72.5 |
+
+**Selection rule: no λ qualifies for either layout.** Escape + clamp meets the S window (0.375 vs 0.30; 0.50 vs 0.49) and its training guard. Every plain + clamp cell fails its guard: default −10.7 and −69.7, last −24.1 and −40.1 against the unclamped plain head. Under the plain gradient, the clamp spreads saturation to the unclamped coordinates (rest 0.20–0.68) and fit collapses. Under escape-only the unclamped coordinates stay at 0.
+
+**Second pilot (disclosed, written before it runs):** `cifar_clamp_pilot2`, the same design at λ ∈ {0.3, 1} (16 runs, seeds 20–22), with the same readout and selection rule. If it also fails, I will not run the factorial with this clamp. I will report the pilots and propose a different clamp.
