@@ -548,6 +548,23 @@ Data: 61 runs, 13 cells; cell values are seed means.
 
 **My expectation:** saturated-only gives 4–7 points on the last ring with S well below the plain head's but above full escape-only's ≈ 0. Coordinates that escape below 0.9 lose the boost and may drift back. Unsaturated-only gives 0–2.
 
+### Outcomes: saturation-gated escape-only (scored 2026-10-31 03:05 with `scripts/score_escgate.py`)
+All 30 runs, the probe and the export exited 0. Linear probe; gains paired by seed (0–4) against the plain head of the same layout. S is the percentage of bottleneck coordinates with |tanh z| > 0.9; plain-head S is about 50% for the last ring.
+
+| layout | plain | full gain | sat-only gain | mid-only gain | S% full / sat / mid | train acc plain / full / sat / mid |
+|---|---|---|---|---|---|---|
+| no CNOT | 73.6 | +0.89 ± 0.51 (5/5) | +0.42 ± 0.56 (4/5) | +0.83 ± 0.27 (5/5) | 0.03 / 0.33 / 0.05 | 96.6 / 98.5 / 97.4 / 98.3 |
+| default ring | 69.8 | +1.48 ± 0.90 (5/5) | +1.05 ± 0.68 (4/5) | +2.05 ± 0.94 (5/5) | 0.02 / 0.47 / 0.02 | 89.2 / 93.1 / 92.9 / 94.5 |
+| last ring | 60.1 | +6.83 ± 2.17 (5/5) | +5.39 ± 5.28 (4/5) | +4.69 ± 3.13 (4/5) | 0.06 / 2.35 / 0.01 | 65.6 / 78.1 / 73.8 / 75.2 |
+
+Per-seed last-ring gains: sat-only −1.8, +6.4, +3.1, +6.5, +12.7; mid-only +5.8, +5.5, −0.1, +4.0, +8.4.
+- **H_sat-route: PASS.** gain_sat(last) +5.39 ≥ 4.5, positive in 4/5 seeds. The spread is large (SD 5.3).
+- **H_mid-small: FAIL.** gain_mid(last) +4.69 is far above 2.3. sat > mid holds in 4/5 seeds, but the mean difference is only 0.7.
+- **Refutation: not met** (mid < sat, and sat > 2.3).
+- **Secondary:** default gain_sat +1.05 ≥ 0.75 PASS. No CNOT, both gains ≤ 1.5 PASS (+0.42, +0.83).
+- **Verdict: mixed.** Either gate alone recovers most of the full escape-only gain on the last ring. So the gain does not depend on boosting coordinates that are already saturated: boosting only unsaturated ones works almost as well, and their S stays near 0 (0.01%). This is consistent with the gain coming from keeping coordinates out of saturation, by either route. It does not single out releasing saturated coordinates as the mechanism.
+- **Against my expectation:** I expected mid-only to give 0–2 points. It gave 4.7. I expected sat-only S to be "well below plain but above full escape-only's ≈ 0". It is 2.35%, about 20× below plain, as expected.
+
 ## Night of 2026-10-31: fresh-seed replications, predictions written 2026-10-31 02:40 before any of these runs
 **Why:** the gated escape-only control, the re-uploading test and the MobileNetV3-Small test each have 5 seeds. Seeds 5–9 test whether each verdict replicates on seeds not used to set any threshold. Each is scored on seeds 5–9 alone with the thresholds already committed. The 10-seed pooled numbers are reported descriptively and are what the paper's tables would show. Every committed verdict on seeds 0–4 stands, whatever seeds 5–9 show.
 
