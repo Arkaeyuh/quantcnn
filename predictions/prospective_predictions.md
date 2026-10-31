@@ -600,3 +600,31 @@ The committed H_order-mnv3 FAIL (default − no CNOT −0.89 against a −1.0 th
 - **H_gap-mnv3-rep:** linear − default ≥ +1.0 (≥ 4/5 positive), and no CNOT within 1.0 of linear.
 - **Refutation:** both order differences > −0.5.
 - **My expectation:** the direction repeats. default − no CNOT is again near −1 (a coin flip on the threshold). last ring − default is −3 to −8, with at least one unstable last-ring seed.
+
+### Outcomes: night of 2026-10-31 (scored 2026-10-31 06:55 with `scripts/score_night31.py`)
+The queue ended at 06:46: all 75 runs, 3 linear probes, 2 MLP probes and 3 exports exited 0. Verdicts use seeds 5–9 alone; 10-seed pooled numbers are descriptive. Linear probe unless stated; S in % of coordinates with |tanh z| > 0.9.
+
+**(A) Gated escape-only, seeds 5–9.** Plain baselines: no CNOT 73.52, default 68.30, last ring 60.04 (S 45.5%).
+- Last-ring gains: full +5.56 ± 5.58 (5/5), sat-only +5.85 ± 4.23 (5/5, S 0.43%), mid-only +7.08 ± 4.44 (5/5, S 0.01%). sat > mid in 1/5 seeds.
+- Default gains: full +3.30, sat-only +2.57, mid-only +3.22. No-CNOT gains: +1.31, +0.75, +0.45.
+- **H_sat-route-rep: PASS** (+5.85 ≥ 4.5, 5/5).
+- **H_mid-small-rep: FAIL** (+7.08 > 2.3; sat > mid only 1/5).
+- **Refutation: MET** (gain_mid ≥ gain_sat). By the committed criterion, the replication refutes "boosting saturated coordinates is the route".
+- **Secondary:** default gain_sat ≥ 0.75 PASS; no CNOT both ≤ 1.5 PASS.
+- **Pooled, 10 seeds, last ring:** sat-only +5.62 ± 4.52 and mid-only +5.89 ± 3.84, each positive in 9/10.
+- **Against my expectation:** I expected mid-only to give 0–2 points. Over 10 seeds it is at least as large as sat-only. The gain does not need the boost on saturated coordinates.
+
+**(B) Re-uploading, seeds 5–9.** no CNOT 65.72, pairs 61.22, default 55.89 ± 9.37, last ring 48.01 ± 8.93.
+- **H_reup-order-rep: FAIL.** default − no CNOT −9.82 (5/5 negative) passes its part. last ring − default −7.89 ± 17.96 is negative in only 3/5, because default seed 5 probes 42.5 and two last-ring seeds beat their default. MLP: −10.29 (5/5), −7.26 (3/5).
+- **H_reup-rank-rep: PASS** (Spearman −1.00, both probes).
+- **Refutation: not met.**
+- **Pooled, 10 seeds:** no CNOT 66.87 ± 3.17, pairs 63.72 ± 4.67, default 56.95 ± 6.89, last ring 48.15 ± 6.69. default − no CNOT −9.91 ± 5.03 (10/10 negative); last ring − default −8.80 ± 12.92 (8/10).
+- **Against my expectation:** I expected a pass. The direction holds, but the per-seed sign criterion fails.
+
+**(C) MobileNetV3-Small, seeds 5–9.** linear 85.65, no CNOT 85.16, pairs 86.21, default 84.74, last ring 80.18 ± 4.32.
+- **H_order-mnv3-rep: FAIL.** default − no CNOT −0.43 (4/5 negative) misses −1.0. last ring − default −4.55 (5/5) passes its part. MLP: −0.54, −3.75.
+- **H_pairs-mnv3-rep: PASS** (pairs − default +1.47, 5/5; pairs − no CNOT +1.04).
+- **H_gap-mnv3-rep: FAIL** (linear − default +0.92 < 1.0, though 5/5 positive; |linear − no CNOT| 0.49 passes). Under the MLP probe it would pass (+1.61, 5/5; 1.07 > 1.0 fails the second part).
+- **Refutation: not met.**
+- **Pooled, 10 seeds:** linear 85.87 ± 0.55, no CNOT 85.28, pairs 86.12, default 84.62, last ring 79.59 ± 4.93. Differences to linear: no CNOT −0.59 ± 0.55, pairs +0.26 ± 0.50, default −1.24 ± 0.69 (10/10 negative), last ring −6.28 ± 4.75 (10/10). default − no CNOT −0.66 ± 0.82 (9/10 negative).
+- **Against my expectation:** as predicted, default − no CNOT is near −1 and misses the threshold, and last ring − default is in −3 to −8. The cost on this backbone is small and directionally consistent.
