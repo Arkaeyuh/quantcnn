@@ -658,4 +658,4 @@ If neither λ qualifies for a layout, I report that and redesign the clamp (othe
 
 **Selection rule: no λ qualifies for either layout.** Escape + clamp meets the S window (0.375 vs 0.30; 0.50 vs 0.49) and its training guard. Every plain + clamp cell fails its guard: default −10.7 and −69.7, last −24.1 and −40.1 against the unclamped plain head. Under the plain gradient, the clamp spreads saturation to the unclamped coordinates (rest 0.20–0.68) and fit collapses. Under escape-only the unclamped coordinates stay at 0.
 
-**Second pilot (disclosed, written before it runs):** `cifar_clamp_pilot2`, the same design at λ ∈ {0.3, 1} (16 runs, seeds 20–22), with the same readout and selection rule. If it also fails, I will not run the factorial with this clamp. I will report the pilots and propose a different clamp.
+**Second pilot (disclosed, written before it runs):** `cifar_clamp_pilot2`, the same design at λ ∈ {0.3, 1} (24 runs, seeds 20–22), with the same readout and selection rule. If it also fails, I will not run the factorial with this clamp. I will report the pilots and propose a different clamp.
