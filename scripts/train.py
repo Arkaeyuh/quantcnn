@@ -104,7 +104,7 @@ def configure_train_parser(p: argparse.ArgumentParser) -> argparse.ArgumentParse
         default=0.1,
         help="Quantum head only: rotation angles start in uniform(-s, s) (default 0.1, near the identity).",
     )
-    p.add_argument("--bottleneck_reg", choices=["none", "sat", "decor", "satup2", "satup4"], default="none",
+    p.add_argument("--bottleneck_reg", choices=["none", "sat", "decor", "satup2", "satup3", "satup4"], default="none",
                    help="Regularizer on the bottleneck (mechanism test): saturation hinge or decorrelation.")
     p.add_argument("--reg_weight", type=float, default=0.0)
     p.add_argument(

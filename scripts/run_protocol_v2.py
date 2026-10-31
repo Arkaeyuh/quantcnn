@@ -284,6 +284,8 @@ NIGHT26_ARCH = {
     "cifar_readout": [dict(head="quantum", no_entangle=True, readout=r) for r in ("zz", "zzz")],
 }
 SATUP_WEIGHT = 10.0
+CLAMP_PILOT_WEIGHTS = [3.0, 10.0]
+CLAMP_PILOT_SEEDS = [20, 21, 22]
 # SVHN (2026-10-29, predictions in predictions/prospective_predictions.md): the headline heads at 4,000 images.
 _S4000 = dict(_C4000, dataset="svhn")
 LR_STEPS = [1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 1.0]
@@ -626,6 +628,16 @@ def _grid(name: str) -> list[dict]:
             for lay in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
                 for sd in ALL_SEEDS:
                     items.append(dict(_C4000, head="quantum", encoding=enc, **lay, lr=1e-2, seed=sd))
+    elif name == "cifar_clamp_pilot":
+        # Pilot for the saturation-clamp factorial (2026-10-31): pick the clamp's k and weight so the clamped
+        # arms sit near the plain heads' saturation. Seeds 20-22, outside every scored cohort; only S and clean
+        # training accuracy are inspected.
+        for lay, k in ((dict(entangle_last_only=True), 4), ({}, 3)):
+            for enc in ("pi_tanh", "pi_tanh_esc"):
+                for w in CLAMP_PILOT_WEIGHTS:
+                    for sd in CLAMP_PILOT_SEEDS:
+                        items.append(dict(_C4000, head="quantum", encoding=enc, **lay, bottleneck_reg=f"satup{k}",
+                                          reg_weight=w, lr=1e-2, seed=sd))
     elif name == "cifar_escgate_rep":
         # Fresh-seed replication of cifar_escgate (2026-10-31 predictions), same design on seeds 5-9.
         for enc in ("pi_tanh_escsat", "pi_tanh_escmid"):
@@ -901,7 +913,7 @@ def main():
                                          "cifar_esc_rep", "cifar_dyn2", "night28", "cifar_escgate",
                                          "svhn", "svhn_edge", "svhn_seeds",
                                          "svhn_ext", "cifar_reup", "cifar_mnv3", "night29a", "night29b",
-                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds", "svhn_collapse", "cifar_escgate_rep", "night31", "cifar_reup_seeds2", "cifar_mnv3_seeds2"], required=True)
+                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds", "svhn_collapse", "cifar_escgate_rep", "night31", "cifar_reup_seeds2", "cifar_mnv3_seeds2", "cifar_clamp_pilot"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)

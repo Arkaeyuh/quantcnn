@@ -628,3 +628,18 @@ The queue ended at 06:46: all 75 runs, 3 linear probes, 2 MLP probes and 3 expor
 - **Refutation: not met.**
 - **Pooled, 10 seeds:** linear 85.87 ± 0.55, no CNOT 85.28, pairs 86.12, default 84.62, last ring 79.59 ± 4.93. Differences to linear: no CNOT −0.59 ± 0.55, pairs +0.26 ± 0.50, default −1.24 ± 0.69 (10/10 negative), last ring −6.28 ± 4.75 (10/10). default − no CNOT −0.66 ± 0.82 (9/10 negative).
 - **Against my expectation:** as predicted, default − no CNOT is near −1 and misses the threshold, and last ring − default is in −3 to −8. The cost on this backbone is small and directionally consistent.
+
+## Saturation-clamp factorial: pilot plan, written 2026-10-31 before any pilot run
+**Why:** kill-argument 2026-10-31, points P5 and action item 2. Escape-only lowers saturation and changes inward gradients at the same time. The planned factorial crosses {plain, escape-only} with {no clamp, clamp}, where the clamp holds S near the plain head's level. The escape gain *within* the clamped column separates mediation through saturation from a direct gradient route. This pilot only picks the clamp's settings; the factorial gets its own predictions afterwards, before any scored run.
+
+**Clamp:** the existing induced-saturation penalty `satup<k>`, λ·mean_{j<k} relu(0.9025 − tanh² z_j), with k = 4 on the last ring (plain S ≈ 0.46–0.49, about 4 of 8 coordinates) and k = 3 on the default ring (plain S ≈ 0.30; k = 3 is 0.375). It acts on the loss only, through `torch.tanh`, so the escape estimator does not alter its gradient.
+
+**Pilot (`cifar_clamp_pilot`, 24 runs):** {last ring k=4, default ring k=3} × {plain, escape-only} × λ ∈ {3, 10} × seeds 20–22. These seeds are outside every scored cohort. CIFAR-10/4,000, lr 1e-2, standard recipe.
+
+**What I will look at:** only `scripts/clamp_pilot_stats.py` output, meaning S on the validation split (total, clamped coordinates, rest) and clean training accuracy. No test, probe or validation accuracy of pilot runs, before or after the factorial is scored.
+
+**Selection rule (committed now):** for each layout, take the λ whose escape+clamp arm has mean S closest to the target (last 0.49, default 0.30), provided
+- that S is within ±0.10 of the target, and
+- clean training accuracy is at most 10 points below the unclamped arm with the same estimator (plain: last 65.6, default 89.2; escape-only: last 78.1, default 93.1), for both the plain+clamp and the escape+clamp arm.
+
+If neither λ qualifies for a layout, I report that and redesign the clamp (other k, or λ) as a second disclosed pilot before writing any predictions.
