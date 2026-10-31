@@ -329,9 +329,9 @@ fixed at 10 and a guard committed as no loss of fit. The replication meets every
 points for the last-ring circuit and $+9.9\pm5.2$ for its products, positive in every seed, with
 saturation down to 0.01 and 0.04 and unregularized baselines of 60.0 and 57.2 (60.1 and 54.8 on seeds 0--4); the MLP
 probe gives $+6.1$ and $+9.4$. The penalty acts during training only, so the heads keep the same forward
-architecture. Under criteria as committed, the results support a causal role for saturation on both
-supports and both head families; the penalty also changes fit and effective dimensionality, so
-saturation need not be the only route.
+architecture. Under criteria as committed, lowering saturation recovers accuracy on both supports and both head
+families. The penalty also changes fit and effective dimensionality, and the gated estimators below
+do not isolate saturation, so how much of the recovery saturation mediates is not identified.
 
 \input{figures/tableA_geometry}
 
