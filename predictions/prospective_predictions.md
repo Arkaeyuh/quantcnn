@@ -547,3 +547,39 @@ Data: 61 runs, 13 cells; cell values are seed means.
 - **Otherwise:** mixed, and reported as such.
 
 **My expectation:** saturated-only gives 4–7 points on the last ring with S well below the plain head's but above full escape-only's ≈ 0. Coordinates that escape below 0.9 lose the boost and may drift back. Unsaturated-only gives 0–2.
+
+## Night of 2026-10-31: fresh-seed replications, predictions written 2026-10-31 03:10 before any of these runs
+**Why:** the gated escape-only control, the re-uploading test and the MobileNetV3-Small test each have 5 seeds. Seeds 5–9 test whether each verdict replicates on seeds not used to set any threshold. Each is scored on seeds 5–9 alone with the thresholds already committed. The 10-seed pooled numbers are reported descriptively and are what the paper's tables would show. Every committed verdict on seeds 0–4 stands, whatever seeds 5–9 show.
+
+**What I have already seen (disclosed):**
+- Re-uploading and MobileNet seeds 0–4: all outcomes in the 2026-10-29 section.
+- Escape-only on seeds 5–9 (`cifar_esc_rep`) and the plain seeds 5–9 baselines (`cifar_esc_rep`, `cifar_lastring_retest`).
+- `cifar_escgate` seeds 0–4: training is still running. I have counted its finished runs but not opened any accuracy, probe or log line of them.
+
+**Design (`night31`, 75 runs):**
+- `cifar_escgate_rep`: the `cifar_escgate` design (escsat, escmid × no CNOT, default ring, last ring; lr 1e-2) on seeds 5–9.
+- `cifar_reup_seeds2`: the four re-uploading layouts at their selected lr (all 1e-2), seeds 5–9.
+- `cifar_mnv3_seeds2`: the five MobileNet heads at their selected lrs (linear 3e-3, no CNOT 1e-2, pairs 3e-3, default 3e-3, last ring 1e-2), seeds 5–9.
+- Measure: common linear probe (test). MLP probe also run for (B) and (C).
+
+### (A) Gated escape-only, seeds 5–9
+Gains are paired by seed against the plain head on seeds 5–9: default ring and no CNOT from `cifar_esc_rep`, last ring from `cifar_lastring_retest` (unregularized arm).
+- **H_sat-route-rep:** gain_sat(last) ≥ 4.5, positive in ≥ 4 of 5 seeds.
+- **H_mid-small-rep:** gain_mid(last) ≤ 2.3, and gain_sat(last) > gain_mid(last) in ≥ 4 of 5 seeds.
+- **Refutation:** gain_mid(last) ≥ gain_sat(last), or gain_sat(last) ≤ 2.3.
+- **Secondary:** default gain_sat ≥ 0.75; no CNOT both gains ≤ 1.5.
+- **My expectation:** the same as for seeds 0–4.
+
+### (B) Re-uploading, seeds 5–9
+- **H_reup-order-rep:** default − no CNOT ≤ −1.0 and last ring − default ≤ −1.0, each negative in ≥ 4 of 5 seeds.
+- **H_reup-rank-rep:** Spearman correlation of the four layouts' seed-mean probe with their single-encoding orders ≤ −0.8.
+- **Refutation:** both differences > −0.5.
+- **My expectation:** passes; the seeds 0–4 gaps were about −10 with 5/5 signs.
+
+### (C) MobileNetV3-Small, seeds 5–9
+The committed H_order-mnv3 FAIL (default − no CNOT −0.89 against a −1.0 threshold) stands. This is a replication, not a re-score.
+- **H_order-mnv3-rep:** default − no CNOT ≤ −1.0 and last ring − default ≤ −1.0, each negative in ≥ 4 of 5.
+- **H_pairs-mnv3-rep:** pairs − default ≥ +1.0 (≥ 4/5 positive), and |pairs − no CNOT| ≤ 1.5.
+- **H_gap-mnv3-rep:** linear − default ≥ +1.0 (≥ 4/5 positive), and no CNOT within 1.0 of linear.
+- **Refutation:** both order differences > −0.5.
+- **My expectation:** the direction repeats. default − no CNOT is again near −1 (a coin flip on the threshold). last ring − default is −3 to −8, with at least one unstable last-ring seed.

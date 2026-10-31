@@ -132,7 +132,7 @@ def main():
         for (n, head), (lr, runs) in cells:
             if a.heads != ["all"] and head not in a.heads:
                 continue
-            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"], ["cifar_family_seeds"], ["cifar_half_seeds"], ["cifar_phase_seeds"], ["cifar_floor_seeds"], ["cifar_q12_seeds"], ["cifar_mech2_seeds"], ["cifar_mech3_seeds"], ["cifar_lastring_retest"], ["cifar_st"], ["cifar_satup"], ["night26_seeds"], ["cifar_esc"], ["cifar_esc_rep"], ["svhn_seeds"], ["cifar_reup_seeds"], ["cifar_mnv3_seeds"]), (ds, n, head, lr)
+            assert a.all_lrs or len(runs) == 3 or a.grids in (["cifar_seeds"], ["night_seeds"], ["cifar_long2"], ["pretrained2_seeds"], ["cifar_family_seeds"], ["cifar_half_seeds"], ["cifar_phase_seeds"], ["cifar_floor_seeds"], ["cifar_q12_seeds"], ["cifar_mech2_seeds"], ["cifar_mech3_seeds"], ["cifar_lastring_retest"], ["cifar_st"], ["cifar_satup"], ["night26_seeds"], ["cifar_esc"], ["cifar_esc_rep"], ["svhn_seeds"], ["cifar_reup_seeds"], ["cifar_mnv3_seeds"], ["cifar_escgate"], ["cifar_escgate_rep"], ["cifar_reup_seeds2"], ["cifar_mnv3_seeds2"]), (ds, n, head, lr)
             for run in runs:
                 meta = json.loads((run / "meta.json").read_text())
                 if meta["dataset"] != ds:

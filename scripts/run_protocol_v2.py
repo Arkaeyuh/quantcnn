@@ -626,6 +626,17 @@ def _grid(name: str) -> list[dict]:
             for lay in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
                 for sd in ALL_SEEDS:
                     items.append(dict(_C4000, head="quantum", encoding=enc, **lay, lr=1e-2, seed=sd))
+    elif name == "cifar_escgate_rep":
+        # Fresh-seed replication of cifar_escgate (2026-10-31 predictions), same design on seeds 5-9.
+        for enc in ("pi_tanh_escsat", "pi_tanh_escmid"):
+            for lay in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
+                for sd in RETEST_SEEDS:
+                    items.append(dict(_C4000, head="quantum", encoding=enc, **lay, lr=1e-2, seed=sd))
+    elif name == "night31":
+        # Night of 2026-10-31: escgate replication, then re-uploading and MobileNet seeds 5-9 at the selected lr.
+        items += [dict(it, _grid="cifar_escgate_rep") for it in _grid("cifar_escgate_rep")]
+        items += _selected_seeds("cifar_reup", _C4000, REUP_CELLS, RETEST_SEEDS, "cifar_reup_seeds2")
+        items += _selected_seeds("cifar_mnv3", _MNV3, MNV3_CELLS, RETEST_SEEDS, "cifar_mnv3_seeds2")
     elif name == "cifar_dyn":
         # Training dynamics (plan A5): the three ring-family baselines, checkpoints every 5 epochs.
         for opts in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
@@ -890,7 +901,7 @@ def main():
                                          "cifar_esc_rep", "cifar_dyn2", "night28", "cifar_escgate",
                                          "svhn", "svhn_edge", "svhn_seeds",
                                          "svhn_ext", "cifar_reup", "cifar_mnv3", "night29a", "night29b",
-                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds", "svhn_collapse"], required=True)
+                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds", "svhn_collapse", "cifar_escgate_rep", "night31", "cifar_reup_seeds2", "cifar_mnv3_seeds2"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)
