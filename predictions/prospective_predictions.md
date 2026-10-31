@@ -659,3 +659,21 @@ If neither λ qualifies for a layout, I report that and redesign the clamp (othe
 **Selection rule: no λ qualifies for either layout.** Escape + clamp meets the S window (0.375 vs 0.30; 0.50 vs 0.49) and its training guard. Every plain + clamp cell fails its guard: default −10.7 and −69.7, last −24.1 and −40.1 against the unclamped plain head. Under the plain gradient, the clamp spreads saturation to the unclamped coordinates (rest 0.20–0.68) and fit collapses. Under escape-only the unclamped coordinates stay at 0.
 
 **Second pilot (disclosed, written before it runs):** `cifar_clamp_pilot2`, the same design at λ ∈ {0.3, 1} (24 runs, seeds 20–22), with the same readout and selection rule. If it also fails, I will not run the factorial with this clamp. I will report the pilots and propose a different clamp.
+
+### Pilot 2 outcome (2026-10-31 17:51, `results/clamp_pilot2.csv`; validation-split S and clean training accuracy only)
+| layout | arm | λ | S (clamped / rest) | train acc |
+|---|---|---|---|---|
+| default, k=3 | plain + clamp | 0.3 | 0.45 (0.93 / 0.17) | 83.4 |
+| | plain + clamp | 1 | 0.49 (1.00 / 0.18) | 81.6 |
+| | escape + clamp | 0.3 | 0.10 (0.26 / 0.00) | 92.8 |
+| | escape + clamp | 1 | 0.375 (1.00 / 0.00) | 91.8 |
+| last, k=4 | plain + clamp | 0.3 | 0.61 (0.89 / 0.33) | 51.4 |
+| | plain + clamp | 1 | 0.77 (0.93 / 0.62) | 43.1 |
+| | escape + clamp | 0.3 | 0.13 (0.26 / 0.00) | 76.3 |
+| | escape + clamp | 1 | 0.42 (0.83 / 0.00) | 75.3 |
+
+**Selection rule:**
+- **Default ring: λ = 1 qualifies.** escape + clamp S 0.375 is within 0.10 of 0.30. The guards hold: escape + clamp 91.8 vs 93.1, plain + clamp 81.6 vs 89.2 (−7.6).
+- **Last ring: no λ qualifies.** At λ = 1, escape + clamp meets the S window (0.42) and its guard, but plain + clamp fails its guard (43.1 vs 65.6). At λ = 0.3, escape + clamp misses the S window (0.13).
+- **Further observation (not part of the rule):** in every pilot cell, the plain + clamp arm saturates more than the escape + clamp arm at the same λ, because saturation spreads to the unclamped coordinates. On the default ring at λ = 1 the two clamped arms are at S 0.49 and 0.375. So even where the rule passes, the clamped column is not matched on S.
+- **As committed,** the full factorial with this clamp is not run on the last ring. How to proceed is decided separately, before any scored run.
