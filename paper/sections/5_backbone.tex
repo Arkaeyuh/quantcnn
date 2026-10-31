@@ -13,7 +13,7 @@ lowers probe accuracy as well: MLP-8 backbones probe $3.6\pm0.6$ points below li
 backbones on CIFAR-10/4,000, $1.0\pm0.9$ above the VQC. The gap is not an artifact of linear
 decoding: a two-hidden-layer MLP probe on the same bottlenecks recovers at most 0.4 points more than
 the linear probe for any head, and puts the default VQC $4.8\pm0.9$ points below the linear
-head (\cref{app:mechanism}), also when its learning-rate grid is extended downward. The rest of this section shows that the VQC's share
+head ($4.8\pm0.7$ with its learning-rate grid extended downward; \cref{app:mechanism}). The rest of this section shows that the VQC's share
 of the gap depends on its CNOT structure, which no classical head has.
 
 \subsection{Removing the CNOT rings recovers most of the gap}
