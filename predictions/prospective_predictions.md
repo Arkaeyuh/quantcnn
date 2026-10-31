@@ -624,7 +624,7 @@ The queue ended at 06:46: all 75 runs, 3 linear probes, 2 MLP probes and 3 expor
 **(C) MobileNetV3-Small, seeds 5–9.** linear 85.65, no CNOT 85.16, pairs 86.21, default 84.74, last ring 80.18 ± 4.32.
 - **H_order-mnv3-rep: FAIL.** default − no CNOT −0.43 (4/5 negative) misses −1.0. last ring − default −4.55 (5/5) passes its part. MLP: −0.54, −3.75.
 - **H_pairs-mnv3-rep: PASS** (pairs − default +1.47, 5/5; pairs − no CNOT +1.04).
-- **H_gap-mnv3-rep: FAIL** (linear − default +0.92 < 1.0, though 5/5 positive; |linear − no CNOT| 0.49 passes). Under the MLP probe it would pass (+1.61, 5/5; 1.07 > 1.0 fails the second part).
+- **H_gap-mnv3-rep: FAIL** (linear − default +0.92 < 1.0, though 5/5 positive; |linear − no CNOT| 0.49 passes). MLP: linear − default +1.61 (5/5) passes the first part, but |linear − no CNOT| 1.07 fails the second.
 - **Refutation: not met.**
 - **Pooled, 10 seeds:** linear 85.87 ± 0.55, no CNOT 85.28, pairs 86.12, default 84.62, last ring 79.59 ± 4.93. Differences to linear: no CNOT −0.59 ± 0.55, pairs +0.26 ± 0.50, default −1.24 ± 0.69 (10/10 negative), last ring −6.28 ± 4.75 (10/10). default − no CNOT −0.66 ± 0.82 (9/10 negative).
 - **Against my expectation:** as predicted, default − no CNOT is near −1 and misses the threshold, and last ring − default is in −3 to −8. The cost on this backbone is small and directionally consistent.

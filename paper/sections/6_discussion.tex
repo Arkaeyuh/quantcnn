@@ -9,7 +9,7 @@ low-order: the ring-free head (exactly classical, \cref{eq:ringfree}) or the pai
 \paragraph{Limitations.}
 We study two families of CNOT layouts and a CZ ring (8 qubits, and 12 for the headline heads; $R_yR_z$ layers,
 angle encodings, mainly $\pi\tanh$), one qubit per bottleneck coordinate, in noiseless simulation, with small CNNs and two pretrained networks on subsets
-of MNIST, CIFAR-10 and SVHN of at most 10,000 images; the cost varies across pretrained backbones (1.6--7.2 points on CIFAR-10/4,000) and is untested with non-angle encodings
+of MNIST, CIFAR-10 and SVHN of at most 10,000 images; the cost varies across pretrained backbones (1.2--7.2 points on CIFAR-10/4,000) and is untested with non-angle encodings
 or on hardware. Most cells use 3 seeds (5 or 10 where stated), too few
 for equivalence claims. Product order is a
 coarse scalar: it misses brickwork by 5 points, its cost per unit does not carry across widths, and at fixed order the distribution of coupling also matters (\cref{tab:support}; classical heads only). The identity is guaranteed at zero rotations, and trained

@@ -4,8 +4,8 @@
 $n$ seeds at each head's validation-selected learning rate, every selected rate interior to its grid;
 $\Delta$: paired difference to the head named in the column). SVHN: 4,000 training images, small CNN,
 CIFAR-10 recipe without flips, 10 seeds. Re-uploading: CIFAR-10/4,000, small CNN, encoding applied
-before each of the 4 layers, 5 seeds; orders are those of the single-encoding layouts.
-MobileNetV3-Small: ImageNet-pretrained, CIFAR-10/4,000, recipe of \cref{tab:pretrained}, 5 seeds.
+before each of the 4 layers, 10 seeds; orders are those of the single-encoding layouts.
+MobileNetV3-Small: ImageNet-pretrained, CIFAR-10/4,000, recipe of \cref{tab:pretrained}, 10 seeds. Seeds 5--9 of both are pre-registered replications.
 $S$: fraction of bottleneck coordinates with $|\tanh z|>0.9$ (not given for the linear head, which has no encoding).}
 \label{tab:extensions}
 \footnotesize
@@ -23,18 +23,18 @@ cos-prod.\ (default supports) & 2.5 & $66.9 \pm 7.9$ & 0.57 & $-14.4 \pm 7.3$ \\
 VQC, ring (default) & 2.5 & $68.5 \pm 2.8$ & 0.25 & $-12.8 \pm 3.8$ \\
 VQC, ring, last & 5.25 & $50.4 \pm 9.1$ & 0.55 & $-30.9 \pm 9.7$ \\
 \midrule
-\multicolumn{5}{l}{\emph{Re-uploading, CIFAR-10 ($n=5$); $\Delta$ to no CNOT}} \\
-VQC, no CNOT & 1 & $68.0 \pm 2.1$ & 0.18 & --- \\
-VQC, pairs, last & 1.5 & $66.2 \pm 2.0$ & 0.22 & $-1.8 \pm 1.2$ \\
-VQC, ring (default) & 2.5 & $58.0 \pm 4.0$ & 0.53 & $-10.0 \pm 3.2$ \\
-VQC, ring, last & 5.25 & $48.3 \pm 4.6$ & 0.61 & $-19.7 \pm 5.8$ \\
+\multicolumn{5}{l}{\emph{Re-uploading, CIFAR-10 ($n=10$); $\Delta$ to no CNOT}} \\
+VQC, no CNOT & 1 & $66.9 \pm 3.2$ & 0.17 & --- \\
+VQC, pairs, last & 1.5 & $63.7 \pm 4.7$ & 0.24 & $-3.1 \pm 5.3$ \\
+VQC, ring (default) & 2.5 & $57.0 \pm 6.9$ & 0.53 & $-9.9 \pm 5.0$ \\
+VQC, ring, last & 5.25 & $48.1 \pm 6.7$ & 0.63 & $-18.7 \pm 8.8$ \\
 \midrule
-\multicolumn{5}{l}{\emph{MobileNetV3-Small, CIFAR-10 ($n=5$); $\Delta$ to linear}} \\
-linear & --- & $86.1 \pm 0.6$ & --- & --- \\
-VQC, no CNOT & 1 & $85.4 \pm 0.6$ & 0.18 & $-0.7 \pm 0.7$ \\
-VQC, pairs & 1 & $86.0 \pm 0.3$ & 0.15 & $-0.0 \pm 0.3$ \\
-VQC, ring (default) & 2.5 & $84.5 \pm 0.7$ & 0.13 & $-1.6 \pm 0.8$ \\
-VQC, ring, last & 5.25 & $79.0 \pm 5.9$ & 0.33 & $-7.1 \pm 5.5$ \\
+\multicolumn{5}{l}{\emph{MobileNetV3-Small, CIFAR-10 ($n=10$); $\Delta$ to linear}} \\
+linear & --- & $85.9 \pm 0.5$ & --- & --- \\
+VQC, no CNOT & 1 & $85.3 \pm 0.4$ & 0.18 & $-0.6 \pm 0.6$ \\
+VQC, pairs & 1 & $86.1 \pm 0.3$ & 0.15 & $+0.3 \pm 0.5$ \\
+VQC, ring (default) & 2.5 & $84.6 \pm 0.5$ & 0.11 & $-1.2 \pm 0.7$ \\
+VQC, ring, last & 5.25 & $79.6 \pm 4.9$ & 0.34 & $-6.3 \pm 4.8$ \\
 \bottomrule
 \end{tabular}}
 \end{table}
