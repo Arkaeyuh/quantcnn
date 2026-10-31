@@ -45,7 +45,7 @@ Our contributions are:
         test accuracy in all six dataset--size settings.
   \item \textbf{A representation cost tied to the CNOT layers} (\cref{sec:gap,sec:ring}). On
         CIFAR-10 with 4,000 training images the default VQC head lowers bottleneck probe
-        accuracy by $4.7\pm0.9$ points relative to a linear head (5 seeds), and a two-layer
+        accuracy by $4.7\pm0.9$ points relative to a linear head (5 seeds), and a two-hidden-layer
         MLP probe finds the same gap, so the loss is not just one of linear readability. Removing the CNOT
         rings recovers $3.8\pm1.2$ points. On a pretrained ResNet-18 the default head costs
         6--8 points at 1,000 to 10,000 images at an approximately matched number of updates (22.3 at 1,000
