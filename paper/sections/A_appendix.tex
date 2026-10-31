@@ -781,7 +781,7 @@ from them (\texttt{scripts/summarize\_v2.py}, \texttt{scripts/zero\_angle\_check
 PennyLane (absolute tolerance $10^{-6}$ in outputs and input gradients, $10^{-5}$ in rotation
 gradients; relative $10^{-5}$); the test suite also checks the zero-rotation identity, the ring-free form, the
 entangling example of \cref{app:identity}, the equality of the zero-rotation circuit and the
-products head, and the effective-order expansion of \cref{app:efforder} against the simulator.
+products head, and the effective-order expansion of \cref{app:efforder} against the simulator. Settings that the result files do not record (probe architectures, optimizers and learning-rate grids, backbone sizes and input resolutions, test outcomes and tolerances, the host, and the settings of individual measurements) are exported from the code that produced them by \texttt{scripts/export\_provenance.py} to \texttt{results/provenance/}, together with every candidate probe learning rate of the main linear and MLP probes, re-run to check that the reported values reproduce.
 The predicted orderings for the MNIST replication and the predictions and pass criteria for the
 second family of layouts were written in the project's log before those runs; the log entries are
 copied verbatim into the repository, whose first timestamp for them postdates the runs, so the earlier dates are our own report. The

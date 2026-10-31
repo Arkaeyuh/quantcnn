@@ -111,6 +111,8 @@ def main():
                     help="Probe every lr of each head instead of the validation-selected one.")
     ap.add_argument("--mlp_lrs", nargs="+", type=float, default=MLP_PROBE_LRS,
                     help="Learning-rate grid of the MLP probe.")
+    ap.add_argument("--candidates_out", default=None,
+                    help="Also append every candidate probe learning rate's result here (provenance; optional).")
     ap.add_argument("--probe", choices=["linear", "mlp"], default="linear",
                     help="linear: the common linear probe; mlp: an 8-256-256-10 ReLU probe on standardized z.")
     a = ap.parse_args()
@@ -159,6 +161,16 @@ def main():
                 best = None
                 for plr in (PROBE_LRS if a.probe == "linear" else a.mlp_lrs):
                     r = _train_head("linear" if a.probe == "linear" else "mlp_probe", emb, seed, plr, 60)
+                    if a.candidates_out:
+                        cand = dict(probe=a.probe, dataset=ds, train_subset_size=n, source_head=head, source_lr=f"{lr:g}",
+                                    seed=seed, probe_lr=f"{plr:g}", best_epoch=r["best_epoch"],
+                                    probe_val_acc=round(r["val_acc"] * 100, 3), probe_test_acc=round(r["test_acc"] * 100, 3))
+                        cnew = not Path(a.candidates_out).exists()
+                        with open(a.candidates_out, "a", newline="") as cf:
+                            cw = csv.DictWriter(cf, fieldnames=list(cand))
+                            if cnew:
+                                cw.writeheader()
+                            cw.writerow(cand)
                     if best is None or r["val_acc"] > best[1]["val_acc"]:
                         best = (plr, r)
                 plr, r = best

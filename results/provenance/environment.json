@@ -1,0 +1,14 @@
+{
+ "recorded_at": "2026-10-31T14:21:55-0500",
+ "host_os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+ "chip": "Apple M3 Max",
+ "memory_bytes": "38654705664",
+ "cpu_cores": "14",
+ "python": "3.14.8",
+ "torch": "2.11.0",
+ "torchvision": "0.26.0",
+ "pennylane": "0.44.1",
+ "mps_available": true,
+ "runs_on_this_disk": 2149,
+ "note": "Recorded post hoc. Run metadata has no host field; every run directory listed above was written on this machine (runs/ is not synchronized from elsewhere), which is the basis for the paper's statement that experiments ran on one Apple M3 Max."
+}

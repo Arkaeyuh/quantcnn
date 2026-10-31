@@ -169,3 +169,28 @@ def test_straight_through_encoding():
     yb.sum().backward()
     sech2 = 1 - torch.tanh(x.detach()) ** 2
     assert torch.allclose(x.grad, xs.grad * sech2, atol=1e-10)
+
+
+def test_gated_escape_encodings():
+    """pi_tanh_escsat / pi_tanh_escmid: forward equals pi_tanh; the inward step drops sech^2 only on
+    saturated (|tanh z| > 0.9) or only on unsaturated coordinates; the two gates partition escape-only."""
+    torch.manual_seed(5)
+    a = TorchStatevectorVQC(8, 4, "none").double()
+    ms = {e: TorchStatevectorVQC(8, 4, "none", encoding=e).double() for e in ("pi_tanh_esc", "pi_tanh_escsat", "pi_tanh_escmid")}
+    for m in ms.values():
+        with torch.no_grad():
+            m.weights.copy_(a.weights)
+    x0 = torch.randn(16, 8, dtype=torch.float64) * 2
+    x = x0.clone().requires_grad_(True)
+    a(x).sum().backward()
+    grads = {}
+    for e, m in ms.items():
+        xe = x0.clone().requires_grad_(True)
+        assert torch.allclose(a(x0), m(xe), atol=1e-12), e
+        m(xe).sum().backward()
+        grads[e] = xe.grad
+    sat = torch.tanh(x0).abs() > 0.9
+    boosted = grads["pi_tanh_esc"] != x.grad  # where escape-only drops sech^2
+    assert (boosted & sat).any() and (boosted & ~sat).any()
+    assert torch.allclose(grads["pi_tanh_escsat"], torch.where(sat, grads["pi_tanh_esc"], x.grad), atol=1e-10)
+    assert torch.allclose(grads["pi_tanh_escmid"], torch.where(~sat, grads["pi_tanh_esc"], x.grad), atol=1e-10)

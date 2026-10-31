@@ -1,0 +1,6 @@
+dataset,backbone,backbone_class,conv_layers,backbone_params,head_params,data_input,first_conv_input,bottleneck_dim
+mnist,mnist,SmallCNN,3,94152,154,28x28,28x28,8
+cifar10,cifar10,CifarCNN,4,964360,154,32x32,32x32,8
+svhn,cifar10,CifarCNN,4,964360,154,32x32,32x32,8
+cifar10,resnet18_pt,PretrainedResNet18,20,11180616,154,32x32,128x128,8
+cifar10,mobilenetv3s_pt,PretrainedMobileNetV3Small,52,931624,154,32x32,128x128,8
