@@ -677,3 +677,37 @@ If neither λ qualifies for a layout, I report that and redesign the clamp (othe
 - **Last ring: no λ qualifies.** At λ = 1, escape + clamp meets the S window (0.42) and its guard, but plain + clamp fails its guard (43.1 vs 65.6). At λ = 0.3, escape + clamp misses the S window (0.13).
 - **Further observation (not part of the rule):** in every pilot cell, the plain + clamp arm saturates more than the escape + clamp arm at the same λ, because saturation spreads to the unclamped coordinates. On the default ring at λ = 1 the two clamped arms are at S 0.49 and 0.375. So even where the rule passes, the clamped column is not matched on S.
 - **As committed,** the full factorial with this clamp is not run on the last ring. How to proceed is decided separately, before any scored run.
+
+## Saturation-clamp control, predictions written 2026-10-31 before any scored run
+**Question:** does escape-only's accuracy gain survive when saturation is held at the plain head's level? If it does not, the gain runs through lower saturation (mediation). If it does, it runs through some other effect of the changed gradients (direct).
+
+**What I have already seen (disclosed):** the two pilots above (seeds 20–22; S and clean training accuracy only), and all plain and escape-only results on seeds 0–9. Unclamped escape gains over 10 seeds: last ring +6.19, default +2.39.
+
+**Design (`cifar_clamp`, 30 runs, seeds 0–9, CIFAR-10/4,000, lr 1e-2):**
+- New cells:
+  - escape + clamp, last ring (k = 4, λ = 3);
+  - escape + clamp, default ring (k = 3, λ = 1);
+  - plain + clamp, default ring (k = 3, λ = 1).
+- Clamp settings are taken from the pilots, by the committed rule where it applies. On the last ring, λ = 3 gives the S closest to target in either pilot (0.50).
+- Existing cells, paired by seed:
+  - plain: seeds 0–4 at the selected-lr cohort, seeds 5–9 from `cifar_esc_rep` (default) and `cifar_lastring_retest` (last ring);
+  - escape-only: `cifar_esc` (seeds 0–4) and `cifar_esc_rep` (seeds 5–9).
+- **Measure:** common linear probe (test). S is `sat_090_z` from the probe files.
+
+**(1) S-matched comparison (both layouts; last ring primary, default secondary).** Retained fraction R = mean(escape+clamp − plain) / mean(escape − plain), paired over the 10 seeds.
+- **Manipulation check:** escape + clamp mean S within ±0.10 of the plain head's 10-seed mean S. Otherwise that layout is inconclusive.
+- **Training guard:** escape + clamp clean training accuracy no more than 10 points below unclamped escape-only. Otherwise inconclusive.
+- **H_mediated:** R ≤ 1/3.
+- **H_direct:** R ≥ 2/3.
+- Otherwise mixed.
+- Also reported: escape+clamp − escape-only (paired), i.e. what holding saturation costs under the escape gradient.
+- **Known weakness:** the clamp's own effect on fit is not cancelled in this comparison.
+
+**(2) Default-ring 2×2.** R2 = mean(escape+clamp − plain+clamp) / mean(escape − plain), paired.
+- Guard: plain + clamp clean training accuracy at most 10 below plain.
+- Same thresholds: H_mediated R2 ≤ 1/3, H_direct R2 ≥ 2/3.
+- **Known weaknesses:** the default gain is small (+2.4), so power is low. In the pilot, the clamped arms differed in S (plain + clamp 0.49, escape + clamp 0.375). The mismatch favors a larger clamped escape gain, i.e. it biases toward H_direct.
+
+**Reporting:** both analyses, both probes' S values and clean training accuracies, per-seed differences, MLP probe if run. Neither result replaces the other.
+
+**My expectation:** on the last ring, R between 0.3 and 0.6 (mixed). Escape + clamp keeps 4 coordinates saturated but leaves the other 4 free and unsaturated, which is a different pattern from the plain head's spread-out saturation. On the default ring I expect (1) and (2) to be inconclusive in substance, given the small gain.

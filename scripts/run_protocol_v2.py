@@ -629,6 +629,15 @@ def _grid(name: str) -> list[dict]:
             for lay in (dict(no_entangle=True), {}, dict(entangle_last_only=True)):
                 for sd in ALL_SEEDS:
                     items.append(dict(_C4000, head="quantum", encoding=enc, **lay, lr=1e-2, seed=sd))
+    elif name == "cifar_clamp":
+        # Saturation-clamp control (2026-10-31 predictions), seeds 0-9: escape-only + clamp on both layouts (the
+        # S-matched comparison with the plain head) and plain + clamp on the default ring (its 2x2). Clamp settings
+        # from the two disclosed pilots: last ring satup4 weight 3, default ring satup3 weight 1.
+        for enc, lay, k, w in (("pi_tanh_esc", dict(entangle_last_only=True), 4, 3.0), ("pi_tanh_esc", {}, 3, 1.0),
+                               ("pi_tanh", {}, 3, 1.0)):
+            for sd in range(10):
+                items.append(dict(_C4000, head="quantum", encoding=enc, **lay, bottleneck_reg=f"satup{k}",
+                                  reg_weight=w, lr=1e-2, seed=sd))
     elif name == "cifar_clamp_pilot2":
         # Second, disclosed pilot (2026-10-31): the first failed its training guard in every plain+clamp cell, so
         # weaker clamps, same layouts, k and seeds.
@@ -919,7 +928,7 @@ def main():
                                          "cifar_esc_rep", "cifar_dyn2", "night28", "cifar_escgate",
                                          "svhn", "svhn_edge", "svhn_seeds",
                                          "svhn_ext", "cifar_reup", "cifar_mnv3", "night29a", "night29b",
-                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds", "svhn_collapse", "cifar_escgate_rep", "night31", "cifar_reup_seeds2", "cifar_mnv3_seeds2", "cifar_clamp_pilot", "cifar_clamp_pilot2"], required=True)
+                                         "night29c", "cifar_reup_seeds", "cifar_mnv3_seeds", "svhn_collapse", "cifar_escgate_rep", "night31", "cifar_reup_seeds2", "cifar_mnv3_seeds2", "cifar_clamp_pilot", "cifar_clamp_pilot2", "cifar_clamp"], required=True)
     ap.add_argument("--output_root", default=None)
     ap.add_argument("--val_size", type=int, default=2000)
     ap.add_argument("--n_workers", type=int, default=4)
