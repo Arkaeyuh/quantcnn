@@ -548,7 +548,7 @@ Data: 61 runs, 13 cells; cell values are seed means.
 
 **My expectation:** saturated-only gives 4–7 points on the last ring with S well below the plain head's but above full escape-only's ≈ 0. Coordinates that escape below 0.9 lose the boost and may drift back. Unsaturated-only gives 0–2.
 
-## Night of 2026-10-31: fresh-seed replications, predictions written 2026-10-31 03:10 before any of these runs
+## Night of 2026-10-31: fresh-seed replications, predictions written 2026-10-31 02:40 before any of these runs
 **Why:** the gated escape-only control, the re-uploading test and the MobileNetV3-Small test each have 5 seeds. Seeds 5–9 test whether each verdict replicates on seeds not used to set any threshold. Each is scored on seeds 5–9 alone with the thresholds already committed. The 10-seed pooled numbers are reported descriptively and are what the paper's tables would show. Every committed verdict on seeds 0–4 stands, whatever seeds 5–9 show.
 
 **What I have already seen (disclosed):**
