@@ -1,6 +1,6 @@
 {
  "source": "scripts/probe_backbones.py -> scripts/frozen_heads._train_head",
- "commit": "dcf1f958d8dca52034e63e3131d2d5993fb6d9b7",
+ "commit": "afa98e65928e0940df4913a8de208fab38b590f5",
  "linear": {
   "class": "LinearHead",
   "layers": [
@@ -67,6 +67,7 @@
   "lr_grid_note": "--mlp_lrs overrides the default; results/mlp_probe_ext.csv used the grid extended down to 1e-4"
  },
  "code_history": [
+  "5296f4b 2026-10-31T14:22:03-05:00 Close claim-audit provenance gaps: export probe/model/test/host/measurement settings to results/provenance/ from the producing code; re-run main linear and MLP probes with all 648 candidates logged (117/117 rows reproduce exactly); add GatedEscapeTanh test (26/26 pass)",
   "053e009 2026-10-31T02:41:56-05:00 Pre-register night of 2026-10-31: seeds 5-9 replications of gated escape-only, re-uploading and MobileNetV3-Small; night31 grid and queue; whitelist 5-seed grids in probe assert",
   "4bfa461 2026-10-29T20:26:27-05:00 Pre-register night29: SVHN lr extension + 10 seeds (collapse, graded cost), strong re-uploading on 4 layouts, MobileNetV3-Small backbone; grids, orchestrator, backbone",
   "eaa0b85 2026-10-29T09:59:58-05:00 Pre-register SVHN (third dataset): heads, tuning with edge extension, criteria; HF-mirror loader",

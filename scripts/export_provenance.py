@@ -191,7 +191,7 @@ def environment() -> dict:
             "cpu_cores": sh(["sysctl", "-n", "hw.ncpu"]), "python": platform.python_version(), "torch": torch.__version__,
             "torchvision": torchvision.__version__, "pennylane": pl, "mps_available": torch.backends.mps.is_available(),
             "runs_on_this_disk": sum(1 for _ in Path("runs/protocol_v2").glob("*/*/final.json")),
-            "note": ("Recorded post hoc. Run metadata has no host field; every run directory listed above was "
+            "note": ("Recorded post hoc. Run metadata has no host field. Author attestation, not measured: every run directory counted above was "
                      "written on this machine (runs/ is not synchronized from elsewhere), which is the basis for "
                      "the paper's statement that experiments ran on one Apple M3 Max.")}
 
