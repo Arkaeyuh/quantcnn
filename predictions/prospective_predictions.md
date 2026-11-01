@@ -735,3 +735,41 @@ All 30 runs, both probes and the export exited 0. Linear probe (MLP in brackets)
 - At the plain head's saturation *level*, escape-only keeps a little over half of its last-ring gain. Lower saturation accounts for at most about 40% of the gain; the rest comes through some other effect of the changed gradients.
 - The clamp matches the level, not the pattern: k coordinates fully saturated and the rest at 0, against the plain head's spread. So "the level" here means the fraction of saturated coordinates.
 - **Against my expectation:** last ring as expected (0.3–0.6). The default ring I expected to be inconclusive in substance; by the committed thresholds it is H_direct, with small effects (+1.7 of +2.4).
+
+## Gradient budget: does higher product order send less gradient back to the backbone? Predictions written 2026-11-01 before any measurement
+**Why:** every review of 2026-10-31 asked for a link from circuit algebra to training. The probe reads z, not tanh z, so any cost has to come through what the backbone learns, i.e. through the gradient the head returns. The new appendix proposition (Gradient budget, commit 2c8b213) gives two things at zero rotations with independent inputs:
+- an exact identity, E‖∇_z r_k‖² = π² Σ_j s_j ∏_{i≠j} c_i, with own slope s_j = E[(1−t_j²)² sin²(π t_j)] and c_i = E cos² φ_i;
+- a bound: magnitude-keeping readouts must shrink the mean own slope like √(log(1/a)/m). The bound is vacuous at the tested orders, so these tests are about direction only.
+
+**What I have already seen (disclosed):**
+- The attenuation values already in the appendix (E cos² φ 0.37–1.0; the independence product 0.39 and 0.11).
+- Saturation, middle-zone fractions and readout magnitudes on these runs.
+- The pre-clip gradient norms in Table 2 (default VQC 1.92 vs linear 0.75).
+- One SVHN run's per-epoch backbone gradient norm.
+- **Not seen:** own slopes, Jacobians or gradient norms of any CIFAR head studied here, and the per-epoch `backbone_gnorm` curves of the runs below.
+
+**Runs:**
+- **(E) endpoints:** the 61 runs of group q8 in `results/bottleneck_geometry.csv` (13 layouts, CIFAR-10/4,000, small CNN, selected checkpoint). Measured on test embeddings, as in `scripts/readout_magnitude.py`.
+- **(D) dynamics:** the 9 `cifar_dyn` runs (no CNOT, default, last ring × seeds 0–2), checkpoints every 5 epochs, on the same split.
+
+**Measures per run** (t = |tanh z|; 8 coordinates; readouts k with zero-rotation supports S_k):
+- `own` = mean over coordinates of s_j.
+- `att` = mean over readouts k and j ∈ S_k of ∏_{i∈S_k∖{j}} c_i (1 if m_k = 1).
+- `J0` = (1/8) E‖∂r⁰/∂z‖_F², with r⁰_k = ∏_{j∈S_k} cos φ_j. This is the Jacobian of the zero-rotation readouts, by autograd per sample, so it does not assume independence.
+- `Jc` = (1/8) E‖∂⟨Z⟩/∂z‖_F², the same for the trained circuit's actual readouts.
+- **Descriptive:** `J0_ind`, the identity's prediction of J0 (independence check); `Jh` = (1/8) E‖∂logits/∂z‖_F², including the decoder; the logged `backbone_gnorm`; escape-only endpoints (`cifar_esc`, seeds 0–4) against the plain heads.
+
+**Hypotheses** (Spearman over the 13 layout means against product order):
+- **H_own:** own falls with order, ρ ≤ −0.7.
+- **H_zero:** J0 falls with order, ρ ≤ −0.7.
+- **H_trained:** Jc falls with order, ρ ≤ −0.5. This is weaker because trained circuits move away from the identity.
+- **H_split:** from no CNOT to the last ring (seed means), att falls by more than own on a log scale: |Δ log att| > |Δ log own|.
+- **H_dyn:** in (D), the ordering no CNOT > default > last ring holds for Jc in at least 80% of (checkpoint, seed) cells, and likewise for own.
+- **H_probe (secondary):** Spearman(layout-mean Jc, layout-mean probe) ≥ 0.7.
+- **Refutation:** ρ(J0) > −0.3 and ρ(Jc) > −0.3.
+
+**My expectation:**
+- H_own, H_zero and H_split pass. Attenuation (∏ of up to 7 factors near 0.6–0.8) shrinks the gradient more than own slopes do.
+- If H_split passes, it sits in tension with the null result of removing cross-factor attenuation (−0.4 ± 2.0), and I will report that tension.
+- H_trained is uncertain.
+- `backbone_gnorm` may rise with order, because the loss scale grows as fit worsens. That is why it is descriptive only.
