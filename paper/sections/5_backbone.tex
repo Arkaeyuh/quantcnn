@@ -108,7 +108,7 @@ Higher-order circuits also fit their training data less well under the 80-epoch 
 to 160 epochs raises every probe but keeps the ordering (\cref{tab:budget}). The default circuit then fits its training set nearly as well as
 the ring-free and linear heads (98.8\% vs 99.9\%) and still probes $2.8\pm0.4$ points below
 the ring-free head and $3.1\pm0.3$ below the linear one (5 seeds, every seed negative). The
-last-ring circuit remains under-fit at 160 epochs (79.5\%); at matched training accuracy rather than at the final epoch-80 checkpoint (pre-registered, 10 seeds) its gap to the ring-free head is 2.5 rather than 13.5 points and the default's 2.5 rather than 4.5, every seed negative (\cref{app:dynamics}).
+last-ring circuit remains under-fit at 160 epochs (79.5\%); at matched logged training accuracy rather than at the final epoch-80 checkpoint (pre-registered; 3 + 7 seeds) its gap to the ring-free head is 2.5, not 13.5, points and the default's 2.5, not 4.5, every seed negative (\cref{app:dynamics}).
 
 \subsection{A pretrained backbone, data size and training budget}
 \label{sec:pretrained}
