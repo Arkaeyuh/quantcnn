@@ -1,0 +1,9 @@
+{
+  "best_epoch": 71,
+  "train_clean_loss": 0.111272263109684,
+  "train_clean_acc": 0.96825,
+  "val_loss": 0.9545365180969239,
+  "val_acc": 0.7479999976158143,
+  "test_loss": 0.9689882270812988,
+  "test_acc": 0.7303
+}

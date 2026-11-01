@@ -867,3 +867,29 @@ Every match is usable (|Δ logged training accuracy| 0.1–2.5 points). Seeds 0�
 - **Reported:** the 10-seed pooled gaps (with seeds 0–2), the matched epochs and |Δ fit|.
 
 **My expectation:** last ring about −2 to −4 (whether it reaches −3 is a coin flip); default about −2.
+
+### Outcomes: matched-fit replication (scored 2026-11-01 02:30 CST)
+All 21 runs, 504 checkpoint probes and the export finished without error. Every match is usable (|Δ fit| 0.1–2.6).
+
+**Seeds 3–9:**
+- **Last ring vs no CNOT:** matched-fit gaps −4.08, −3.18, −2.70, −2.43, −0.65, −2.00, −1.59; mean −2.38, 7/7 negative. Matched-epoch mean −13.9. **H_fit-last-rep: FAIL** (> −3); **refutation not met**.
+- **Default vs no CNOT:** −2.23, −3.69, −1.89, −3.27, −1.38, −2.98, −3.00; mean −2.63, 7/7. Matched-epoch mean −4.9. **H_fit-default-rep: PASS.**
+- **Last ring vs default:** mean −2.32, 7/7.
+
+**Pooled over 10 seeds (descriptive), at epoch 80 and at matched fit:**
+
+| comparison | matched epoch | matched fit | negative |
+|---|---|---|---|
+| last ring vs no CNOT | −13.5 ± 3.7 | −2.5 ± 1.1 | 10/10 |
+| default vs no CNOT | −4.5 ± 2.1 | −2.5 ± 0.8 | 10/10 |
+| last ring vs default | −9.0 ± 2.7 | −2.5 ± 1.4 | 10/10 |
+
+The matched-epoch numbers here use the final epoch-80 checkpoint, not the validation-selected one of the main tables.
+
+**Reading:**
+- The 3-seed verdicts replicate exactly.
+- At matched fit, every higher-order head probes about 2.5 points below the lower-order one, in all 30 seed comparisons.
+- Most of the large fixed-budget gaps of the last ring is slower optimization.
+- Matched points sit at different fit levels, so the three gaps are not additive.
+
+**Against my expectation:** last ring as expected (−2 to −4, and below the −3 threshold); default as expected.
