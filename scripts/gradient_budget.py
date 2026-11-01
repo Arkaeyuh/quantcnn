@@ -76,6 +76,9 @@ def main():
     ap.add_argument("--dyn_out", default="results/gradient_budget_dyn.csv")
     ap.add_argument("--esc_out", default="results/gradient_budget_esc.csv")
     ap.add_argument("--threads", type=int, default=8)
+    ap.add_argument("--part", choices=["all", "E", "D", "X"], default="all")
+    ap.add_argument("--dyn_shard", type=int, default=0, help="D only: this process takes dynamics runs i::n")
+    ap.add_argument("--dyn_n", type=int, default=1)
     a = ap.parse_args()
     torch.set_num_threads(a.threads)
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -88,16 +91,18 @@ def main():
         print(f"wrote {len(rows)} rows to {path}", flush=True)
 
     rows = []
-    for r in csv.DictReader(open("results/bottleneck_geometry.csv")):
+    for r in (csv.DictReader(open("results/bottleneck_geometry.csv")) if a.part in ("all", "E") else []):
         if r["group"] == "q8":
             run = Path(r["run"])
             rows.append(dict(cell=r["cell"], order=float(r["order"]), seed=int(r["seed"]), probe=float(r["probe"]),
                              **measure(run, run / "best_model.pt", device)))
             print("E", r["cell"], r["seed"], flush=True)
-    write(a.out, rows)
+    if rows:
+        write(a.out, rows)
 
     rows = []
-    for run in sorted(Path("runs/protocol_v2/cifar_dyn").iterdir()):
+    dyn = sorted(Path("runs/protocol_v2/cifar_dyn").iterdir())[a.dyn_shard::a.dyn_n] if a.part in ("all", "D") else []
+    for run in dyn:
         meta = json.loads((run / "meta.json").read_text())
         gn = {int(m["epoch"]): float(m["backbone_gnorm"]) for m in csv.DictReader(open(run / "metrics.csv"))}
         for ck in sorted(run.glob("ckpt_ep*.pt"), key=lambda p: int(re.search(r"ep(\d+)", p.name).group(1))):
@@ -106,10 +111,11 @@ def main():
             rows.append(dict(layout=layout, seed=int(meta["seed"]), epoch=ep, backbone_gnorm=gn.get(ep, float("nan")),
                              **measure(run, ck, device)))
             print("D", layout, meta["seed"], ep, flush=True)
-    write(a.dyn_out, rows)
+    if rows:
+        write(a.dyn_out if a.dyn_n == 1 else a.dyn_out.replace(".csv", f"_{a.dyn_shard}.csv"), rows)
 
     rows = []
-    for m in sorted(glob.glob("runs/protocol_v2/cifar_esc/*/meta.json")):
+    for m in (sorted(glob.glob("runs/protocol_v2/cifar_esc/*/meta.json")) if a.part in ("all", "X") else []):
         run = Path(m).parent
         meta = json.loads(Path(m).read_text())
         if meta["head"] != "quantum" or meta.get("encoding") != "pi_tanh_esc":
@@ -117,7 +123,8 @@ def main():
         layout = {False: "noent", True: "default", "last": "last"}[meta.get("entangle", True)]
         rows.append(dict(layout=layout, seed=int(meta["seed"]), **measure(run, run / "best_model.pt", device)))
         print("X", layout, meta["seed"], flush=True)
-    write(a.esc_out, rows)
+    if rows:
+        write(a.esc_out, rows)
 
 
 if __name__ == "__main__":
