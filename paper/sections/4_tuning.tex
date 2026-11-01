@@ -12,8 +12,8 @@ through the protocol itself and partly through per-head tuning (last column); on
 shrinks to 3.1--9.2 points. A linear head has the highest mean in all six settings and beats the VQC
 for every seed. Every selected rate is interior to its grid.
 
-This audit fixes the comparisons used in the rest of the paper: every head is evaluated at
-its own validated learning rate. It also leaves a question. At 4,000 CIFAR-10 images the
+This audit fixes the comparisons used in the rest of the paper: every base head is evaluated at
+its own validated rate. It also leaves a question. At 4,000 CIFAR-10 images the
 VQC trails the linear head by $7.0\pm1.2$ test points (5 seeds: $6.7\pm1.0$). Part of that
 gap could come from the VQC as a readout and part from the backbone it trains; a common probe
 measures the gap that remains under one readout.
