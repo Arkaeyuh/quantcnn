@@ -16,10 +16,10 @@ Benchmarks of quantum classifiers typically score accuracy on fixed inputs
 dressed hybrid network with a classical one and visualize how the learned layers transform
 the data. Controls that isolate a circuit inside a hybrid model score predictive performance
 \citep{kolle2024,elhag2026}. To our knowledge, none of these measures quantitatively what the quantum head
-does to the representation trained through it, or which part of the circuit is
-responsible.
+does to the representation trained through it, or which part of the circuit
+predicts it.
 
-We answer both questions for a CNN with an 8-dimensional bottleneck and an 8-qubit head
+We address both questions for a CNN with an 8-dimensional bottleneck and an 8-qubit head
 built from angle encoding $R_y(\pi\tanh z_j)$, four layers of trainable rotations each
 followed by a ring of CNOTs, and a linear readout of $\ZZ{k}$. After joint training we
 freeze each backbone and fit the same linear probe to its bottleneck, so that probe
