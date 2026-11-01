@@ -172,7 +172,7 @@ compensation), but at these orders the bound is loose: it gives the direction of
 
 Both ends of the encoding are flat (\cref{prop:flat}): with $t=|\tanh z|$,
 $|\tfrac{d}{dz}\cos(\pi\tanh z)|\le\pi^2t$ near zero and $\le8\pi^2e^{-4|z|}$ at saturation, the square of $\tanh$'s
-decay, because $\sin\enc{j}$ vanishes there too (\cref{prop:flat} bounds the resulting loss of sensitivity). Every
+decay, because $\sin\enc{j}$ vanishes there too. Every
 head saturates early in training ($S=0.44$--$0.77$ at epoch 5, 3 seeds); the ring-free head then
 desaturates to 0.02, while the default and last-ring heads stall at 0.30 and 0.46 and their probe gaps
 peak at epochs 15 and 35 (\cref{app:dynamics}). We tested this trap with a pre-registered intervention
@@ -180,8 +180,8 @@ that leaves the forward pass unchanged: our escape-only variant of the straight-
 pass drops $\mathrm{sech}^2(z_j)$ when the descent step moves $z_j$ toward 0, so saturated
 coordinates can leave (a plain version diverged; \cref{app:dynamics}). It removes saturation in every head and raises
 probe accuracy by $6.8\pm2.2$ points on the last-ring circuit and $1.5\pm0.9$ on the default, positive
-in every seed, against $0.9\pm0.5$ without CNOTs (\cref{tab:satmain}). The default gain misses its committed $+1.5$ by 0.02; a pre-registered
-replication on seeds 5--9 passes ($+3.3$, $+5.6$, $+1.3$). Boosting only saturated or only unsaturated coordinates recovers $+5.6$ or $+5.9$ (10 seeds), and both cut last-ring saturation ${\ge}20\times$: the gain does not need the boost on saturated coordinates. A penalty against saturation, which also changes the loss, gives similar
+in every seed, against $0.9\pm0.5$ without CNOTs (\cref{tab:satmain}; the default gain misses its committed $+1.5$ by 0.02, and a
+seeds 5--9 replication passes). Pre-registered controls show the gain is mostly not via saturation: boosting only saturated or only unsaturated coordinates gives $+5.6$ or $+5.9$ on the last ring, and holding its saturation at the plain level keeps $+3.6$ of $+6.2$ (10 seeds). A penalty against saturation, which also changes the loss, gives similar
 gains (\cref{app:saturation}).
 
 Without saturation, order still costs: escape-only probes 74.5, 71.3 and 66.9 at
