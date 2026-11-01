@@ -139,6 +139,39 @@ seven for the last-ring circuit, a factor of roughly 0.6--0.8 per additional inp
 with $\mathbb{E}[\cos^2\enc{j}]$ near 1 sit at $\enc{j}\approx\pm\pi$, where $\tanh$ saturates: they leave
 the other inputs' gradients unattenuated but receive almost none themselves.
 
+\paragraph{A gradient budget.} The same trade-off holds for the total gradient a readout passes back.
+Write $t_j=|\tanh z_j|$, $g(t)=(1-t^2)^2\sin^2(\pi t)$ and $s_j=\mathbb{E}[g(t_j)]$, the mean squared
+slope of input $j$'s own factor, so that $\mathrm{sech}^4(z_j)\sin^2\enc{j}=g(t_j)$.
+\begin{proposition}[Gradient budget]\label{prop:gradbudget}
+At zero rotations, with independent $z_i$, $i\in\Sk$, $|\Sk|=m$ and $c_i=\mathbb{E}[\cos^2\enc{i}]$,
+\begin{equation*}
+  \mathbb{E}\big\|\nabla_{z}\ZZ{k}\big\|^2=\pi^2\sum_{j\in\Sk}s_j\prod_{i\in\Sk\setminus\{j\}}c_i .
+\end{equation*}
+If moreover $\mathbb{E}|\ZZ{k}|\ge a>0$, then for every $\delta\in(0,\tfrac12)$
+\begin{equation*}
+  \frac1m\sum_{j\in\Sk}s_j\;\le\;g^*\min\Big\{1,\frac{\log(1/a)}{m\,(1-\cos\pi\delta)}\Big\}+h(\delta),
+\end{equation*}
+with $g^*=\max_{t\in[0,1]}g(t)\approx0.638$ (at $t\approx0.41$) and $h(\delta)=\max_{t\in[0,\delta]\cup[1-\delta,1]}g(t)\le\pi^2\delta^2$.
+Hence $\frac1m\sum_j s_j\le\pi\sqrt{2g^*\log(1/a)/m}$ whenever the minimizing $\delta=\big(g^*\log(1/a)/(2\pi^2m)\big)^{1/4}$ is at most $\tfrac12$.
+\end{proposition}
+\begin{proof}
+The identity squares $\partial\ZZ{k}/\partial z_j=-\pi\,\mathrm{sech}^2(z_j)\sin\enc{j}\prod_{i\ne j}\cos\enc{i}$, sums over
+$j$ and factorizes the expectation by independence. For the bound, split $\mathbb{E}[g(t_j)]$ over the
+middle zone $M_\delta=\{\delta<t<1-\delta\}$ and its complement: $s_j\le g^*\Pr(t_j\in M_\delta)+h(\delta)$.
+On $M_\delta$, $|\cos\enc{j}|\le\cos\pi\delta$, so by Markov's inequality $\Pr(t_j\in M_\delta)\le(1-\mathbb{E}|\cos\enc{j}|)/(1-\cos\pi\delta)$.
+Independence gives $\prod_j\mathbb{E}|\cos\enc{j}|=\mathbb{E}|\ZZ{k}|\ge a$, and $1-x\le-\log x$, so
+$\sum_j(1-\mathbb{E}|\cos\enc{j}|)\le\log(1/a)$; each probability is also at most 1. For $h$: if $t\le\delta$,
+$g(t)\le\sin^2(\pi t)\le\pi^2\delta^2$; if $t=1-u$ with $u\le\delta\le\frac12$, then $(1-t^2)^2\le4u^2$ and $\sin^2(\pi u)\le\pi^2u^2$, so
+$g\le4\pi^2u^4\le\pi^2\delta^2$. With $1-\cos\pi\delta=2\sin^2(\pi\delta/2)\ge2\delta^2$, the bound is at most
+$g^*\log(1/a)/(2m\delta^2)+\pi^2\delta^2$, minimized at the stated $\delta$.
+\end{proof}
+The identity separates the gradient into the inputs' own slopes $s_j$ and the cross-factor attenuation
+$\prod_{i\ne j}c_i$ of \cref{prop:atten}. The bound says that a readout which keeps its magnitude as order grows must
+shrink its inputs' mean own slope like $\sqrt{\log(1/a)/m}$: magnitude is kept by moving inputs to the ends of the
+encoding, where both $\sin\enc{j}$ and $\mathrm{sech}^2 z_j$ are small. Like \cref{prop:budget} it is loose at the orders tested here: for $a$ between 0.16
+and 0.6 it falls below the trivial value $g^*$ only from $m=6$ (at $a=0.6$) to $m=19$ (at $a=0.16$), and at $m=8$ it is at most 17\% below $g^*$. It bounds
+the gradient a readout sends, not what the backbone learns from it.
+
 \section{Controls}
 \label{app:controls}
 

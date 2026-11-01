@@ -255,3 +255,43 @@ def test_straight_through_products_and_induced_saturation():
     z[:, :2] = 5.0  # saturated designated coordinates: no penalty, whatever the others do
     assert bottleneck_penalty(z, "satup2").item() == 0.0
     assert bottleneck_penalty(z, "satup4").item() > 0.0
+
+
+def _g(t):
+    return (1 - t ** 2) ** 2 * torch.sin(math.pi * t) ** 2
+
+
+def test_gradient_budget_identity_and_bound():
+    """Gradient budget (appendix): at zero rotations with independent inputs,
+    E||grad_z r||^2 = pi^2 sum_j s_j prod_{i!=j} c_i, and (1/m) sum_j s_j <= g* min(1, log(1/a)/(m(1-cos pi d))) + h(d)."""
+    torch.manual_seed(7)
+    t = torch.linspace(0, 1, 200001, dtype=torch.float64)
+    gstar = _g(t).max().item()
+    assert abs(gstar - 0.638) < 1e-3
+    for m in (1, 2, 4, 8):
+        # independent, differently distributed inputs: mixtures of near-zero, graded and saturated values
+        n = 400000
+        cols = []
+        for j in range(m):
+            w = torch.rand(3, dtype=torch.float64)
+            w = w / w.sum()
+            comp = torch.multinomial(w, n, replacement=True)
+            loc = torch.tensor([0.0, 0.7, 3.0], dtype=torch.float64)[comp] * torch.where(torch.rand(n) < 0.5, 1.0, -1.0).double()
+            cols.append(loc + 0.3 * torch.randn(n, dtype=torch.float64))
+        z = torch.stack(cols, 1).requires_grad_(True)
+        phi = math.pi * torch.tanh(z)
+        r = torch.cos(phi).prod(1)
+        (gz,) = torch.autograd.grad(r.sum(), z)
+        lhs = (gz ** 2).sum(1).mean().item()
+        tt = torch.tanh(z.detach()).abs()
+        s = _g(tt).mean(0)
+        c = (torch.cos(phi.detach()) ** 2).mean(0)
+        rhs = math.pi ** 2 * sum(s[j].item() * torch.cat([c[:j], c[j + 1:]]).prod().item() for j in range(m))
+        assert abs(lhs - rhs) / rhs < 0.02, (m, lhs, rhs)  # Monte Carlo error only
+        # bound, with a = the empirical E|r| (independence holds by construction, up to sampling error)
+        a = torch.cos(phi.detach()).abs().prod(1).mean().item()
+        for d in (0.05, 0.1, 0.2, 0.3, 0.45):
+            out = _g(t[(t <= d) | (t >= 1 - d)]).max().item()
+            assert out <= math.pi ** 2 * d ** 2 + 1e-12
+            bound = gstar * min(1.0, math.log(1 / a) / (m * (1 - math.cos(math.pi * d)))) + out
+            assert s.mean().item() <= bound * 1.02, (m, d, s.mean().item(), bound)
