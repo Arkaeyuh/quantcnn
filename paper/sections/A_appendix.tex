@@ -177,7 +177,7 @@ input Jacobian $\frac18\mathbb{E}\|\partial\mathbf r/\partial z\|_F^2$ of the ze
 independence) and of the trained circuits' readouts ($J_c$). Across the 13 layout means all four fall with product order
 (Spearman $-0.95$, $-0.95$, $-0.95$ and $-0.94$; committed thresholds $-0.7$ for $\bar s$ and $J_0$ and $-0.5$ for $J_c$, none for $\bar c$); from no CNOTs to the last ring
 $\bar s$ falls from 0.32 to 0.13, $\bar c$ from 1 to 0.29, $J_0$ from 3.19 to 1.75 and $J_c$ from 3.54 to 1.98, and $J_c$ tracks probe
-accuracy across layouts (Spearman $0.96$). The identity's independence prediction of $J_0$ has a median relative error of 1.2\% (ratio $J_0/J_0^{\mathrm{ind}}$ 0.71--1.02 across runs). On the log scale attenuation falls more than the own slope ($-1.24$ against $-0.95$), as committed. Through training
+accuracy across layouts (Spearman $0.96$). The identity's independence prediction of $J_0$ has a median relative error of 1.2\% (ratio $J_0/J_0^{\mathrm{ind}}$ 0.71--1.02 across runs). On the log scale the attenuation factor falls more than the own slope ($-1.24$ against $-0.95$), as committed. Through training
 (\texttt{cifar\_dyn} checkpoints every 5 epochs, three layouts, seeds 0--2), the ordering no CNOT $>$ default $>$ last ring holds for
 $J_c$ in 47 of 48 checkpoint--seed cells and for $\bar s$ in all 48; $J_c$ of the last-ring head is 0.52 at epoch 5 against 1.28 without
 CNOTs. The backbone's parameter-gradient norm logged during training does not follow order (at epoch 80: 1.55, 1.92 and 1.76), as
