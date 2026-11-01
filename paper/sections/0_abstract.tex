@@ -3,16 +3,12 @@ When a convolutional network is trained end to end through a variational quantum
 with one common linear probe on the frozen bottleneck of each tuned network. On CIFAR-10
 with 4,000 training images, an 8-qubit VQC head with CNOT rings lowers probe accuracy by 4.7
 points relative to a linear head (5 seeds, every seed lower; a two-hidden-layer MLP probe finds the
-same gap), and removing the rings recovers 3.8 of those points. An exact identity organizes the pattern: with every variational rotation
+same gap), and removing the rings recovers 3.8 of those points. An exact identity yields a predictor of which layouts cost most: with every variational rotation
 at zero, each readout is a product of cosines of the encoded inputs over a set fixed by the
-CNOT layers. Probe accuracy falls as the mean order of these products rises, from 73.6 at
-order 1 to 69.8 at the default order 2.5 and 60.1 at order 5.25; classical heads trained on
-the same products follow the same trend, the circuit ordering holds at twice the training
-budget and on MNIST, six new CNOT layouts show a strong inverse
-association with order (two rank reversals), as do six layouts under a second encoding, and a circuit that retains entangling gates but has product order 1 recovers 3.1 points. On an
-ImageNet-pretrained ResNet-18 the same ordering holds: at an approximately matched number of optimizer updates
-the default head costs 6--8 points with 1,000 to 10,000 training images, while the ring-free
-head stays within 1.4 points of a linear head; the ordering also holds on SVHN, with data re-uploading and on a pretrained MobileNetV3. Entangling gates alone do not set the size of the cost here: an entangling CZ ring of order 1 probes 0.4 points below the ring-free head, and multi-qubit readouts of a circuit without entangling gates fall on the order trend. We prove that, for independent inputs, high-order products that keep their magnitude drive the mean mass of their inputs in the graded middle of the encoding toward zero as order grows (not shown to cause the loss), and a pre-registered
+CNOT layers, and probe accuracy falls as the mean order of these products rises (73.6 at
+order 1, 69.8 at the default 2.5, 60.1 at 5.25). Classical heads trained on the same products follow the trend, and entangling gates alone do not set the cost: a CZ ring of order 1 probes 0.4 points below the ring-free head, and multi-qubit readouts without entangling gates fall on the trend.
+The association holds, with a few rank reversals and varying size, for six new CNOT layouts, six layouts under a second encoding, twice the training budget, MNIST, SVHN and an ImageNet-pretrained ResNet-18 (default head 6--8 points below linear at approximately matched updates, 1,000--10,000 images; ring-free within 1.4), and in 10-seed means under data re-uploading and on a pretrained MobileNetV3.
+For independent inputs, high-order products that keep their magnitude drive the mean mass of their inputs in the graded middle of the encoding toward zero as order grows; the bound is loose at the tested orders and not shown to cause the loss. A pre-registered
 intervention that removes saturation, with the forward pass unchanged, recovers half of
-the highest-order cost. Without entangling gates and with single-qubit readouts the head is exactly a classical per-coordinate sinusoidal model, and under matched per-head tuning a linear head has the highest mean test
+the highest-order cost, by a route we do not identify. Without entangling gates and with single-qubit readouts the head is exactly a classical per-coordinate sinusoidal model, and under matched per-head tuning a linear head has the highest mean test
 accuracy among linear, small-MLP and default VQC heads in all six matched dataset--size settings.
