@@ -509,9 +509,8 @@ points in every case; seeds 0--2). The last-ring head's gap to the ring-free hea
 $-2.5$, $-3.9$ and $-1.8$ at matched fit (mean $-2.7$, the ring-free head matched at epochs 20--25), missing the committed $-3$ but negative in every
 seed, so the refutation (a mean gap of at least 0) is not met. The default's gap shrinks from $-3.0$, $-5.1$ and $-2.8$ to $-1.8$, $-3.3$ and $-1.9$
 (mean $-2.3$, matched at epochs 40--50; committed $\le-1.5$, met), and the last ring is $3.0$ points below the default at matched fit. At
-every matched pair the higher-order head's trained-circuit Jacobian $J_c$ is lower (for example 1.70 against 3.02). Most of the
-last ring's cost at a fixed 80 epochs is thus slower optimization, while the default's mostly is not; three seeds and a logged,
-augmented-batch fit measure limit this comparison.
+every matched pair the higher-order head's trained-circuit Jacobian $J_c$ is lower (for example 1.70 against 3.02). In these three seeds most of the
+last ring's cost at a fixed 80 epochs is thus slower optimization, while the default's mostly is not; a logged, augmented-batch fit measure limits this comparison. A pre-registered replication on fresh seeds 3--9 (\texttt{cifar\_dyn\_rep}, the same design) gives the same verdicts: the last ring's matched-fit gap to the ring-free head is $-2.4$ (7 of 7 negative; committed $-3$ missed again, refutation not met) and the default's $-2.6$ (7 of 7; met). Over all ten seeds, at the final epoch-80 checkpoint against matched fit, the gaps are $-13.5\pm3.7$ against $-2.5\pm1.1$ (last ring to ring-free), $-4.5\pm2.1$ against $-2.5\pm0.8$ (default to ring-free) and $-9.0\pm2.7$ against $-2.5\pm1.4$ (last ring to default), every one of the 30 seed comparisons negative at matched fit. The matched points lie at different fit levels, so these gaps do not add.
 
 \begin{table}[h]
 \centering
