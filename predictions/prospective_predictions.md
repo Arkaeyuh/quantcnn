@@ -711,3 +711,27 @@ If neither λ qualifies for a layout, I report that and redesign the clamp (othe
 **Reporting:** both analyses, both probes' S values and clean training accuracies, per-seed differences, MLP probe if run. Neither result replaces the other.
 
 **My expectation:** on the last ring, R between 0.3 and 0.6 (mixed). Escape + clamp keeps 4 coordinates saturated but leaves the other 4 free and unsaturated, which is a different pattern from the plain head's spread-out saturation. On the default ring I expect (1) and (2) to be inconclusive in substance, given the small gain.
+
+### Outcomes: saturation-clamp control (scored 2026-10-31 19:35 with `scripts/score_clamp.py`)
+All 30 runs, both probes and the export exited 0. Linear probe (MLP in brackets); paired over seeds 0–9.
+
+**(1) S-matched comparison.**
+- **Last ring (primary).**
+  - Probes: plain 60.08 (S 0.475, train 65.6); escape 66.27 (S 0.000, train 77.6); escape + clamp 63.67 (S 0.473, train 73.0).
+  - Manipulation check PASS (|ΔS| 0.001); guard PASS.
+  - Gains: unclamped +6.19 ± 4.05 (10/10); escape+clamp − plain +3.60 ± 4.54 (7/10); escape+clamp − escape −2.60 ± 3.09.
+  - **R = 0.58 → mixed** [MLP 0.52, mixed].
+- **Default ring (secondary).**
+  - Probes: plain 69.03 (S 0.268); escape 71.42; escape + clamp 70.70 (S 0.352, train 93.1).
+  - Manipulation check PASS (|ΔS| 0.084); guard PASS.
+  - Gains: unclamped +2.39 (10/10); escape+clamp − plain +1.67 ± 2.85 (8/10).
+  - **R = 0.70 → H_direct** [MLP 0.79].
+
+**(2) Default-ring 2×2.**
+- plain + clamp 67.92 (S 0.455, train 85.6; guard PASS). escape+clamp − plain+clamp +2.78 ± 1.99 (9/10); plain+clamp − plain −1.11.
+- **R2 = 1.16 → H_direct** [MLP 1.38]. As disclosed, the clamped arms differ in S (0.455 vs 0.352), which biases R2 upward.
+
+**Reading:**
+- At the plain head's saturation *level*, escape-only keeps a little over half of its last-ring gain. Lower saturation accounts for at most about 40% of the gain; the rest comes through some other effect of the changed gradients.
+- The clamp matches the level, not the pattern: k coordinates fully saturated and the rest at 0, against the plain head's spread. So "the level" here means the fraction of saturated coordinates.
+- **Against my expectation:** last ring as expected (0.3–0.6). The default ring I expected to be inconclusive in substance; by the committed thresholds it is H_direct, with small effects (+1.7 of +2.4).
