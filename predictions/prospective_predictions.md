@@ -773,3 +773,32 @@ All 30 runs, both probes and the export exited 0. Linear probe (MLP in brackets)
 - If H_split passes, it sits in tension with the null result of removing cross-factor attenuation (−0.4 ± 2.0), and I will report that tension.
 - H_trained is uncertain.
 - `backbone_gnorm` may rise with order, because the loss scale grows as fit worsens. That is why it is descriptive only.
+
+### Outcomes: gradient budget (scored 2026-11-01 01:40 with `scripts/score_gradient_budget.py`)
+All five measurement jobs finished: 61 endpoints, 144 checkpoints, 15 escape-only endpoints.
+
+**(E) Endpoints, 13 layouts.** Spearman of layout means with product order: own −0.95, att −0.95, J0 −0.95, Jc −0.94.
+- No CNOT → last ring: own 0.323 → 0.125, att 1.00 → 0.29, J0 3.19 → 1.75, Jc 3.54 → 1.98.
+- **H_own PASS** (−0.95).
+- **H_zero PASS** (−0.95).
+- **H_trained PASS** (−0.94).
+- **H_split PASS:** Δlog att −1.24 vs Δlog own −0.95.
+- **H_probe PASS:** Spearman(Jc, probe) +0.96.
+- **Refutation not met.**
+- **Independence check:** median J0/J0_ind 0.989 (range 0.71–1.02).
+- **Descriptive:** Jh (including the decoder) ρ −0.58.
+
+**(D) Dynamics (no CNOT, default, last ring × seeds 0–2, epochs 5–80).**
+- **H_dyn PASS:** the ordering no CNOT > default > last ring holds for Jc in 47/48 cells and for own in 48/48.
+- **Descriptive:** the logged `backbone_gnorm` does not follow order (end of training: no CNOT 1.55, default 1.92, last ring 1.76; the last ring is lowest early). This is consistent with the loss-scale confound stated in advance.
+
+**Escape-only endpoints (descriptive, post hoc reading).**
+- Last ring: own 0.125 → 0.224, att 0.29 → 0.18, Jc 1.98 → 2.73.
+- Default ring: own 0.19 → 0.24, att 0.49 → 0.55, Jc 2.65 → 3.99.
+- The escape gain comes with higher own slopes even where attenuation worsens. That is consistent with the null result of removing cross-factor attenuation, but it is an observation, not a test.
+
+**Against my expectation:**
+- H_split passed as I expected, so the measured attenuation drop is the larger of the two.
+- Escape-only did not reduce attenuation on the last ring; it increased it, while restoring own slope. So the tension I predicted, a large attenuation drop alongside a null attenuation intervention, has a candidate resolution in the own-slope term. That resolution was not tested here.
+- H_trained and H_probe were stronger than I expected (−0.94 and +0.96).
+- All of this is association across layouts and over training, not evidence that smaller gradients cause the representation cost.
