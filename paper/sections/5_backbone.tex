@@ -145,7 +145,7 @@ Differentiating \cref{eq:identity} at zero rotations gives, for $j\in\Sk$,
   \label{eq:grad}
 \end{equation}
 so a coordinate's gradient is scaled by the cosines of the other coordinates in $\Sk$
-(\cref{prop:atten}) and by its own $\mathrm{sech}^2(z_j)$; removing the cross-factor part gives the default products no mean recovery ($-0.4\pm2.0$; \cref{tab:floor}). The total gradient a readout returns is its inputs' own slopes times that attenuation (\cref{prop:gradbudget}); in pre-registered measurements over the 13 layouts both terms and the trained circuits' input Jacobian fall with order (Spearman $\le-0.94$, also through training), and the Jacobian tracks probe accuracy ($0.96$). With independent factors, keeping a fixed magnitude limits a readout's inputs in the middle of the encoding, a signal budget:
+(\cref{prop:atten}) and by its own $\mathrm{sech}^2(z_j)$; removing the cross-factor part gives the default products no mean recovery ($-0.4\pm2.0$; \cref{tab:floor}). The mean squared gradient a readout returns is a sum of its inputs' own slopes times that attenuation (\cref{prop:gradbudget}); in pre-registered measurements over the 13 layouts both terms and the trained circuits' input Jacobian fall with order (Spearman $-0.94$ to $-0.95$; the ordering holds at 47 of 48 training checkpoints), and the Jacobian tracks probe accuracy ($0.96$). With independent factors, keeping a fixed magnitude limits a readout's inputs in the middle of the encoding, a signal budget:
 \begin{proposition}[Signal budget]\label{prop:budget}
 Let $r_k=\prod_{j\in\Sk}\cos\enc{j}$ with $|\Sk|=m$, $\enc{j}=\pi\tanh z_j$ and independent factors, and
 let $\mathbb{E}|r_k|\ge a>0$. Then some $j\in\Sk$ has
@@ -160,7 +160,7 @@ without CNOTs), which tracks probe accuracy across the 28 VQC configurations ($\
 On these bottlenecks the products keep their magnitude (mean $\mathbb{E}|r_k|$ 0.61 to 0.44; no decoder
 compensation), but at these orders the bound is vacuous for $\delta=0.1$ and bounds no label information (\cref{app:compensation}).
 
-Both ends of the encoding are flat (\cref{prop:flat}; the derivative decays like $e^{-4|z|}$ at saturation). Every
+Both ends of the encoding are flat (\cref{prop:flat}; the cosine factor's derivative decays like $e^{-4|z|}$ at saturation). Every
 head saturates early in training ($S=0.44$--$0.77$ at epoch 5, 3 seeds); the ring-free head then
 desaturates to 0.02, while the default and last-ring heads stall at 0.30 and 0.46 and their probe gaps
 peak at epochs 15 and 35 (\cref{app:dynamics}). We tested this trap with a pre-registered intervention

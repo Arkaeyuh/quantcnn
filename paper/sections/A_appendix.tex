@@ -171,22 +171,21 @@ and 0.6 it falls below the trivial value $g^*$ only from $m=6$ (at $a=0.6$) to $
 the gradient a readout sends, not what the backbone learns from it.
 
 \paragraph{Measured gradient budget.} We measured the terms of \cref{prop:gradbudget} on the test embeddings of the 61 small-CNN
-runs of \cref{tab:geometry} (13 layouts, CIFAR-10, 4,000 images), with predictions committed before any measurement: the mean own
+runs of \cref{tab:geometry} (13 layouts, CIFAR-10, 4,000 images), with predictions committed before these gradient measurements: the mean own
 slope $\bar s$, the mean cross-factor attenuation $\bar c=\mathrm{mean}_{k,j\in\Sk}\prod_{i\ne j}c_i$, and the per-coordinate squared
 input Jacobian $\frac18\mathbb{E}\|\partial\mathbf r/\partial z\|_F^2$ of the zero-rotation readouts ($J_0$, by autograd, without assuming
 independence) and of the trained circuits' readouts ($J_c$). Across the 13 layout means all four fall with product order
-(Spearman $-0.95$, $-0.95$, $-0.95$ and $-0.94$; committed thresholds $-0.7$ and, for $J_c$, $-0.5$); from no CNOTs to the last ring
+(Spearman $-0.95$, $-0.95$, $-0.95$ and $-0.94$; committed thresholds $-0.7$ for $\bar s$ and $J_0$ and $-0.5$ for $J_c$, none for $\bar c$); from no CNOTs to the last ring
 $\bar s$ falls from 0.32 to 0.13, $\bar c$ from 1 to 0.29, $J_0$ from 3.19 to 1.75 and $J_c$ from 3.54 to 1.98, and $J_c$ tracks probe
-accuracy across layouts (Spearman $0.96$). The identity's independence prediction of $J_0$ is within 1\% at the median run (range
-0.71--1.02). On the log scale attenuation falls more than the own slope ($-1.24$ against $-0.95$), as committed. Through training
+accuracy across layouts (Spearman $0.96$). The identity's independence prediction of $J_0$ has a median relative error of 1.2\% (ratio $J_0/J_0^{\mathrm{ind}}$ 0.71--1.02 across runs). On the log scale attenuation falls more than the own slope ($-1.24$ against $-0.95$), as committed. Through training
 (\texttt{cifar\_dyn} checkpoints every 5 epochs, three layouts, seeds 0--2), the ordering no CNOT $>$ default $>$ last ring holds for
 $J_c$ in 47 of 48 checkpoint--seed cells and for $\bar s$ in all 48; $J_c$ of the last-ring head is 0.52 at epoch 5 against 1.28 without
 CNOTs. The backbone's parameter-gradient norm logged during training does not follow order (at epoch 80: 1.55, 1.92 and 1.76), as
-expected, since it also scales with the loss, which is larger for the heads that fit worse; the head's input Jacobian, which
+anticipated; a possible reason is that it also scales with the loss, which is larger for the heads that fit worse; the head's input Jacobian, which
 excludes the loss, is the quantity the proposition concerns. On the escape-only endpoints of \cref{tab:satmain} (seeds 0--4,
-not pre-registered), the last-ring head's own slope rises from 0.13 to 0.22 while its attenuation falls from 0.29 to 0.18, and $J_c$
-rises from 1.98 to 2.73; the default ring is similar ($\bar s$ 0.19 to 0.24, $J_c$ 2.65 to 3.99). The escape gain thus comes with restored
-own slopes rather than reduced attenuation, consistent with the null result for removing attenuation (\cref{tab:floor}); this reading
+a comparison specified in advance as descriptive), the last-ring head's own slope rises from 0.13 to 0.22 while its attenuation factor $\bar c$ falls from 0.29 to 0.18 (more attenuation), and $J_c$
+rises from 1.98 to 2.73; the default ring is similar ($\bar s$ 0.19 to 0.24, $J_c$ 2.65 to 3.99). On the last ring the escape gain thus comes with restored
+own slopes rather than reduced attenuation (on the default ring $\bar c$ instead rises, 0.49 to 0.55, so attenuation there is slightly reduced), consistent with the null result for removing attenuation (\cref{tab:floor}); this reading
 is post hoc. These are associations across layouts and over training: they show that higher-order heads return less gradient per
 input to the backbone, not that the smaller gradient causes the representation cost.
 
