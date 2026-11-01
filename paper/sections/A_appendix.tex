@@ -141,18 +141,18 @@ the other inputs' gradients unattenuated but receive almost none themselves.
 
 \paragraph{A gradient budget.} The same trade-off holds for the total gradient a readout passes back.
 Write $t_j=|\tanh z_j|$, $g(t)=(1-t^2)^2\sin^2(\pi t)$ and $s_j=\mathbb{E}[g(t_j)]$, the mean squared
-slope of input $j$'s own factor, so that $\mathrm{sech}^4(z_j)\sin^2\enc{j}=g(t_j)$.
+slope of input $j$'s own factor divided by $\pi^2$ (its normalized own slope), so that $\mathrm{sech}^4(z_j)\sin^2\enc{j}=g(t_j)$.
 \begin{proposition}[Gradient budget]\label{prop:gradbudget}
-At zero rotations, with independent $z_i$, $i\in\Sk$, $|\Sk|=m$ and $c_i=\mathbb{E}[\cos^2\enc{i}]$,
+Fix a readout $k$ with nonempty support $\Sk$, $|\Sk|=m$, at zero rotations. Expectations are over the input $z$, whose coordinates $z_i$, $i\in\Sk$, are mutually independent; the norm is Euclidean; $c_i=\mathbb{E}[\cos^2\enc{i}]$. Then
 \begin{equation*}
   \mathbb{E}\big\|\nabla_{z}\ZZ{k}\big\|^2=\pi^2\sum_{j\in\Sk}s_j\prod_{i\in\Sk\setminus\{j\}}c_i .
 \end{equation*}
-If moreover $\mathbb{E}|\ZZ{k}|\ge a>0$, then for every $\delta\in(0,\tfrac12)$
+If moreover $\mathbb{E}|\ZZ{k}|\ge a$ with $0<a\le1$, then for every $\delta\in(0,\tfrac12)$
 \begin{equation*}
   \frac1m\sum_{j\in\Sk}s_j\;\le\;g^*\min\Big\{1,\frac{\log(1/a)}{m\,(1-\cos\pi\delta)}\Big\}+h(\delta),
 \end{equation*}
-with $g^*=\max_{t\in[0,1]}g(t)\approx0.638$ (at $t\approx0.41$) and $h(\delta)=\max_{t\in[0,\delta]\cup[1-\delta,1]}g(t)\le\pi^2\delta^2$.
-Hence $\frac1m\sum_j s_j\le\pi\sqrt{2g^*\log(1/a)/m}$ whenever the minimizing $\delta=\big(g^*\log(1/a)/(2\pi^2m)\big)^{1/4}$ is at most $\tfrac12$.
+with $g^*=\max_{t\in[0,1]}g(t)\approx0.638$ (at $t\approx0.405$) and $h(\delta)=\max_{t\in[0,\delta]\cup[1-\delta,1]}g(t)\le\pi^2\delta^2$.
+Hence $\frac1m\sum_j s_j\le\pi\sqrt{2g^*\log(1/a)/m}$ whenever the minimizer of the relaxed bound in the proof, $\delta_*=\big(g^*\log(1/a)/(2\pi^2m)\big)^{1/4}$, is at most $\tfrac12$, i.e.\ $\log(1/a)/m\le\pi^2/(8g^*)\approx1.93$ (the endpoint cases $\delta_*\in\{0,\tfrac12\}$ follow by taking limits).
 \end{proposition}
 \begin{proof}
 The identity squares $\partial\ZZ{k}/\partial z_j=-\pi\,\mathrm{sech}^2(z_j)\sin\enc{j}\prod_{i\ne j}\cos\enc{i}$, sums over
@@ -166,10 +166,8 @@ $g\le4\pi^2u^4\le\pi^2\delta^2$. With $1-\cos\pi\delta=2\sin^2(\pi\delta/2)\ge2\
 $g^*\log(1/a)/(2m\delta^2)+\pi^2\delta^2$, minimized at the stated $\delta$.
 \end{proof}
 The identity separates the gradient into the inputs' own slopes $s_j$ and the cross-factor attenuation
-$\prod_{i\ne j}c_i$ of \cref{prop:atten}. The bound says that a readout which keeps its magnitude as order grows must
-shrink its inputs' mean own slope like $\sqrt{\log(1/a)/m}$: magnitude is kept by moving inputs to the ends of the
-encoding, where both $\sin\enc{j}$ and $\mathrm{sech}^2 z_j$ are small. Like \cref{prop:budget} it is loose at the orders tested here: for $a$ between 0.16
-and 0.6 it falls below the trivial value $g^*$ only from $m=6$ (at $a=0.6$) to $m=19$ (at $a=0.16$), and at $m=8$ it is at most 17\% below $g^*$. It bounds
+$\prod_{i\ne j}c_i$ of \cref{prop:atten}. Under independence and a fixed lower bound on magnitude, the support-averaged normalized own slope is $O(\sqrt{\log(1/a)/m})$: the average middle-zone mass vanishes, and the slope is small at both ends ($\sin\enc{j}$ near $z=0$, $\mathrm{sech}^2z_j$ and $\sin\enc{j}$ at saturation). This does not say that every input's slope, or the total gradient, decays, and it describes no training trajectory. Like \cref{prop:budget} it is loose at the orders tested here: for $a$ between 0.16
+and 0.6 it falls below the trivial value $g^*$ only from $m=6$ (at $a=0.6$) to $m=19$ (at $a=0.16$), and at $m=8$ it is at most about 17.1\% below $g^*$ (at $a=0.6$). It bounds
 the gradient a readout sends, not what the backbone learns from it.
 
 \paragraph{Measured gradient budget.} We measured the terms of \cref{prop:gradbudget} on the test embeddings of the 61 small-CNN
