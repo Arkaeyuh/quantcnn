@@ -148,7 +148,7 @@ def reproduce(shard: int, n_shards: int):
 
 
 def summarize():
-    rows = [r for f in sorted(OUT.glob("rows_*.csv")) for r in csv.DictReader(open(f))]
+    rows = [r for f in sorted(OUT.glob("rows*.csv")) for r in csv.DictReader(open(f))]
     by = defaultdict(lambda: defaultdict(int))
     for r in rows:
         by[r["file"]][r["status"]] += 1

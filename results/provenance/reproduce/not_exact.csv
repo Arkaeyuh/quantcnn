@@ -1,0 +1,17 @@
+file,row,dataset,train_subset_size,source_head,source_lr,seed,n_runs,status,run,orig_probe_lr,repro_probe_lr,orig_probe_test_acc,repro_probe_test_acc,orig_sat_090_z,repro_sat_090_z
+family_mlp_probe.csv,2,cifar10,4000,quantum+brick,0.01,2,1,differs,runs/protocol_v2/cifar_family/cifar10_subset4000_quantum_brick_lr0.01_s2,0.0003,0.001,70.33,69.96,10.96,10.96
+family_mlp_probe.csv,23,cifar10,4000,quantum+chain_last,0.01,4,1,differs,runs/protocol_v2/cifar_family_seeds/cifar10_subset4000_quantum_chain_last_lr0.01_s4,0.0003,0.001,63.73,63.48,31.37,31.37
+family_mlp_probe.csv,9,cifar10,4000,quantum+ladder2_last,0.01,0,1,differs,runs/protocol_v2/cifar_family/cifar10_subset4000_quantum_ladder2_last_lr0.01_s0,0.0003,0.001,66.31,66.58,39.2,39.2
+family_mlp_probe.csv,25,cifar10,4000,quantum+ladder2_last,0.01,4,1,differs,runs/protocol_v2/cifar_family_seeds/cifar10_subset4000_quantum_ladder2_last_lr0.01_s4,0.0003,0.001,66.53,66.1,24.44,24.44
+family_mlp_probe.csv,27,cifar10,4000,quantum+star,0.01,4,1,differs,runs/protocol_v2/cifar_family_seeds/cifar10_subset4000_quantum_star_lr0.01_s4,0.0003,0.001,72.14,71.77,0.77,0.77
+family_mlp_probe.csv,18,cifar10,4000,quantum+brick,0.01,3,1,differs,runs/protocol_v2/cifar_family_seeds/cifar10_subset4000_quantum_brick_lr0.01_s3,0.0003,0.001,70.53,70.32,38.79,38.79
+family_mlp_probe.csv,5,cifar10,4000,quantum+chain,0.01,2,1,differs,runs/protocol_v2/cifar_family/cifar10_subset4000_quantum_chain_lr0.01_s2,0.0003,0.001,71.81,71.74,10.81,10.81
+family_mlp_probe.csv,10,cifar10,4000,quantum+ladder2_last,0.01,1,1,differs,runs/protocol_v2/cifar_family/cifar10_subset4000_quantum_ladder2_last_lr0.01_s1,0.0003,0.001,66.59,66.25,38.86,38.86
+family_mlp_probe.csv,13,cifar10,4000,quantum+star,0.01,1,1,differs,runs/protocol_v2/cifar_family/cifar10_subset4000_quantum_star_lr0.01_s1,0.0003,0.001,74.71,74.59,2.4,2.4
+family_mlp_probe.csv,15,cifar10,4000,quantum+star_in_last,0.01,0,1,differs,runs/protocol_v2/cifar_family/cifar10_subset4000_quantum_star_in_last_lr0.01_s0,0.0003,0.001,73.43,73.43,1.41,1.41
+family_mlp_probe.csv,20,cifar10,4000,quantum+chain,0.01,3,1,differs,runs/protocol_v2/cifar_family_seeds/cifar10_subset4000_quantum_chain_lr0.01_s3,0.0003,0.001,70.87,70.86,5.01,5.01
+family_mlp_probe.csv,11,cifar10,4000,quantum+ladder2_last,0.01,2,1,differs,runs/protocol_v2/cifar_family/cifar10_subset4000_quantum_ladder2_last_lr0.01_s2,0.0003,0.001,68.52,68.38,23.39,23.39
+family_mlp_probe.csv,3,cifar10,4000,quantum+chain,0.01,0,1,differs,runs/protocol_v2/cifar_family/cifar10_subset4000_quantum_chain_lr0.01_s0,0.0003,0.001,69.99,70.05,6.23,6.23
+family_mlp_probe.csv,21,cifar10,4000,quantum+chain,0.01,4,1,differs,runs/protocol_v2/cifar_family_seeds/cifar10_subset4000_quantum_chain_lr0.01_s4,0.0003,0.001,72.18,71.97,6.99,6.99
+family_mlp_probe.csv,26,cifar10,4000,quantum+star,0.01,3,1,differs,runs/protocol_v2/cifar_family_seeds/cifar10_subset4000_quantum_star_lr0.01_s3,0.0001,0.001,72.89,73.03,0.69,0.69
+family_mlp_probe.csv,17,cifar10,4000,quantum+star_in_last,0.01,2,1,differs,runs/protocol_v2/cifar_family/cifar10_subset4000_quantum_star_in_last_lr0.01_s2,0.0003,0.001,72.74,72.58,0.91,0.91
