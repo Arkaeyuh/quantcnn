@@ -40,10 +40,7 @@ Order also carries over to layouts it was not fit on. For six CNOT layouts outsi
 family, chosen by order alone, we predicted probe accuracy from the ring-family fit before
 training. The association holds (Spearman $-0.89$, against a threshold of $-0.8$ set in advance;
 five of six within 4 points), with two rank reversals. The largest miss, brickwork at 5 points
-above its prediction, is the layout trained furthest from its product model. Order extends beyond zero
-rotations: expanding each readout operator $U(\theta)^\dagger Z_kU(\theta)=\sum_Pc_PP$ in Pauli strings,
-the \emph{effective order} is the $c_P^2$-weighted mean number of inputs touched by the strings visible on
-the encoded state, which equals $\order$ at $\theta=0$ (\cref{app:efforder}). At its trained rotations
+above its prediction, is the layout trained furthest from its product model. Order extends beyond zero rotations as an \emph{effective order}: the $c_P^2$-weighted mean number of inputs touched by the visible Pauli strings of $U(\theta)^\dagger Z_kU(\theta)=\sum_Pc_PP$, equal to $\order$ at $\theta=0$ (\cref{app:efforder}). At its trained rotations
 brickwork's effective order is 2.6 rather than 3.5, below the distance-2 ring's 3.0 (\cref{fig:hero}b,
 \cref{app:family}). Under $\tfrac{\pi}{2}\tanh z+\tfrac{\pi}{2}$ six layouts follow order
 as predicted ($-0.94$); under a phase encoding, whose zero-rotation readouts vanish, probe accuracy
@@ -53,11 +50,7 @@ ordering holds as predicted, with the default ring again 4.0 points below the ri
 
 Two interventions test the products directly. First, classical heads trained end to end on a
 circuit's zero-rotation products, with no circuit, land at the circuit's order on the trend:
-the products of the default circuit give $68.8\pm1.6$ probe and $67.1\pm1.3$ test, paired
-differences to the default VQC of $-1.0\pm2.2$ and $-0.7\pm1.7$ with mixed signs across
-seeds. Summing instead of multiplying the same cosines would give the order-1 cos head's function
-class (73.3 probe), as every CNOT-derived support matrix has full rank, though such a head would
-train differently. Second, the
+the default circuit's products probe at $68.8\pm1.6$, $-1.0\pm2.2$ against the default VQC (test $-0.7\pm1.7$), with mixed signs across seeds. Second, the
 \emph{pairs} circuit keeps a CNOT after every layer but has order 1, because its pair CNOTs
 cancel at zero rotations. It recovers $3.1\pm1.2$ probe and $4.4\pm1.2$ test points over the
 default, positive for every seed, and sits $0.7\pm1.0$ probe points below the ring-free
@@ -78,8 +71,7 @@ order-3 star probes $5.4\pm2.7$ points above an order-4 layout (5 seeds, all pos
 order how the coupling is distributed also matters (\cref{tab:support}). Order tracks lower mean
 probe accuracy but does not determine it.
 
-The pattern replicates on MNIST with 1,000 images under an ordering logged before the runs but committed after them (\cref{app:repro}): probe
-accuracy is 96.5, 95.5, 95.1 and 91.6 at orders 1, 1.5, 2.5 and 5.25 (\cref{app:support}).
+On MNIST with 1,000 images (ordering logged before but committed after the runs; \cref{app:repro}) the probe is 96.5, 95.5, 95.1 and 91.6 at orders 1, 1.5, 2.5 and 5.25 (\cref{app:support}).
 
 The identity is guaranteed at zero rotations and generally fails at trained ones. An affine map from each trained circuit's zero-rotation
 readouts to its trained readouts recovers 87\% and 90\% of the held-out readout variance for the
@@ -136,7 +128,7 @@ $1.9\pm0.4$ at 10,000, but smaller sets then also get fewer optimizer updates. A
 approximately matched number of updates (about 3,800) the default circuit costs $6.6\pm1.7$,
 $5.7\pm0.7$ and $7.2\pm2.1$ points at 1,000, 4,000 and 10,000 images, and the ring-free head
 stays within 0.5 points of linear (seeds 0--2; \cref{tab:ptbudget}); re-selecting the learning
-rates gives similar costs. Budget thus accounts for much of the size dependence (the two are not fully separated).
+rates gives similar costs, so the size dependence is largely, not wholly, a budget effect.
 
 High-order heads are unstable here (\cref{app:ptcontrols}); pre-registered tests keep the ordering (\cref{app:extensions}): seed by seed on SVHN, in 10-seed means with re-uploading and on
 MobileNetV3-Small (default $1.2\pm0.7$ below linear); some criteria miss.
@@ -153,7 +145,7 @@ Differentiating \cref{eq:identity} at zero rotations gives, for $j\in\Sk$,
   \label{eq:grad}
 \end{equation}
 so a coordinate's gradient is scaled by the cosines of the other coordinates in $\Sk$
-(\cref{prop:atten}) and by its own $\mathrm{sech}^2(z_j)$; removing the cross-factor part gives the default products no mean recovery ($-0.4\pm2.0$; \cref{tab:floor}). With independent factors, keeping a fixed magnitude limits a readout's inputs in the middle of the encoding, a signal budget:
+(\cref{prop:atten}) and by its own $\mathrm{sech}^2(z_j)$; removing the cross-factor part gives the default products no mean recovery ($-0.4\pm2.0$; \cref{tab:floor}). The total gradient a readout returns is its inputs' own slopes times that attenuation (\cref{prop:gradbudget}); in pre-registered measurements over the 13 layouts both terms and the trained circuits' input Jacobian fall with order (Spearman $\le-0.94$, also through training), and the Jacobian tracks probe accuracy ($0.96$). With independent factors, keeping a fixed magnitude limits a readout's inputs in the middle of the encoding, a signal budget:
 \begin{proposition}[Signal budget]\label{prop:budget}
 Let $r_k=\prod_{j\in\Sk}\cos\enc{j}$ with $|\Sk|=m$, $\enc{j}=\pi\tanh z_j$ and independent factors, and
 let $\mathbb{E}|r_k|\ge a>0$. Then some $j\in\Sk$ has
@@ -168,9 +160,7 @@ without CNOTs), which tracks probe accuracy across the 28 VQC configurations ($\
 On these bottlenecks the products keep their magnitude (mean $\mathbb{E}|r_k|$ 0.61 to 0.44; no decoder
 compensation), but at these orders the bound is vacuous for $\delta=0.1$ and bounds no label information (\cref{app:compensation}).
 
-Both ends of the encoding are flat (\cref{prop:flat}): with $t=|\tanh z|$,
-$|\tfrac{d}{dz}\cos(\pi\tanh z)|\le\pi^2t$ near zero and $\le8\pi^2e^{-4|z|}$ at saturation, the square of $\tanh$'s
-decay, because $\sin\enc{j}$ vanishes there too. Every
+Both ends of the encoding are flat (\cref{prop:flat}; the derivative decays like $e^{-4|z|}$ at saturation). Every
 head saturates early in training ($S=0.44$--$0.77$ at epoch 5, 3 seeds); the ring-free head then
 desaturates to 0.02, while the default and last-ring heads stall at 0.30 and 0.46 and their probe gaps
 peak at epochs 15 and 35 (\cref{app:dynamics}). We tested this trap with a pre-registered intervention
