@@ -853,3 +853,17 @@ Every match is usable (|Δ logged training accuracy| 0.1–2.5 points). Seeds 0�
 - **Limits:** 3 seeds; fit is logged training accuracy on augmented batches; the probe is measured at the checkpoint, not at a selected best epoch.
 
 **Against my expectation:** (a) I expected −3 to −8 and got −2.7, so the progress share is larger than I predicted. (b) was as expected.
+
+## Matched-fit replication on fresh seeds, predictions written 2026-11-01 01:05 CST before any run
+(Times before this entry on 2026-11-01 are CDT; daylight saving ended at 02:00 CDT = 01:00 CST.)
+**Why:** the matched-fit comparison rests on 3 seeds, and it changes how the headline last-ring cost reads (−12.7 at matched epochs, −2.7 at matched fit).
+**What I have already seen (disclosed):** the 3-seed outcome above, and all 80-epoch endpoint probes of these layouts on seeds 3–9 (the last-ring seeds 5–9 from `cifar_lastring_retest`).
+**Design (`cifar_dyn_rep`, 21 runs):** no CNOT, default ring, last ring × seeds 3–9. CIFAR-10/4,000, lr 1e-2, 80 epochs, checkpoints after every epoch 1–10 and every 5 epochs after (the `cifar_dyn2` design). Every checkpoint gets the same probe and the same matching rule as above (`scripts/dynamics_probe.py`, `scripts/score_matched_fit.py --seeds 3 4 5 6 7 8 9 --root cifar_dyn_rep --min_negative 5`).
+
+**Hypotheses** (thresholds unchanged; sign criterion scaled to 5 of 7 seeds):
+- **H_fit-last-rep:** last ring vs no CNOT at matched fit, mean gap ≤ −3 and negative in ≥ 5 of 7 seeds.
+- **H_fit-default-rep:** default vs no CNOT, mean gap ≤ −1.5 and negative in ≥ 5 of 7.
+- **Refutation:** the last-ring mean gap ≥ 0.
+- **Reported:** the 10-seed pooled gaps (with seeds 0–2), the matched epochs and |Δ fit|.
+
+**My expectation:** last ring about −2 to −4 (whether it reaches −3 is a coin flip); default about −2.

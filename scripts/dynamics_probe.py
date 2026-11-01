@@ -32,6 +32,8 @@ def main():
     ap.add_argument("--out", default="results/dyn_curves.csv")
     ap.add_argument("--root", default="runs/protocol_v2/cifar_dyn")
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--shard", type=int, default=0, help="this process takes runs i::n")
+    ap.add_argument("--n_shards", type=int, default=1)
     a = ap.parse_args()
     torch.set_num_threads(a.threads)
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -40,7 +42,7 @@ def main():
     if out.exists():
         with out.open() as fh:
             done = {(r["head"], r["seed"], r["epoch"]) for r in csv.DictReader(fh)}
-    for run in sorted(Path(a.root).iterdir()):
+    for run in sorted(Path(a.root).iterdir())[a.shard::a.n_shards]:
         meta = json.loads((run / "meta.json").read_text())
         head, seed = _head_key(meta), int(meta["seed"])
         sp = get_splits("cifar10", 4000, seed, 2000)

@@ -5,6 +5,7 @@ For each seed, the higher-order head at epoch 80 is compared with the lower-orde
 probe value in results/dyn_curves.csv or dyn2_curves.csv) whose logged training accuracy (metrics.csv) is closest.
 From repository root: ``PYTHONPATH=. .venv/bin/python scripts/score_matched_fit.py``."""
 
+import argparse
 import csv
 import glob
 import statistics as st
@@ -12,12 +13,20 @@ from collections import defaultdict
 
 HEADS = {"noent": "quantum+noent", "default": "quantum", "last": "quantum+entlast"}
 DIRS = {"noent": "quantum_noent", "default": "quantum", "last": "quantum_entlast"}
-SEEDS = (0, 1, 2)
+ap = argparse.ArgumentParser()
+ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
+ap.add_argument("--root", default="cifar_dyn")
+ap.add_argument("--curves", nargs="+", default=["results/dyn_curves.csv", "results/dyn2_curves.csv"])
+ap.add_argument("--min_negative", type=int, default=2, help="seeds with a negative gap required by the hypotheses")
+A = ap.parse_args()
+SEEDS = tuple(A.seeds)
 
 probe = defaultdict(dict)
-for f in ("results/dyn_curves.csv", "results/dyn2_curves.csv"):
+for f in A.curves:
     for r in csv.DictReader(open(f)):
         key, ep, v = (r["head"], int(r["seed"])), int(r["epoch"]), float(r["probe_test_acc"])
+        if int(r["seed"]) not in SEEDS:
+            continue
         if ep in probe[key]:
             assert abs(probe[key][ep] - v) < 1e-6, (f, key, ep)  # dyn2 repeats dyn's runs and seeds
         probe[key][ep] = v
@@ -25,7 +34,7 @@ for f in ("results/dyn_curves.csv", "results/dyn2_curves.csv"):
 fit, loss = defaultdict(dict), defaultdict(dict)
 for lay, d in DIRS.items():
     for sd in SEEDS:
-        path = glob.glob(f"runs/protocol_v2/cifar_dyn/cifar10_subset4000_{d}_lr0.01_s{sd}/metrics.csv")
+        path = glob.glob(f"runs/protocol_v2/{A.root}/cifar10_subset4000_{d}_lr0.01_s{sd}/metrics.csv")
         assert len(path) == 1, (lay, sd, path)
         for m in csv.DictReader(open(path[0])):
             fit[lay, sd][int(m["epoch"])] = float(m["train_acc"]) * 100
@@ -62,6 +71,7 @@ def compare(hi, lo):
 a = compare("last", "noent")
 b = compare("default", "noent")
 compare("last", "default")
-print(f"\n  >> H_fit-last (mean <= -3, >= 2/3 negative): {'PASS' if a[2] >= 2 and a[0] <= -3 and a[1] >= 2 else 'FAIL' if a[2] >= 2 else 'INCONCLUSIVE'}")
-print(f"  >> H_fit-default (mean <= -1.5, >= 2/3 negative): {'PASS' if b[2] >= 2 and b[0] <= -1.5 and b[1] >= 2 else 'FAIL' if b[2] >= 2 else 'INCONCLUSIVE'}")
+k = A.min_negative
+print(f"\n  >> H_fit-last (mean <= -3, >= {k} negative): {'PASS' if a[2] >= k and a[0] <= -3 and a[1] >= k else 'FAIL' if a[2] >= k else 'INCONCLUSIVE'}")
+print(f"  >> H_fit-default (mean <= -1.5, >= {k} negative): {'PASS' if b[2] >= k and b[0] <= -1.5 and b[1] >= k else 'FAIL' if b[2] >= k else 'INCONCLUSIVE'}")
 print(f"  >> refutation (last-vs-noent mean >= 0): {'MET' if a[0] >= 0 else 'not met'}")
