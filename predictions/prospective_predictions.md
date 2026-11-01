@@ -824,3 +824,32 @@ All five measurement jobs finished: 61 endpoints, 144 checkpoints, 15 escape-onl
 - **Reported:** the matched epochs, the |Δ fit| achieved (a match counts as usable if within 3 points of logged training accuracy; otherwise the seed is inconclusive), (c), and the trained-circuit Jacobian Jc at the matched checkpoints from `results/gradient_budget_dyn_*.csv` where the epoch is available.
 
 **My expectation:** genuinely uncertain. The no-CNOT head reaches the last ring's final fit early (epoch ~5–15), when its probe is still rising. I expect (a) to be negative but smaller than at matched epochs, around −3 to −8, and (b) to be small.
+
+### Outcomes: matched-fit comparison (scored 2026-11-01 02:10 with `scripts/score_matched_fit.py`)
+Every match is usable (|Δ logged training accuracy| 0.1–2.5 points). Seeds 0–2.
+
+**(a) Last ring (epoch 80) vs no CNOT at matched fit.**
+- The no-CNOT match is at epochs 25, 20 and 25.
+- Gaps: −2.54, −3.91, −1.77; mean −2.74, negative in 3/3. At matched epochs the gaps were −11.48, −15.23 and −11.46.
+- **H_fit-last: FAIL** (−2.74 > −3).
+- **Refutation: not met** (the gap is negative in every seed).
+
+**(b) Default vs no CNOT.**
+- The no-CNOT match is at epochs 50, 40 and 50.
+- Gaps: −1.81, −3.29, −1.89; mean −2.33, 3/3 negative. At matched epochs: −2.97, −5.06, −2.84.
+- **H_fit-default: PASS.**
+
+**(c) Last ring vs default.**
+- The default match is at epoch 35.
+- Gaps: −1.75, −4.76, −2.43; mean −2.98, 3/3 negative.
+
+**Trained Jacobian Jc at the matched checkpoints (descriptive).** The higher-order head is lower in every comparison: last ring 1.70/1.97/1.70 against no CNOT 3.02/2.31/3.01; default 2.35/2.83/2.30 against 3.19/3.19/3.58.
+
+**Reading:**
+- At matched fit, most of the last ring's matched-epoch deficit (about 80%) disappears: it tracks training progress.
+- A residual of about −2.7 points remains in every seed, and the higher-order head still returns less gradient per coordinate.
+- The default ring's deficit mostly survives matching (−3.6 → −2.3).
+- The headline last-ring cost at a fixed 80 epochs is therefore mostly a training-progress cost; the default ring's is not.
+- **Limits:** 3 seeds; fit is logged training accuracy on augmented batches; the probe is measured at the checkpoint, not at a selected best epoch.
+
+**Against my expectation:** (a) I expected −3 to −8 and got −2.7, so the progress share is larger than I predicted. (b) was as expected.
