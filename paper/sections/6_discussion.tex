@@ -3,8 +3,8 @@
 
 \paragraph{Implications for hybrid design.}
 For CNN-fed quantum heads trained end to end, the entangling layout and the observables are choices
-about the backbone: product order, computable before training, ranks them, with a few reversals. The best quantum heads are
-low-order: the ring-free head (exactly classical, \cref{eq:ringfree}) or the pairs circuit.
+about the backbone: product order, computable before training, ranks them, with a few reversals, and the best quantum heads are
+low-order (ring-free, exactly classical, or pairs).
 
 \paragraph{Limitations.}
 We study two families of CNOT layouts and a CZ ring (8 qubits, and 12 for the headline heads; $R_yR_z$ layers,
@@ -12,6 +12,5 @@ angle encodings, mainly $\pi\tanh$), one qubit per bottleneck coordinate, in noi
 of MNIST, CIFAR-10 and SVHN of at most 10,000 images; the cost varies across pretrained backbones (1.2--7.2 points on CIFAR-10/4,000) and is untested with non-angle encodings
 or on hardware. Most cells use 3 seeds (5 or 10 where stated), too few
 for equivalence claims. Product order is a
-coarse scalar: it misses brickwork by 5 points, its cost per unit does not carry across widths, and at fixed order the distribution of coupling also matters (\cref{tab:support}; classical heads only). The identity is guaranteed at zero rotations, and trained
-circuits on the small CNNs move away from it (held-out $R^2$ 0.51--0.90). The signal budget assumes independent factors, is loose at these orders and is checked only at the end of training; whether it mediates the cost, and how much of the intervention's gain is via saturation, are open. Information recoverable only by
+coarse scalar: it misses brickwork by 5 points, its cost per unit does not carry across widths, and at fixed order the distribution of coupling also matters (\cref{tab:support}; classical heads only). The identity is exact only at zero rotations; trained small-CNN circuits move away from it (held-out $R^2$ 0.51--0.90). The signal budget assumes independent factors, is loose at these orders and is checked only at the end of training; whether it mediates the cost, and how much of the intervention's gain is via saturation, are open. Information recoverable only by
 decoders stronger than a two-hidden-layer MLP is not measured.

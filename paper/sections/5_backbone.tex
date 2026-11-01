@@ -153,7 +153,7 @@ Differentiating \cref{eq:identity} at zero rotations gives, for $j\in\Sk$,
   \label{eq:grad}
 \end{equation}
 so a coordinate's gradient is scaled by the cosines of the other coordinates in $\Sk$
-(\cref{prop:atten}) and by its own $\mathrm{sech}^2(z_j)$; removing that attenuation does not help the default products ($-0.4\pm2.0$; \cref{tab:floor}). With independent factors, keeping a fixed magnitude limits a readout's inputs in the middle of the encoding, a signal budget:
+(\cref{prop:atten}) and by its own $\mathrm{sech}^2(z_j)$; removing the cross-factor part gives the default products no mean recovery ($-0.4\pm2.0$; \cref{tab:floor}). With independent factors, keeping a fixed magnitude limits a readout's inputs in the middle of the encoding, a signal budget:
 \begin{proposition}[Signal budget]\label{prop:budget}
 Let $r_k=\prod_{j\in\Sk}\cos\enc{j}$ with $|\Sk|=m$, $\enc{j}=\pi\tanh z_j$ and independent factors, and
 let $\mathbb{E}|r_k|\ge a>0$. Then some $j\in\Sk$ has
@@ -161,7 +161,7 @@ $\Pr\big(\delta<|\tanh z_j|<1-\delta\big)\le(1-a^{1/m})/(1-\cos\pi\delta)$ for e
 $\delta\in(0,\tfrac12)$; if the factors are identically distributed, every $j\in\Sk$ does. Without
 independence, every $j\in\Sk$ satisfies the bound with $a$ in place of $a^{1/m}$.
 \end{proposition}
-As $m$ grows, $a^{1/m}\to1$ and this bound goes to zero. On the trained
+As $m$ grows, $a^{1/m}\to1$ and the independence-based bound goes to zero. On the trained
 bottlenecks the middle-zone fraction ($0.1<|\tanh z|<0.9$) is 0.84, 0.63 and 0.46 at orders 1, 2.5
 and 5.25, and the lost mass goes to saturation (30--49\% of coordinates for the ring circuits, 1\%
 without CNOTs), which tracks probe accuracy across the 28 VQC configurations ($\rho=-0.91$; \cref{tab:geometry}).
@@ -182,5 +182,4 @@ in every seed, against $0.9\pm0.5$ without CNOTs (\cref{tab:satmain}; the defaul
 seeds 5--9 replication passes). In pre-registered controls (10 seeds), boosting only saturated or only unsaturated coordinates gives $+5.6$ or $+5.9$ on the last ring, and a penalty that holds its mean saturation at the plain level keeps $+3.6$ of $+6.2$ (mixed); the share via saturation is not identified. A penalty against saturation, which also changes the loss, gives similar
 gains (\cref{app:saturation}).
 
-Without saturation, order still costs: escape-only probes 74.5, 71.3 and 66.9 at
-orders 1, 2.5 and 5.25. The intervention recovers half of the last-ring cost and 1.5 of the default's 3.8 points (44\% and 15\% if both arms are treated).
+Without saturation order still costs (escape-only probes 74.5, 71.3, 66.9 at orders 1, 2.5, 5.25). The intervention recovers half of the last-ring cost and 1.5 of the default's 3.8 points (44\% and 15\% if both arms are treated).
