@@ -802,3 +802,25 @@ All five measurement jobs finished: 61 endpoints, 144 checkpoints, 15 escape-onl
 - Escape-only did not reduce attenuation on the last ring; it increased it, while restoring own slope. So the tension I predicted, a large attenuation drop alongside a null attenuation intervention, has a candidate resolution in the own-slope term. That resolution was not tested here.
 - H_trained and H_probe were stronger than I expected (−0.94 and +0.96).
 - All of this is association across layouts and over training, not evidence that smaller gradients cause the representation cost.
+
+## Matched-fit comparison: is the high-order probe deficit a training-progress effect? Predictions written 2026-11-01 02:00 before looking at per-epoch training accuracy
+**Why:** kill-argument 2026-11-01. The last-ring head is underfit (clean training accuracy 65.6% at 80 epochs against 96.6% without CNOTs). A common probe at matched epochs therefore compares backbones at unequal training progress. If the deficit is only a progress effect, the no-CNOT head at the *same* fit should probe no better than the last-ring head.
+
+**What I have already seen (disclosed):** the probe gaps at matched epochs (`results/dyn_curves.csv`, as reported in the appendix: last ring − no CNOT −8.4 at epoch 5, −14.3 at 10, −18.8 at 20, −17.2 at 40, −12.7 at 80), S by epoch, and the final clean training accuracies. **Not seen:** the per-epoch logged training accuracy and loss of these runs.
+
+**Data:** `cifar_dyn` (checkpoints at epochs 5–80 every 5) and `cifar_dyn2` (the same runs and seeds, plus epochs 1–10), seeds 0–2, CIFAR-10/4,000, lr 1e-2. Probe values come from `results/dyn_curves.csv` and `results/dyn2_curves.csv` (common linear probe, test).
+- **Fit:** the training accuracy logged at that epoch in `metrics.csv`, measured on augmented training batches, which is the only per-epoch fit measure. Training loss is reported alongside.
+- **Matching:** for each seed, take the higher-order head's final checkpoint (epoch 80) and its logged training accuracy f*. Find the lower-order head's checkpoint, among those with a probe value, whose logged training accuracy is closest to f*.
+
+**Comparisons:**
+- (a) last ring vs no CNOT;
+- (b) default vs no CNOT;
+- (c) last ring vs default.
+
+**Hypotheses** (matched-fit gap = probe(higher order, epoch 80) − probe(lower order, matched checkpoint)):
+- **H_fit-last:** (a) gap ≤ −3 in the seed mean and negative in ≥ 2 of 3 seeds. The deficit exceeds what progress explains.
+- **H_fit-default:** (b) gap ≤ −1.5 in the seed mean and negative in ≥ 2 of 3 seeds.
+- **Refutation (deficit is a progress effect):** (a) gap ≥ 0 in the seed mean.
+- **Reported:** the matched epochs, the |Δ fit| achieved (a match counts as usable if within 3 points of logged training accuracy; otherwise the seed is inconclusive), (c), and the trained-circuit Jacobian Jc at the matched checkpoints from `results/gradient_budget_dyn_*.csv` where the epoch is available.
+
+**My expectation:** genuinely uncertain. The no-CNOT head reaches the last ring's final fit early (epoch ~5–15), when its probe is still rising. I expect (a) to be negative but smaller than at matched epochs, around −3 to −8, and (b) to be small.
