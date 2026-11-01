@@ -502,6 +502,17 @@ probe gap first reaches half its maximum at epochs 8, 2 and 9. Seed-mean saturat
 two epochs, at 0.55 (ring-free), 0.78 (default) and 0.82 (last ring). The probe
 gap peaks at epoch 15 (default) and 35 (last ring) and then partly closes as $S$ slowly falls, consistent with an incomplete escape under this training budget; this agrees with the doubled-budget results of \cref{sec:controls}.
 
+\paragraph{Matched fit.} A common probe at matched epochs compares backbones at unequal training progress. With predictions
+committed before we looked at per-epoch training accuracy, we compared each higher-order head at epoch 80 with the lower-order head
+at the checkpoint (epochs 1--10, then every 5) whose logged training accuracy, on augmented batches, is closest (within 0.1--2.5
+points in every case; seeds 0--2). The last-ring head's gap to the ring-free head shrinks from $-11.5$, $-15.2$ and $-11.5$ at matched epochs to
+$-2.5$, $-3.9$ and $-1.8$ at matched fit (mean $-2.7$, the ring-free head matched at epochs 20--25), missing the committed $-3$ but negative in every
+seed, so the refutation (a mean gap of at least 0) is not met. The default's gap shrinks from $-3.0$, $-5.1$ and $-2.8$ to $-1.8$, $-3.3$ and $-1.9$
+(mean $-2.3$, matched at epochs 40--50; committed $\le-1.5$, met), and the last ring is $3.0$ points below the default at matched fit. At
+every matched pair the higher-order head's trained-circuit Jacobian $J_c$ is lower (for example 1.70 against 3.02). Most of the
+last ring's cost at a fixed 80 epochs is thus slower optimization, while the default's mostly is not; three seeds and a logged,
+augmented-batch fit measure limit this comparison.
+
 \begin{table}[h]
 \centering
 \caption{Training dynamics (seed means, 3 seeds). $S$: saturated fraction; gap: probe accuracy

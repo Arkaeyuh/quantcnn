@@ -104,14 +104,11 @@ and two alternative encodings, one of which breaks the sign symmetry of
 $\cos(\pi\tanh z)$, recover at most 0.7 probe points.
 
 Higher-order circuits also fit their training data less well under the 80-epoch budget
-(clean training accuracy 96.6\% without CNOTs, 89.2\% for the default circuit and 65.6\% for a
-ring after the last layer), so part of the gap could be under-training. Doubling the budget
-to 160 epochs for the linear, default, ring-free and last-ring heads (CIFAR-10/4,000)
-raises every probe but keeps the ordering (\cref{tab:budget}). The default circuit then fits its training set nearly as well as
+(clean training accuracy 96.6\%, 89.2\% and 65.6\% at orders 1, 2.5 and 5.25), so part of the gap could be under-training. Doubling the budget
+to 160 epochs raises every probe but keeps the ordering (\cref{tab:budget}). The default circuit then fits its training set nearly as well as
 the ring-free and linear heads (98.8\% vs 99.9\%) and still probes $2.8\pm0.4$ points below
 the ring-free head and $3.1\pm0.3$ below the linear one (5 seeds, every seed negative). The
-last-ring circuit remains under-fit at 160 epochs (79.5\%), so its larger cost includes slower
-optimization.
+last-ring circuit remains under-fit at 160 epochs (79.5\%); at matched training accuracy rather than matched epochs (pre-registered, 3 seeds) its gap to the ring-free head shrinks from 12.7 to 2.7 points, every seed negative, the default's only from 3.6 to 2.3 (\cref{app:dynamics}).
 
 \subsection{A pretrained backbone, data size and training budget}
 \label{sec:pretrained}
@@ -130,8 +127,8 @@ $5.7\pm0.7$ and $7.2\pm2.1$ points at 1,000, 4,000 and 10,000 images, and the ri
 stays within 0.5 points of linear (seeds 0--2; \cref{tab:ptbudget}); re-selecting the learning
 rates gives similar costs, so the size dependence is largely, not wholly, a budget effect.
 
-High-order heads are unstable here (\cref{app:ptcontrols}); pre-registered tests keep the ordering (\cref{app:extensions}): seed by seed on SVHN, in 10-seed means with re-uploading and on
-MobileNetV3-Small (default $1.2\pm0.7$ below linear); some criteria miss.
+High-order heads are unstable here (\cref{app:ptcontrols}); pre-registered tests keep the order (\cref{app:extensions}): seed by seed on SVHN, in 10-seed means with re-uploading and on
+MobileNetV3-Small (default $1.2\pm0.7$ below linear), some criteria missing.
 
 \subsection{A signal-budget constraint and a saturation intervention}
 \label{sec:saturation}
@@ -145,7 +142,7 @@ Differentiating \cref{eq:identity} at zero rotations gives, for $j\in\Sk$,
   \label{eq:grad}
 \end{equation}
 so a coordinate's gradient is scaled by the cosines of the other coordinates in $\Sk$
-(\cref{prop:atten}) and by its own $\mathrm{sech}^2(z_j)$; removing the cross-factor part gives the default products no mean recovery ($-0.4\pm2.0$; \cref{tab:floor}). The mean squared gradient a readout returns is a sum of its inputs' own slopes times that attenuation (\cref{prop:gradbudget}); in pre-registered measurements over the 13 layouts both terms and the trained circuits' input Jacobian fall with order (Spearman $-0.94$ to $-0.95$; the ordering holds at 47 of 48 training checkpoints), and the Jacobian tracks probe accuracy ($0.96$). With independent factors, keeping a fixed magnitude limits a readout's inputs in the middle of the encoding, a signal budget:
+(\cref{prop:atten}) and by its own $\mathrm{sech}^2(z_j)$; removing the cross-factor part gives the default products no mean recovery ($-0.4\pm2.0$; \cref{tab:floor}). The mean squared gradient a readout returns is a sum of its inputs' own slopes times that attenuation (\cref{prop:gradbudget}); in pre-registered measurements over the 13 layouts both terms and the trained circuits' input Jacobian fall with order (Spearman $-0.94$ to $-0.95$; ordering kept at 47 of 48 checkpoints), and the Jacobian tracks probe accuracy ($0.96$). With independent factors, keeping a fixed magnitude limits a readout's inputs in the middle of the encoding, a signal budget:
 \begin{proposition}[Signal budget]\label{prop:budget}
 Let $r_k=\prod_{j\in\Sk}\cos\enc{j}$ with $|\Sk|=m$, $\enc{j}=\pi\tanh z_j$ and independent factors, and
 let $\mathbb{E}|r_k|\ge a>0$. Then some $j\in\Sk$ has
@@ -155,8 +152,7 @@ independence, every $j\in\Sk$ satisfies the bound with $a$ in place of $a^{1/m}$
 \end{proposition}
 As $m$ grows, $a^{1/m}\to1$ and the independence-based bound goes to zero. On the trained
 bottlenecks the middle-zone fraction ($0.1<|\tanh z|<0.9$) is 0.84, 0.63 and 0.46 at orders 1, 2.5
-and 5.25, and the lost mass goes to saturation (30--49\% of coordinates for the ring circuits, 1\%
-without CNOTs), which tracks probe accuracy across the 28 VQC configurations ($\rho=-0.91$; \cref{tab:geometry}).
+and 5.25, and the lost mass goes to saturation (30--49\% of coordinates; 1\% without CNOTs), which tracks probe accuracy across the 28 VQC configurations ($\rho=-0.91$; \cref{tab:geometry}).
 On these bottlenecks the products keep their magnitude (mean $\mathbb{E}|r_k|$ 0.61 to 0.44; no decoder
 compensation), but at these orders the bound is vacuous for $\delta=0.1$ and bounds no label information (\cref{app:compensation}).
 
